@@ -14,3 +14,6 @@ This custom BMS makes use of the ADBMS680B to provide cell voltage and temperatu
 This is an active repo that contains multiple cars. As a result, develpoment for a certain car happens under the `nfr(year)/` prefix. Following the `nfr(year)/(feature)` template.
 
 The final state of a given year is under `main-nfr(year)` made by branching off of main after competition for that year. For example, the code currently on nfr25 is under `main-nfr25`.
+
+## This Branch
+`nfr25/nfr26_maintenance` exists for the purpose of testing the nfr26 bms functionality on the nfr 25 hardware. 
