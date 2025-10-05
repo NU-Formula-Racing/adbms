@@ -2,6 +2,7 @@
 
 bms_can_ bms_can;
 
+
 void BMS_Initialize_Can(mainboard_ *mainboard)
 {
 	// Start CAN
@@ -50,6 +51,62 @@ void BMS_Initialize_Can(mainboard_ *mainboard)
 	bms_can.TxHeaderTemperatures_.DLC = 8;
 }
 
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+	// get message
+	HAL_StatusTypeDef can_rx_status = HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &bms_can.RxHeader_, bms_can.rxData_);
+
+	// error check
+	if (can_rx_status != HAL_OK)
+	{
+		printf("CAN RX Error");
+		return;
+	}
+
+	// Process the data
+
+	// ECU Message
+	if (bms_can.RxHeader_.StdId == 0x205)
+	{
+		// update ecu last msg time
+		bms_can.mainboard->ecu_last_msg_time = HAL_GetTick();
+
+		uint8_t ecu_close = bms_can.rxData_[0];
+		bms_can.mainboard->ECU_Cmd_Close_Contactors = !ecu_close; // ecu cmd 0 means close contactors
+
+		uint8_t ecu_precharge = bms_can.rxData_[1];
+		bms_can.mainboard->ECU_Cmd_Precharge = !ecu_precharge; // ecu cmd 0 means close contactors
+
+		uint8_t ecu_open = bms_can.rxData_[2];
+		bms_can.mainboard->ECU_Cmd_Open_Contactors = !ecu_open; // ecu cmd 0 means close contactors
+	}
+	
+
+	// Inverter Message
+	if (bms_can.RxHeader_.StdId == 0x281)
+	{
+		// update inverter last msg time
+		bms_can.mainboard->inverter_last_msg_time = HAL_GetTick();
+
+		uint16_t inverter_raw_voltage = (bms_can.rxData_[4] & 0xFF) | (bms_can.rxData_[5] << 8);
+		bms_can.mainboard->Inverter_DC_Voltage = ((float)inverter_raw_voltage) * 0.1;
+	}
+
+	// Charger Message
+	if (bms_can.RxHeader_.ExtId == 0x18FF50E5)
+	{
+		// update charger last msg time
+		bms_can.mainboard->charger_last_msg_time = HAL_GetTick();
+
+		// big endian
+		bms_can.mainboard->charger_status = bms_can.rxData_[4];
+		uint16_t charger_raw_voltage = (bms_can.rxData_[0] << 8) | (bms_can.rxData_[1] & 0xFF);
+		uint16_t charger_raw_current = (bms_can.rxData_[2] << 8) | (bms_can.rxData_[3] & 0xFF);
+		bms_can.mainboard->charger_voltage = ((float)charger_raw_voltage) * 0.1;
+		bms_can.mainboard->charger_current = ((float)charger_raw_current) * 0.1;
+	}
+}
+
 uint8_t send_can_messages(CAN_HandleTypeDef *hcan, CAN_TxHeaderTypeDef *TxHeader, uint8_t *data, uint32_t *TxMailBox)
 {
 	// send msg
@@ -63,6 +120,7 @@ uint8_t send_can_messages(CAN_HandleTypeDef *hcan, CAN_TxHeaderTypeDef *TxHeader
 	}
 	return 0;
 }
+
 
 void drive_can_loop()
 {

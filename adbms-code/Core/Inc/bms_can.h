@@ -35,6 +35,8 @@ typedef struct
 	uint8_t txDataTemperatures_[8];
 } bms_can_;
 
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan);
+
 void BMS_Initialize_Can(mainboard_ *mainboard);
 
 uint8_t send_can_messages(CAN_HandleTypeDef *hcan, CAN_TxHeaderTypeDef *TxHeader, uint8_t *data, uint32_t *TxMailBox);

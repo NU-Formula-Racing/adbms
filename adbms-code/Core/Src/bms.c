@@ -39,6 +39,20 @@ void bms_mainboard_loop()
 {
 	UpdateValues();
 	CheckFaults();
+	if (mainboard.ECU_Cmd_Open_Contactors == 1){
+		HAL_GPIO_WritePin(GPIOA, Contactor_N_Ctrl_GPIO_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOA, Contactor_P_Ctrl_GPIO_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOA, Contactor_Pre_Ctxrl_GPIO_Pin, GPIO_PIN_RESET);
+	}
+	else if (mainboard.ECU_Cmd_Precharge == 1){
+		HAL_GPIO_WritePin(GPIOA, Contactor_P_Ctrl_GPIO_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOA, Contactor_Pre_Ctrl_GPIO_Pin, GPIO_PIN_SET);
+	}
+	else if (mainboard.ECU_Cmd_Precharge == 1){
+		HAL_GPIO_WritePin(GPIOA, Contactor_Pre_Ctrl_GPIO_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOA, Contactor_P_Ctrl_GPIO_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOA, Contactor_N_Ctrl_GPIO_Pin, GPIO_PIN_SET);
+	}
 }
 
 // Seprate loop that gets ticked to run OWC

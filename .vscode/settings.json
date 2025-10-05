@@ -13,12 +13,14 @@
         "bms_system_prams.h": "c",
         "bms_can.h": "c",
         "nfr_can_driver.h": "c",
-        "stm32f4xx_hal.h": "c"
+        "stm32f4xx_hal.h": "c",
+        "bms_main_struct.h": "c"
     },
     "github.copilot.enable": {
         "*": false,
         "plaintext": false,
         "markdown": false,
         "scminput": false
-    }
+    },
+    "idf.pythonInstallPath": "/opt/miniconda3/bin/python"
 }
