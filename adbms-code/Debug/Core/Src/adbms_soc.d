@@ -1,6 +1,6 @@
-Core/Src/bms.o: ../Core/Src/bms.c ../Core/Inc/bms.h \
- ../Core/Inc/bms_main_struct.h ../Core/Inc/adbms_interface.h \
- ../Core/Inc/adbms_driver.h \
+Core/Src/adbms_soc.o: ../Core/Src/adbms_soc.c ../Core/Inc/adbms_soc.h \
+ ../Core/Inc/bms.h ../Core/Inc/bms_main_struct.h \
+ ../Core/Inc/adbms_interface.h ../Core/Inc/adbms_driver.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
  ../Core/Inc/stm32f4xx_hal_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
@@ -49,9 +49,8 @@ Core/Src/bms.o: ../Core/Src/bms.c ../Core/Inc/bms.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_core.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h \
- ../Core/Inc/main.h ../Core/Inc/bms_can.h ../Core/Inc/nfr_can_driver.h \
- ../Core/Inc/adbms_soc.h ../Core/Inc/bms.h ../Core/Src/control.c \
- ../Core/Inc/control.h
+ ../Core/Inc/main.h ../Core/Inc/bms_can.h ../Core/Inc/nfr_can_driver.h
+../Core/Inc/adbms_soc.h:
 ../Core/Inc/bms.h:
 ../Core/Inc/bms_main_struct.h:
 ../Core/Inc/adbms_interface.h:
@@ -111,7 +110,3 @@ Core/Src/bms.o: ../Core/Src/bms.c ../Core/Inc/bms.h \
 ../Core/Inc/main.h:
 ../Core/Inc/bms_can.h:
 ../Core/Inc/nfr_can_driver.h:
-../Core/Inc/adbms_soc.h:
-../Core/Inc/bms.h:
-../Core/Src/control.c:
-../Core/Inc/control.h:

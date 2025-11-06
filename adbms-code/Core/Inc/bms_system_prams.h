@@ -44,14 +44,41 @@
 #define NUM_TIMERS 4    // will break if this is changed. This will be replaced by RTOS
 #define NUM_CURRENT_OFFSET_CYCLES 10
 
+#define INVERTER_VOLTAGE_THRESHOLD 0.9 
+#define CHARGER_VOLTAGE_THRESHOLD 0.75 
+
+// CAN TIMEOUTS (ms)
+#define ECU_CAN_TIMEOUT 5000
+#define INVERTER_CAN_TIMEOUT 5000
+#define CHARGER_CAN_TIMEOUT 5000
+
+//for SOC calculations
+#define CELL_CAPACITY 4.5
+#define PARALLEL 3
+#define SYSTEM_CAPACITY (CELL_CAPACITY * PARALLEL)
+
 // ENUMERATES
-enum fsm_states
+enum bms_states
 {
 	Idle = 0,
 	Precharge = 1,
 	Active = 2,
 	Charge = 3,
 	Fault = 4
+};
+
+enum ECU_commands
+{
+	waiting = 0,
+	go_to_idle = 1,
+	go_to_active = 2,
+};
+
+enum Charging_states
+{
+	charger_setup = 0,
+	charger_precharge = 1,
+	charger_active = 2,
 };
 
 #endif // AD_SYSTEM_PARAMS_H

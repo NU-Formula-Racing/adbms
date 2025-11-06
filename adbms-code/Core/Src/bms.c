@@ -1,5 +1,6 @@
 #include "bms.h"
 
+
 mainboard_ mainboard;
 
 void bms_mainbaord_setup(SPI_HandleTypeDef *hspi, ADC_HandleTypeDef *hadc, CAN_HandleTypeDef *hcan1, CAN_HandleTypeDef *hcan2)
@@ -18,15 +19,21 @@ void bms_mainbaord_setup(SPI_HandleTypeDef *hspi, ADC_HandleTypeDef *hadc, CAN_H
 	// initialize CAN;
 	BMS_Initialize_Can(&mainboard);
 
+	// initialize SOC
+	soc_initialize(&mainboard);
+
 	// initialize the timers: adbms_mainboard_loop, drive_can, data_can
 	timer_ t_adbms = CreateTimer(500, bms_mainboard_loop);
 	timer_ t_adbms_owc_check = CreateTimer(30000, adbms_owc_loop);
-	timer_ t_drive_can = CreateTimer(100, drive_can_loop);
-	timer_ t_data_can = CreateTimer(1000, data_can_loop);
-	timer_ timers[NUM_TIMERS] = {t_adbms, t_adbms_owc_check, t_drive_can, t_data_can};
+	timer_ timers[NUM_TIMERS] = {t_adbms, t_adbms_owc_check};
 	mainboard.tg = CreateTimerGroup(timers);
 
 	mainboard.start_time = HAL_GetTick();
+
+	//initial states
+	mainboard.charging_state == charger_setup;
+	mainboard.state == Idle;
+	mainboard.vcu_command == waiting;
 }
 
 void tick_mainboard_timers()
@@ -39,24 +46,15 @@ void bms_mainboard_loop()
 {
 	UpdateValues();
 	CheckFaults();
-	if (mainboard.ECU_Cmd_Open_Contactors == 1){
-		HAL_GPIO_WritePin(GPIOA, Contactor_N_Ctrl_GPIO_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOA, Contactor_P_Ctrl_GPIO_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOA, Contactor_Pre_Ctxrl_GPIO_Pin, GPIO_PIN_RESET);
-	}
-	else if (mainboard.ECU_Cmd_Precharge == 1){
-		HAL_GPIO_WritePin(GPIOA, Contactor_P_Ctrl_GPIO_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOA, Contactor_Pre_Ctrl_GPIO_Pin, GPIO_PIN_SET);
-	}
-	else if (mainboard.ECU_Cmd_Precharge == 1){
-		HAL_GPIO_WritePin(GPIOA, Contactor_Pre_Ctrl_GPIO_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOA, Contactor_P_Ctrl_GPIO_Pin, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOA, Contactor_N_Ctrl_GPIO_Pin, GPIO_PIN_SET);
-	}
+	control_loop(&mainboard);
+	drive_can_loop();
 }
 
 // Seprate loop that gets ticked to run OWC
-void adbms_owc_loop(){ UpdateOWCFault(&mainboard.adbms); }
+void adbms_owc_loop()
+{ 
+	UpdateOWCFault(&mainboard.adbms); 
+}
 
 void UpdateValues()
 {
@@ -71,8 +69,10 @@ void UpdateValues()
 	mainboard.shutdown_present = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1); 	   // shutdown status
 	mainboard.imd_status = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_8);			   // IMD_Status
 	mainboard.comms_6822_state = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_15);	   // 6822_State
-	mainboard.charger_pin = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_7);		   // Charger_Pin
 
+	//soc
+	soc_update(&mainboard);
+	
 	// get current
 	mainboard.current = getCurrent(mainboard.hadc) - mainboard.current_offset;
 	mainboard.overcurrent_fault = mainboard.current > OVERCURRENT;
@@ -98,9 +98,31 @@ void CheckFaults()
 	// write BMS_Status - healthy is high
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, !mainboard.bms_fault);
 
+	//include TSSI
 
 	// set external faults
-	mainboard.external_fault = !mainboard.shutdown_present;
+	// timeouts
+	if (mainboard.state == Charge)
+	{
+		// In charge states only check for charger timeout
+		float charger_time_since_msg = HAL_GetTick() - mainboard.charger_messege->last_msg_time;
+		mainboard.charger_messege->fault = charger_time_since_msg > CHARGER_CAN_TIMEOUT;
+
+		mainboard.timeout_fault = mainboard.charger_messege->fault;
+	}
+	else
+	{
+		// In non-charge states (i.e. in the car) only check for inverter and ecu timeouts
+		float ecu_time_since_msg = HAL_GetTick() - mainboard.ecu_messege->last_msg_time;
+		mainboard.ecu_messege->last_msg_time = ecu_time_since_msg > ECU_CAN_TIMEOUT;
+
+		float inverter_time_since_msg = HAL_GetTick() - mainboard.inverter_messege->last_msg_time;
+		mainboard.inverter_messege->last_msg_time = inverter_time_since_msg > INVERTER_CAN_TIMEOUT;
+
+		mainboard.timeout_fault = mainboard.ecu_messege->fault || mainboard.inverter_messege->fault;
+	}
+
+	mainboard.external_fault = !mainboard.shutdown_present || mainboard.timeout_fault;
 
 	// Turns on external LED if external fault
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, mainboard.external_fault);

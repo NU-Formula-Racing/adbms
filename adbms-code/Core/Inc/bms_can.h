@@ -43,7 +43,7 @@ uint8_t send_can_messages(CAN_HandleTypeDef *hcan, CAN_TxHeaderTypeDef *TxHeader
 
 // CAN Loops
 void drive_can_loop();
-void data_can_loop();
+//void data_can_loop();
 
 void populateBMS_SOC(uint8_t *data);
 void populateBMS_Faults(uint8_t *data);

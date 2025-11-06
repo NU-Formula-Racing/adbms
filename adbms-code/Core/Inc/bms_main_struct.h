@@ -9,6 +9,7 @@
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
 #include "main.h"
+#include "control.h"
 
 
 typedef struct
@@ -37,29 +38,41 @@ typedef struct
 	// external values
 	bool shutdown_present;
 	bool imd_status;
-	bool ECU_Cmd_Close_Contactors;
-	bool ECU_Cmd_Open_Contactors;
-	bool ECU_Cmd_Precharge;
 	float Inverter_DC_Voltage;
+	enum ECU_commands ecu_command;
 
+	//Last ECU command was valid
+	bool ecu_valid_command;
+	
 	// chrager
-	bool charger_pin;
-	bool charger_enable;
 	bool charger_status;
 	float charger_voltage;
 	float charger_current;
 
+	// soc
+	float soc;
+	float dcir;
+	float max_discharge_current;
+	float prev_time;
+
 	// timeouts
 	bool timeout_fault;
-	float ecu_last_msg_time;
-	bool ecu_timeout_fault_;
-	float inverter_last_msg_time;
-	bool inverter_timeout_fault;
-	float charger_last_msg_time;
-	bool charger_timeout_fault;
+	messege_condition ecu_messege;
+	messege_condition inverter_messege;
+	messege_condition charger_messege;
 
 	bool comms_6822_state;
 	uint32_t start_time;
+	enum bms_states state;
+	enum Charging_states charging_state;
+	
 } mainboard_;
+
+typedef struct
+{
+	float last_msg_time;
+	bool fault;
+}messege_condition;
+
 
 #endif // ADBMS_MAIN_STRUCT_H

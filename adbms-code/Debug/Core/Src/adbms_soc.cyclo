@@ -1,0 +1,2 @@
+../Core/Src/adbms_soc.c:3:6:soc_initialize	1
+../Core/Src/adbms_soc.c:14:6:soc_update	1
