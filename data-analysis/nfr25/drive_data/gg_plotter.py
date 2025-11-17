@@ -27,7 +27,7 @@ def gg_plotter (a_x, a_y):
     ax.set_aspect('equal', 'box')
     plt.show(fig)
 
-def gg_animation (a_x, a_y, fps, output_file='gg.mp4', display=False):
+def gg_animation (a_x, a_y, fps, output_file='gg.mp4', display_vid=False):
     frame_size = 600
     half_frame = frame_size // 2
     scale = 100  # pixels per g
@@ -73,7 +73,7 @@ def gg_animation (a_x, a_y, fps, output_file='gg.mp4', display=False):
 
         # Plot the point
         px = int(a_x.iloc[i] * scale + half_frame)
-        py = int(a_y.iloc[i] * scale + half_frame)
+        py = int(-1 * a_y.iloc[i] * scale + half_frame)
         cv2.circle(frame, (px, py), 5, (0,0,255), -1)
 
         # Write frame to video
@@ -81,5 +81,5 @@ def gg_animation (a_x, a_y, fps, output_file='gg.mp4', display=False):
         
     cv2.destroyAllWindows()
     gg.release()
-    if display:
+    if display_vid:
         display(Video(output_file, embed=True, width=frame_size, height=frame_size))
