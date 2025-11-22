@@ -27,7 +27,7 @@ def gg_plotter (a_x, a_y):
     ax.set_aspect('equal', 'box')
     plt.show(fig)
 
-def gg_animation (a_x, a_y, fps, output_file='gg.mp4', display_vid=False):
+def gg_animation(a_x, a_y, fps, output_file='gg.mp4', display_vid=False, history_len=0):
     frame_size = 600
     half_frame = frame_size // 2
     scale = 100  # pixels per g
@@ -46,40 +46,64 @@ def gg_animation (a_x, a_y, fps, output_file='gg.mp4', display_vid=False):
     font_color = (0, 0, 0)
     thickness = 1
 
+    # History buffer
+    history = []
+
     for i in range(len(a_x)):
-        # Blank white background
         frame = np.ones((frame_size, frame_size, 3), dtype=np.uint8) * 255
 
-        # Draw axes
+        # --- Draw axes ---
         cv2.line(frame, (0, half_frame), (frame_size, half_frame), (0,0,0), 1)
         cv2.line(frame, (half_frame, 0), (half_frame, frame_size), (0,0,0), 1)
 
-        # Draw axis labels
         cv2.putText(frame, 'X (g)', (frame_size-50, half_frame-5), font, font_scale, font_color, thickness)
         cv2.putText(frame, 'Y (g)', (half_frame+5, 15), font, font_scale, font_color, thickness)
 
-        # Draw concentric circles and their magnitude labels
+        # --- Draw circles ---
         for r, x_circle, y_circle in circle_coords:
             pts = np.vstack([
                 (x_circle * scale + half_frame).astype(np.int32),
                 (-y_circle * scale + half_frame).astype(np.int32)
             ]).T
             pts = pts.reshape((-1,1,2))
-            cv2.polylines(frame, [pts], isClosed=True, color=(200,200,200), thickness=1)
+            cv2.polylines(frame, [pts], True, (200,200,200), 1)
 
-            # Label at positive X-axis
             label_pos = (int(half_frame + r * scale) + 5, half_frame - 5)
             cv2.putText(frame, f'{r:.1f}', label_pos, font, font_scale, font_color, thickness)
 
-        # Plot the point
+        # --- Current point ---
         px = int(a_x.iloc[i] * scale + half_frame)
         py = int(-1 * a_y.iloc[i] * scale + half_frame)
+
+        if history_len > 0:
+            # Add to history
+            history.append((px, py))
+            if len(history) > history_len:
+                history.pop(0)
+
+            # --- Draw fading history line ---
+            for h_index in range(1, len(history)):
+                x1, y1 = history[h_index - 1]
+                x2, y2 = history[h_index]
+
+                # Fade older points more
+                alpha = h_index / len(history)     # 0→old, 1→new
+                color = (0, 0, int(255*alpha))
+
+                # Draw on a temporary layer to blend
+                tmp = frame.copy()
+                cv2.line(tmp, (x1, y1), (x2, y2), color, 2)
+
+                # Blend with original frame
+                frame = cv2.addWeighted(tmp, alpha, frame, 1-alpha, 0)
+
+        # --- Draw current dot (non-faded) ---
         cv2.circle(frame, (px, py), 5, (0,0,255), -1)
 
-        # Write frame to video
         gg.write(frame)
-        
+
     cv2.destroyAllWindows()
     gg.release()
+
     if display_vid:
         display(Video(output_file, embed=True, width=frame_size, height=frame_size))
