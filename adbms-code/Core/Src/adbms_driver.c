@@ -1,5 +1,7 @@
 #include "adbms_driver.h"
 
+//change
+
 /* Precomputed CRC15 Table */
 const uint16_t Crc15Table[256] =
 {

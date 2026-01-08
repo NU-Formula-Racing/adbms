@@ -39,9 +39,10 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../USB_DEVICE/Target/usbd_conf.h ../Core/Inc/bms.h \
  ../Core/Inc/bms_main_struct.h ../Core/Inc/adbms_interface.h \
  ../Core/Inc/adbms_driver.h ../Core/Inc/adbms_cmd.h \
- ../Core/Inc/bms_system_prams.h ../Core/Inc/thermistor_driver.h \
- ../Core/Inc/current_driver.h ../Core/Inc/virtual_timer.h \
- ../Core/Inc/stm32f4xx_it.h ../USB_DEVICE/App/usbd_cdc_if.h \
+ ../Core/Inc/adbms2950_cmd.h ../Core/Inc/bms_system_prams.h \
+ ../Core/Inc/thermistor_driver.h ../Core/Inc/current_driver.h \
+ ../Core/Inc/virtual_timer.h ../Core/Inc/stm32f4xx_it.h \
+ ../USB_DEVICE/App/usbd_cdc_if.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc/usbd_cdc.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h \
@@ -94,6 +95,7 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
 ../Core/Inc/adbms_interface.h:
 ../Core/Inc/adbms_driver.h:
 ../Core/Inc/adbms_cmd.h:
+../Core/Inc/adbms2950_cmd.h:
 ../Core/Inc/bms_system_prams.h:
 ../Core/Inc/thermistor_driver.h:
 ../Core/Inc/current_driver.h:
