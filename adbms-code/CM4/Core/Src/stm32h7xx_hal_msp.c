@@ -77,62 +77,6 @@ void HAL_MspInit(void)
 }
 
 /**
-  * @brief SD MSP Initialization
-  * This function configures the hardware resources used in this example
-  * @param hsd: SD handle pointer
-  * @retval None
-  */
-void HAL_SD_MspInit(SD_HandleTypeDef* hsd)
-{
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
-  if(hsd->Instance==SDMMC1)
-  {
-    /* USER CODE BEGIN SDMMC1_MspInit 0 */
-
-    /* USER CODE END SDMMC1_MspInit 0 */
-
-  /** Initializes the peripherals clock
-  */
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_SDMMC;
-    PeriphClkInitStruct.SdmmcClockSelection = RCC_SDMMCCLKSOURCE_PLL;
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    /* Peripheral clock enable */
-    __HAL_RCC_SDMMC1_CLK_ENABLE();
-    /* USER CODE BEGIN SDMMC1_MspInit 1 */
-
-    /* USER CODE END SDMMC1_MspInit 1 */
-
-  }
-
-}
-
-/**
-  * @brief SD MSP De-Initialization
-  * This function freeze the hardware resources used in this example
-  * @param hsd: SD handle pointer
-  * @retval None
-  */
-void HAL_SD_MspDeInit(SD_HandleTypeDef* hsd)
-{
-  if(hsd->Instance==SDMMC1)
-  {
-    /* USER CODE BEGIN SDMMC1_MspDeInit 0 */
-
-    /* USER CODE END SDMMC1_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_SDMMC1_CLK_DISABLE();
-    /* USER CODE BEGIN SDMMC1_MspDeInit 1 */
-
-    /* USER CODE END SDMMC1_MspDeInit 1 */
-  }
-
-}
-
-/**
   * @brief SPI MSP Initialization
   * This function configures the hardware resources used in this example
   * @param hspi: SPI handle pointer

@@ -18,11 +18,24 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "fatfs.h"
 #include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+
+int _write(int le, char *ptr, int len)
+{
+	int DataIdx;
+	for(DataIdx = 0; DataIdx < len; DataIdx++)
+	{
+		ITM_SendChar(*ptr++);
+	}
+	return len;
+}
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,7 +74,9 @@ SD_HandleTypeDef hsd1;
 SPI_HandleTypeDef hspi1;
 
 /* USER CODE BEGIN PV */
-
+FATFS fs;    // File system object
+FIL fil;     // File object
+FRESULT fres; // Result code
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -77,7 +92,51 @@ static void MX_FDCAN1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void SD_Log_String(char* data)
+{
+    // Mount the SD Card
+    fres = f_mount(&fs, "", 1); //The "" forces it to use the default drive The 1 forces it to mount immediately
+    if (fres == FR_OK) {
+        printf("Mount Success!\n");
+    } else if (fres == FR_NOT_READY) { // Error 3
+        printf("Error: SD Card not detected (Check CD pin or connections)\n");
+        return;
+    } else if (fres == FR_DISK_ERR) { // Error 1
+        printf("Error: Low Level Hardware Error (Check ClockDiv or MPU)\n");
+        return;
+    } else if (fres == FR_NO_FILESYSTEM)  { // Error 13
+        printf("Error: Card needs FAT32 formatting\n");
+        return;
+    } else {
+        printf("Mount Error: %d\n", fres);
+        return;
+    }
 
+    // Open the file
+    // Opens the file if it exists, or creates a new one.
+    // FA_WRITE: Opens for writing
+    // FA_OPEN_APPEND: Move to the end of the file (so we don't overwrite old data)
+    fres = f_open(&fil, "data.txt", FA_WRITE | FA_OPEN_ALWAYS | FA_OPEN_APPEND);
+    if (fres != FR_OK) {
+        printf("SD File Open Error: %d\r\n", fres);
+    } else {
+        //Write buffer to the file
+        UINT bytesWrote;
+        fres = f_write(&fil, data, strlen(data), &bytesWrote);
+
+        if (fres == FR_OK) {
+            printf("SD Wrote: %s", data); // Print what was logged
+        } else {
+            printf("SD Write Error: %d\r\n", fres);
+        }
+
+        //Close file
+        f_close(&fil);
+    }
+
+    //Unmount, maybe not needed
+    f_mount(NULL, "", 0);
+}
 /* USER CODE END 0 */
 
 /**
@@ -151,8 +210,63 @@ Error_Handler();
   MX_SPI1_Init();
   MX_USB_DEVICE_Init();
   MX_FDCAN1_Init();
+  MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
+  FDCAN_TxHeaderTypeDef TxTestHeader;
+  uint8_t TxData[8] = {0x01, 0xAA, 0xBB, 0xFF, 0x11, 0x22, 0x33, 0x44}; //random data
 
+  // Configure the CAN Header
+  TxTestHeader.Identifier = 0x123;
+  TxTestHeader.IdType = FDCAN_STANDARD_ID;
+  TxTestHeader.TxFrameType = FDCAN_DATA_FRAME;
+  TxTestHeader.DataLength = FDCAN_DLC_BYTES_8;
+  TxTestHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+  TxTestHeader.BitRateSwitch = FDCAN_BRS_OFF;
+  TxTestHeader.FDFormat = FDCAN_CLASSIC_CAN;
+  TxTestHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+  TxTestHeader.MessageMarker = 0;
+
+
+  // Rx Filter to for ID 0x321
+  FDCAN_FilterTypeDef sFilterConfig;
+  sFilterConfig.IdType = FDCAN_STANDARD_ID;
+  sFilterConfig.FilterIndex = 0;
+  sFilterConfig.FilterType = FDCAN_FILTER_MASK;
+  sFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+  sFilterConfig.FilterID1 = 0x321;
+  sFilterConfig.FilterID2 = 0x7FF;
+
+  if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+  HAL_FDCAN_ConfigGlobalFilter(&hfdcan1, FDCAN_REJECT, FDCAN_REJECT, FDCAN_FILTER_REMOTE, FDCAN_FILTER_REMOTE);
+
+
+  if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK)
+  {
+	  Error_Handler();
+  }
+
+  printf("\n\n\n\n-------\nStarting\n");
+
+  printf("SD Card Information:\n");
+  printf("Block size  : %lu\n", hsd1.SdCard.BlockSize);
+  printf("Block nmbr  : %lu\n", hsd1.SdCard.BlockNbr);
+  printf("Card size   : %lu\n", (hsd1.SdCard.BlockSize * hsd1.SdCard.BlockNbr) / 1000);
+  printf("Card version: %lu\n", hsd1.SdCard.CardVersion);
+
+  for (int i=0; i<10; i++ ){
+	  // Create a buffer for the string
+	  char sd_buffer[100];
+
+	  // Write to buffer
+	  sprintf(sd_buffer, "Random Data %d\n", i);
+
+	  // Write it to SD
+	  SD_Log_String(sd_buffer);
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -163,43 +277,83 @@ Error_Handler();
 
     /* USER CODE BEGIN 3 */
 
+
 	  //TSSI logic
-	  if (HAL_GPIO_ReadPin(GPIOD, IMD_STATUS_IN_Pin) == GPIO_PIN_SET)
-	  {
-		  HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin, GPIO_PIN_SET);
-		  HAL_GPIO_WritePin(GPIOB, TSSI_R_Pin, GPIO_PIN_RESET);
-	  }
-	  else
-	  {
-		  HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin, GPIO_PIN_RESET);
-		  HAL_GPIO_WritePin(GPIOB, TSSI_R_Pin, GPIO_PIN_SET);
-	  }
+//	  if (HAL_GPIO_ReadPin(GPIOD, IMD_STATUS_IN_Pin) == GPIO_PIN_SET)
+//	  {
+//		  HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin, GPIO_PIN_SET);
+//		  //HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin, GPIO_PIN_RESET);
+//	  }
+//	  else
+//	  {
+//		  HAL_GPIO_WritePin(GPIOB, TSSI_R_Pin, GPIO_PIN_SET);
+//		  //HAL_GPIO_WritePin(GPIOB, TSSI_R_Pin, GPIO_PIN_RESET);
+//	  }
+
 
 	  //Cycle LEDs
-	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_1_Pin, GPIO_PIN_SET);
-	  HAL_Delay(100);
-	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_1_Pin, GPIO_PIN_RESET);
-
-	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_2_Pin, GPIO_PIN_SET);
-	  HAL_Delay(100);
-	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_2_Pin, GPIO_PIN_RESET);
-
-	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_3_Pin, GPIO_PIN_SET);
-	  HAL_Delay(100);
-	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_3_Pin, GPIO_PIN_RESET);
+//	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_1_Pin, GPIO_PIN_SET);
+//	  HAL_Delay(100);
+//	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_1_Pin, GPIO_PIN_RESET);
+//
+//	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_2_Pin, GPIO_PIN_SET);
+//	  HAL_Delay(100);
+//	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_2_Pin, GPIO_PIN_RESET);
+//
+//	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_3_Pin, GPIO_PIN_SET);
+//	  HAL_Delay(100);
+//	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_3_Pin, GPIO_PIN_RESET);
 
 	  //Cycle Contactors
-	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_SET);
-	  HAL_Delay(100);
-	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
+//	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_SET);
+//	  HAL_Delay(100);
+//	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
+//
+//	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_SET);
+//	  HAL_Delay(100);
+//	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
+//
+//	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_SET);
+//	  HAL_Delay(100);
+//	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
 
-	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_SET);
-	  HAL_Delay(100);
-	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
+	  // check rx-
+	  if (HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1, FDCAN_RX_FIFO0) > 0)
+	  {
+		  FDCAN_RxHeaderTypeDef RxHeader;
+		  uint8_t RxData[8];
 
-	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_SET);
-	  HAL_Delay(100);
-	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
+		  // Retrieve the message
+		  if (HAL_FDCAN_GetRxMessage(&hfdcan1, FDCAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK)
+		  {
+			  // Verify ID
+			  if (RxHeader.Identifier == 0x321)
+			  {
+				  //Found
+				  HAL_GPIO_TogglePin(GPIOE, GPIO_LED_1_Pin);
+				  HAL_GPIO_TogglePin(GPIOE, GPIO_LED_2_Pin);
+				  HAL_GPIO_TogglePin(GPIOE, GPIO_LED_3_Pin);
+				  printf("Byte 0: %X\n", RxData[0]);
+				  printf("Byte 1: %X\n", RxData[1]);
+				  printf("Byte 2: %X\n", RxData[2]);
+				  printf("Byte 3: %X\n", RxData[3]);
+				  printf("Byte 4: %X\n", RxData[4]);
+				  printf("Byte 5: %X\n", RxData[5]);
+				  printf("Byte 6: %X\n", RxData[6]);
+				  printf("Byte 7: %X\n", RxData[7]);
+
+			  }
+		  }
+	  }
+
+	  //Increment data to see change every cycle
+	  TxData[0]++;
+	  // Add message to the TX FIFO Queue
+	  if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxTestHeader, TxData) != HAL_OK)
+	  	  {
+		  	  Error_Handler();
+	  	  }
+
 
 	  printf("Print test\n");
 	  HAL_Delay(1000);
@@ -237,13 +391,13 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 10;
+  RCC_OscInitStruct.PLL.PLLN = 9;
   RCC_OscInitStruct.PLL.PLLP = 2;
-  RCC_OscInitStruct.PLL.PLLQ = 2;
+  RCC_OscInitStruct.PLL.PLLQ = 3;
   RCC_OscInitStruct.PLL.PLLR = 2;
   RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_3;
   RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOMEDIUM;
-  RCC_OscInitStruct.PLL.PLLFRACN = 0;
+  RCC_OscInitStruct.PLL.PLLFRACN = 3072;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -256,13 +410,13 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_D3PCLK1|RCC_CLOCKTYPE_D1PCLK1;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV2;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV2;
-  RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV1;
+  RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
   {
     Error_Handler();
   }
@@ -289,18 +443,18 @@ static void MX_FDCAN1_Init(void)
   hfdcan1.Init.AutoRetransmission = DISABLE;
   hfdcan1.Init.TransmitPause = DISABLE;
   hfdcan1.Init.ProtocolException = DISABLE;
-  hfdcan1.Init.NominalPrescaler = 16;
-  hfdcan1.Init.NominalSyncJumpWidth = 1;
-  hfdcan1.Init.NominalTimeSeg1 = 1;
+  hfdcan1.Init.NominalPrescaler = 10;
+  hfdcan1.Init.NominalSyncJumpWidth = 8;
+  hfdcan1.Init.NominalTimeSeg1 = 8;
   hfdcan1.Init.NominalTimeSeg2 = 1;
-  hfdcan1.Init.DataPrescaler = 1;
-  hfdcan1.Init.DataSyncJumpWidth = 1;
-  hfdcan1.Init.DataTimeSeg1 = 1;
+  hfdcan1.Init.DataPrescaler = 10;
+  hfdcan1.Init.DataSyncJumpWidth = 8;
+  hfdcan1.Init.DataTimeSeg1 = 8;
   hfdcan1.Init.DataTimeSeg2 = 1;
   hfdcan1.Init.MessageRAMOffset = 0;
-  hfdcan1.Init.StdFiltersNbr = 0;
+  hfdcan1.Init.StdFiltersNbr = 20;
   hfdcan1.Init.ExtFiltersNbr = 0;
-  hfdcan1.Init.RxFifo0ElmtsNbr = 0;
+  hfdcan1.Init.RxFifo0ElmtsNbr = 32;
   hfdcan1.Init.RxFifo0ElmtSize = FDCAN_DATA_BYTES_8;
   hfdcan1.Init.RxFifo1ElmtsNbr = 0;
   hfdcan1.Init.RxFifo1ElmtSize = FDCAN_DATA_BYTES_8;
@@ -341,7 +495,7 @@ static void MX_SDMMC1_SD_Init(void)
   hsd1.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
   hsd1.Init.BusWide = SDMMC_BUS_WIDE_4B;
   hsd1.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
-  hsd1.Init.ClockDiv = 0;
+  hsd1.Init.ClockDiv = 10;
   if (HAL_SD_Init(&hsd1) != HAL_OK)
   {
     Error_Handler();
@@ -435,7 +589,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin : SD_CARD_DETECT_Pin */
   GPIO_InitStruct.Pin = SD_CARD_DETECT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(SD_CARD_DETECT_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : SPI_CSB_Pin */
