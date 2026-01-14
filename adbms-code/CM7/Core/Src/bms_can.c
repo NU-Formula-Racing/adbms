@@ -23,37 +23,62 @@ void BMS_Initialize_Can(mainboard_ *mainboard)
     bms_can.TxHeaderSOC_.FDFormat = FDCAN_CLASSIC_CAN;
     bms_can.TxHeaderSOC_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
     bms_can.TxHeaderSOC_.MessageMarker = 0;
-    
 
 	// Faults header initialization
-	bms_can.TxHeaderFaults_.StdId = 0x151;
-	bms_can.TxHeaderFaults_.IDE = CAN_ID_STD;
-	bms_can.TxHeaderFaults_.RTR = CAN_RTR_DATA;
-	bms_can.TxHeaderFaults_.DLC = 8;
+	bms_can.TxHeaderFaults_.Identifier = FAULT_ID;
+	bms_can.TxHeaderFaults_.IdType = FDCAN_STANDARD_ID;
+	bms_can.TxHeaderFaults_.TxFrameType = FDCAN_DATA_FRAME;
+	bms_can.TxHeaderFaults_.DataLength = FDCAN_DLC_BYTES_8;
+  	bms_can.TxHeaderFaults_.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+ 	bms_can.TxHeaderFaults_.BitRateSwitch = FDCAN_BRS_OFF;
+   	bms_can.TxHeaderFaults_.FDFormat = FDCAN_CLASSIC_CAN;
+   	bms_can.TxHeaderFaults_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+ 	bms_can.TxHeaderFaults_.MessageMarker = 0;
 
 	// Status header initialization
-	bms_can.TxHeaderStatus_.StdId = 0x152;
-	bms_can.TxHeaderStatus_.IDE = CAN_ID_STD;
-	bms_can.TxHeaderStatus_.RTR = CAN_RTR_DATA;
-	bms_can.TxHeaderStatus_.DLC = 8;
+	bms_can.TxHeaderStatus_.Identifier = STATUS_ID;
+    bms_can.TxHeaderStatus_.IdType = FDCAN_STANDARD_ID;
+    bms_can.TxHeaderStatus_.TxFrameType = FDCAN_DATA_FRAME;
+    bms_can.TxHeaderStatus_.DataLength = FDCAN_DLC_BYTES_8;
+    bms_can.TxHeaderStatus_.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+    bms_can.TxHeaderStatus_.BitRateSwitch = FDCAN_BRS_OFF;
+    bms_can.TxHeaderStatus_.FDFormat = FDCAN_CLASSIC_CAN;
+    bms_can.TxHeaderStatus_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+    bms_can.TxHeaderStatus_.MessageMarker = 0;
 
 	// Charger header initialization
-	bms_can.TxHeaderCharger_.ExtId = 0x1806E5F4;
-	bms_can.TxHeaderCharger_.IDE = CAN_ID_EXT;
-	bms_can.TxHeaderCharger_.RTR = CAN_RTR_DATA;
-	bms_can.TxHeaderCharger_.DLC = 8;
+	bms_can.TxHeaderCharger_.Identifier = CHARGER_ID;
+    bms_can.TxHeaderCharger_.IdType = FDCAN_STANDARD_ID;
+    bms_can.TxHeaderCharger_.TxFrameType = FDCAN_DATA_FRAME;
+    bms_can.TxHeaderCharger_.DataLength = FDCAN_DLC_BYTES_8;
+    bms_can.TxHeaderCharger_.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+    bms_can.TxHeaderCharger_.BitRateSwitch = FDCAN_BRS_OFF;
+    bms_can.TxHeaderCharger_.FDFormat = FDCAN_CLASSIC_CAN;
+    bms_can.TxHeaderCharger_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+    bms_can.TxHeaderCharger_.MessageMarker = 0;
 
 	// Voltages header initialization
-	bms_can.TxHeaderVoltages_.StdId = 0x153;
-	bms_can.TxHeaderVoltages_.IDE = CAN_ID_STD;
-	bms_can.TxHeaderVoltages_.RTR = CAN_RTR_DATA;
-	bms_can.TxHeaderVoltages_.DLC = 8;
+    bms_can.TxHeaderVoltages_.Identifier = VOLTAGES_ID;
+    bms_can.TxHeaderVoltages_.IdType = FDCAN_STANDARD_ID;
+    bms_can.TxHeaderVoltages_.TxFrameType = FDCAN_DATA_FRAME;
+    bms_can.TxHeaderVoltages_.DataLength = FDCAN_DLC_BYTES_8;
+    bms_can.TxHeaderVoltages_.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+    bms_can.TxHeaderVoltages_.BitRateSwitch = FDCAN_BRS_OFF;
+    bms_can.TxHeaderVoltages_.FDFormat = FDCAN_CLASSIC_CAN;
+    bms_can.TxHeaderVoltages_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+    bms_can.TxHeaderVoltages_.MessageMarker = 0;
 
 	// Temperatures header initialization
-	bms_can.TxHeaderTemperatures_.StdId = 0x167;
-	bms_can.TxHeaderTemperatures_.IDE = CAN_ID_STD;
-	bms_can.TxHeaderTemperatures_.RTR = CAN_RTR_DATA;
-	bms_can.TxHeaderTemperatures_.DLC = 8;
+	bms_can.TxHeaderTemperatures_.Identifier = TEMPS_ID;
+    bms_can.TxHeaderTemperatures_.IdType = FDCAN_STANDARD_ID;
+    bms_can.TxHeaderTemperatures_.TxFrameType = FDCAN_DATA_FRAME;
+    bms_can.TxHeaderTemperatures_.DataLength = FDCAN_DLC_BYTES_8;
+    bms_can.TxHeaderTemperatures_.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+    bms_can.TxHeaderTemperatures_.BitRateSwitch = FDCAN_BRS_OFF;
+    bms_can.TxHeaderTemperatures_.FDFormat = FDCAN_CLASSIC_CAN;
+    bms_can.TxHeaderTemperatures_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+    bms_can.TxHeaderTemperatures_.MessageMarker = 0;
+
 }
 
 uint8_t send_can_messages(CAN_HandleTypeDef *hcan, CAN_TxHeaderTypeDef *TxHeader, uint8_t *data, uint32_t *TxMailBox)

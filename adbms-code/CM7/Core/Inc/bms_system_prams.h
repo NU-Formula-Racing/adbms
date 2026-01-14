@@ -59,6 +59,11 @@
 
 //CAN IDs
 #define SOC_ID 0x150
+#define FAULT_ID 0x151
+#define STATUS_ID 0x152
+#define CHARGER_ID 0x1806E5F4
+#define VOLTAGES_ID 0x153
+#define TEMPS_ID 0x167
 
 // ENUMERATES
 enum bms_states
