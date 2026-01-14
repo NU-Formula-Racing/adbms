@@ -57,6 +57,9 @@
 #define PARALLEL 3
 #define SYSTEM_CAPACITY (CELL_CAPACITY * PARALLEL)
 
+//CAN IDs
+#define SOC_ID 0x150
+
 // ENUMERATES
 enum bms_states
 {

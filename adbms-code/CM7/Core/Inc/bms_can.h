@@ -9,8 +9,6 @@ typedef struct
 {
     mainboard_ *mainboard;
 
-    uint32_t TxMailBox_; //FDCAN uses buffer indices?
-
     FDCAN_RxHeaderTypeDef RxHeader_;
     uint8_t rxData_[8]; //CAN FD supports up to 64 bytes
 
