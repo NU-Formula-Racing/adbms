@@ -98,7 +98,7 @@ static void MX_FDCAN1_Init(void);
 adbms_ adbms;
 
 
-void SD_Log_String(char* data)
+void sd_log_string(char* data)
 {
     // Mount the SD Card
     fres = f_mount(&fs, "", 1); //The "" forces it to use the default drive The 1 forces it to mount immediately
@@ -275,7 +275,7 @@ Error_Handler();
 	  sprintf(sd_buffer, "Random Data %d\n", i);
 
 	  // Write it to SD
-	  SD_Log_String(sd_buffer);
+	  sd_log_string(sd_buffer);
   }
   /* USER CODE END 2 */
 
@@ -341,7 +341,7 @@ Error_Handler();
 		  // Retrieve the message
 		  if (HAL_FDCAN_GetRxMessage(&hfdcan1, FDCAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK)
 		  {
-			  // Verify ID
+			  // Verify ID 0b001100100001
 			  if (RxHeader.Identifier == 0x321)
 			  {
 				  //Found

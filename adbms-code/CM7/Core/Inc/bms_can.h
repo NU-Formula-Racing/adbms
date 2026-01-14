@@ -10,7 +10,7 @@ typedef struct
     mainboard_ *mainboard;
 
     FDCAN_RxHeaderTypeDef RxHeader_;
-    uint8_t rxData_[8]; //CAN FD supports up to 64 bytes
+    uint8_t rxData_[8]; 
 
     // Drive CAN Messages
     FDCAN_TxHeaderTypeDef TxHeaderSOC_;
@@ -33,21 +33,22 @@ typedef struct
     uint8_t txDataTemperatures_[8];
 } bms_can_;
 
-void HAL_FDCAN_RxFifo0MsgPendingCallback(FDCAN_HandleTypeDef *hfdcan);
+void Bms_Initialize_Can(mainboard_ *mainboard);
 
-void BMS_Initialize_Can(mainboard_ *mainboard);
+void Check_Rx(FDCAN_HandleTypeDef *hfdcan);
+
+/* CAN Loops */
+void Drive_Can_Loop();
+void Data_Can_Loop();
+
+void populate_bms_soc(uint8_t *data);
+void populate_bms_faults(uint8_t *data);
+void populate_bms_status(uint8_t *data);
+void populate_bms_voltages(uint8_t *data, int volt_msg_num);
+void populate_bms_temparatures(uint8_t *data, int temp_num);
 
 /* send_can_messages updated to use FDCAN types and buffer index pointer */
 uint8_t send_can_messages(FDCAN_HandleTypeDef *hfdcan, FDCAN_TxHeaderTypeDef *TxHeader, uint8_t *data, uint32_t *TxBufferIndex);
 
-/* CAN Loops */
-void drive_can_loop();
-/*void data_can_loop();*/
-
-void populateBMS_SOC(uint8_t *data);
-void populateBMS_Faults(uint8_t *data);
-void populateBMS_Status(uint8_t *data);
-void populateBMS_VoltageMessages(uint8_t *data, int volt_msg_num);
-void populateBMS_TemperatureMessages(uint8_t *data, int temp_num);
 
 #endif // ADBMS_CAN_H

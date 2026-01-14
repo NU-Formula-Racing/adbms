@@ -2,16 +2,10 @@
 
 bms_can_ bms_can;
 
-void BMS_Initialize_Can(mainboard_ *mainboard)
+void Bms_Initialize_Can(mainboard_ *mainboard)
 {
-	// Start CAN
+	// Add mainboard
 	bms_can.mainboard = mainboard;
-	HAL_CAN_Start(bms_can.mainboard->hcan_drive);
-	HAL_CAN_Start(bms_can.mainboard->hcan_data);
-
-	// Enable notifications (interrupts) for CAN, uses FIFO scheduling to receive msgs
-	HAL_CAN_ActivateNotification(bms_can.mainboard->hcan_drive, CAN_IT_RX_FIFO0_MSG_PENDING);
-	// HAL_CAN_ActivateNotification(bms_can.mainboard->hcan_data, CAN_IT_RX_FIFO0_MSG_PENDING);	// Don't need to read Data CAN
 
 	// SOC header initialization
     bms_can.TxHeaderSOC_.Identifier = SOC_ID;
@@ -81,6 +75,71 @@ void BMS_Initialize_Can(mainboard_ *mainboard)
 
 }
 
+void Check_Rx(FDCAN_HandleTypeDef *hfdcan)
+{
+    if (HAL_FDCAN_GetRxFifoFillLevel(&hfdcan, FDCAN_RX_FIFO0) > 0)
+    {
+		if (HAL_FDCAN_GetRxMessage(&hfdcan, FDCAN_RX_FIFO0, &bms_can.RxHeader_, bms_can.rxData_) == HAL_OK)
+        {
+            // ECU Message
+            if (bms_can.RxHeader_.Identifier == 0x205)
+            {
+                // update ecu last msg time
+                bms_can.mainboard->ecu_last_msg_time = HAL_GetTick();
+
+                uint8_t ecu_cmd = bms_can.rxData_[0];
+                bms_can.mainboard->ECU_Cmd_Close_Contactors = !ecu_cmd; // ecu cmd 0 means close contactors
+            }
+
+            // Inverter Message
+            if (bms_can.RxHeader_.Identifier == 0x281)
+            {
+                // update inverter last msg time
+                bms_can.mainboard->inverter_last_msg_time = HAL_GetTick();
+
+                uint16_t inverter_raw_voltage = (bms_can.rxData_[4] & 0xFF) | (bms_can.rxData_[5] << 8);
+                bms_can.mainboard->Inverter_DC_Voltage = ((float)inverter_raw_voltage) * 0.1;
+            }
+
+            // Charger Message
+            if (bms_can.RxHeader_.Identifier == 0x18FF50E5)
+            {
+                // update charger last msg time
+                bms_can.mainboard->charger_last_msg_time = HAL_GetTick();
+
+                // big endian
+                bms_can.mainboard->charger_status = bms_can.rxData_[4];
+                uint16_t charger_raw_voltage = (bms_can.rxData_[0] << 8) | (bms_can.rxData_[1] & 0xFF);
+                uint16_t charger_raw_current = (bms_can.rxData_[2] << 8) | (bms_can.rxData_[3] & 0xFF);
+                bms_can.mainboard->charger_voltage = ((float)charger_raw_voltage) * 0.1;
+                bms_can.mainboard->charger_current = ((float)charger_raw_current) * 0.1;
+            }
+        }
+        else
+        {
+            printf("CAN RX Error");
+		    return;
+        }
+	}
+}
+
+void Drive_Can_Loop()
+{
+	// printf("Sending Drive CAN\n");
+
+	// update and send soc
+	populate_bms_soc(bms_can.txDataSOC_);
+	send_can_messages(bms_can.mainboard->hcan_drive, &bms_can.TxHeaderSOC_, bms_can.txDataSOC_, &bms_can.TxMailBox_);
+
+	// update and send faults
+	populate_bms_faults(bms_can.txDataFaults_);
+	send_can_messages(bms_can.mainboard->hcan_drive, &bms_can.TxHeaderFaults_, bms_can.txDataFaults_, &bms_can.TxMailBox_);
+
+	// update and send status
+	populate_bms_status(bms_can.txDataStatus_);
+	send_can_messages(bms_can.mainboard->hcan_drive, &bms_can.TxHeaderStatus_, bms_can.txDataStatus_, &bms_can.TxMailBox_);
+}
+
 uint8_t send_can_messages(CAN_HandleTypeDef *hcan, CAN_TxHeaderTypeDef *TxHeader, uint8_t *data, uint32_t *TxMailBox)
 {
 	// send msg
@@ -95,29 +154,12 @@ uint8_t send_can_messages(CAN_HandleTypeDef *hcan, CAN_TxHeaderTypeDef *TxHeader
 	return 0;
 }
 
-void drive_can_loop()
-{
-	// printf("Sending Drive CAN\n");
-
-	// update and send soc
-	populateBMS_SOC(bms_can.txDataSOC_);
-	send_can_messages(bms_can.mainboard->hcan_drive, &bms_can.TxHeaderSOC_, bms_can.txDataSOC_, &bms_can.TxMailBox_);
-
-	// update and send faults
-	populateBMS_Faults(bms_can.txDataFaults_);
-	send_can_messages(bms_can.mainboard->hcan_drive, &bms_can.TxHeaderFaults_, bms_can.txDataFaults_, &bms_can.TxMailBox_);
-
-	// update and send status
-	populateBMS_Status(bms_can.txDataStatus_);
-	send_can_messages(bms_can.mainboard->hcan_drive, &bms_can.TxHeaderStatus_, bms_can.txDataStatus_, &bms_can.TxMailBox_);
-}
-
-void data_can_loop()
+void Data_Can_Loop()
 {
 	// send voltage messages
 	bms_can.TxHeaderVoltages_.StdId = 0x153; // set the message id for next iteration
 	for(int i = 0; i < NUM_DATA_CAN_VOLTAGE_MSGS; i++) {
-		populateBMS_VoltageMessages(bms_can.txDataVoltages_, i);
+		populate_bms_voltages(bms_can.txDataVoltages_, i);
 		send_can_messages(bms_can.mainboard->hcan_data, &bms_can.TxHeaderVoltages_, bms_can.txDataVoltages_, &bms_can.TxMailBox_);
 		bms_can.TxHeaderVoltages_.StdId++;
 	}
@@ -125,13 +167,13 @@ void data_can_loop()
 	// send temperature messages
 	bms_can.TxHeaderTemperatures_.StdId = 0x167; // set the message id for next iteration
 	for(int i = 0; i < NUM_DATA_CAN_TEMP_MSGS; i++) {
-		populateBMS_TemperatureMessages(bms_can.txDataTemperatures_, i);
+		populate_bms_temparatures(bms_can.txDataTemperatures_, i);
 		send_can_messages(bms_can.mainboard->hcan_data, &bms_can.TxHeaderTemperatures_, bms_can.txDataTemperatures_, &bms_can.TxMailBox_);
 		bms_can.TxHeaderTemperatures_.StdId++;
 	}
 }
 
-void populateBMS_SOC(uint8_t *data)
+void populate_bms_soc(uint8_t *data)
 {
 	RawCanSignal signals[5];
 	populateRawMessage(&signals[0], 0, 12, 0.1, 0);									  // max discharge current
@@ -142,7 +184,7 @@ void populateBMS_SOC(uint8_t *data)
 	encodeSignals(data, 5, signals[0], signals[1], signals[2], signals[3], signals[4]);
 }
 
-void populateBMS_Faults(uint8_t *data)
+void populate_bms_faults(uint8_t *data)
 {
 	RawCanSignal signals[8];
 	populateRawMessage(&signals[0], bms_can.mainboard->bms_fault, 1, 1, 0);																  	// fault summary
@@ -156,7 +198,7 @@ void populateBMS_Faults(uint8_t *data)
 	encodeSignals(data, 8, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]);
 }
 
-void populateBMS_Status(uint8_t *data)
+void populate_bms_status(uint8_t *data)
 {
 	RawCanSignal signals[7];
 
@@ -171,7 +213,7 @@ void populateBMS_Status(uint8_t *data)
 }
 
 
-void populateBMS_VoltageMessages(uint8_t *data, int volt_msg_num)
+void populate_bms_voltages(uint8_t *data, int volt_msg_num)
 {
 	RawCanSignal signals[8];
 	for(int i = 0; i < NUM_DATA_CAN_VOLTAGES_PER_MSG; i++){
@@ -182,7 +224,7 @@ void populateBMS_VoltageMessages(uint8_t *data, int volt_msg_num)
 	encodeSignals(data, NUM_DATA_CAN_VOLTAGES_PER_MSG+1, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]);
 }
 
-void populateBMS_TemperatureMessages(uint8_t *data, int temp_num)
+void populate_bms_temparatures(uint8_t *data, int temp_num)
 {
 	RawCanSignal signals[8];
 	for(int i = 0; i < NUM_DATA_CAN_TEMPS_PER_MSG; i++){
