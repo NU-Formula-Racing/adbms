@@ -4,9 +4,6 @@
 ################################################################################
 
 # Add inputs and outputs from these tool invocations to the build variables 
-C_SRCS += \
-C:/Users/matia/Documents/adbms/adbms-code/Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.c 
-
 OBJS += \
 ./Core/Inc/Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.o 
 

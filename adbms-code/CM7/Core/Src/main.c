@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "adbms_interface.h"
 
 int _write(int le, char *ptr, int len)
 {
@@ -81,6 +82,7 @@ FRESULT fres; // Result code
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void PeriphCommonClock_Config(void);
 static void MPU_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SDMMC1_SD_Init(void);
@@ -92,6 +94,10 @@ static void MX_FDCAN1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+adbms_ adbms;
+
+
 void SD_Log_String(char* data)
 {
     // Mount the SD Card
@@ -180,6 +186,9 @@ int main(void)
 
   /* Configure the system clock */
   SystemClock_Config();
+
+  /* Configure the peripherals common clocks */
+  PeriphCommonClock_Config();
 /* USER CODE BEGIN Boot_Mode_Sequence_2 */
 #if defined(DUAL_CORE_BOOT_SYNC_SEQUENCE)
 /* When system initialization is finished, Cortex-M7 will release Cortex-M4 by means of
@@ -212,6 +221,7 @@ Error_Handler();
   MX_FDCAN1_Init();
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
+  ADBMS_Initialize(&adbms, &hspi1);
   FDCAN_TxHeaderTypeDef TxTestHeader;
   uint8_t TxData[8] = {0x01, 0xAA, 0xBB, 0xFF, 0x11, 0x22, 0x33, 0x44}; //random data
 
@@ -277,45 +287,50 @@ Error_Handler();
 
     /* USER CODE BEGIN 3 */
 
+	  UpdateOWCFault(&adbms);
+	  ADBMS_UpdateVoltages(&adbms);
+	  ADBMS_UpdateTemps(&adbms);
+	  UpdateADInternalFault(&adbms);
+	  ADBMS_Print_Vals(&adbms);
 
 	  //TSSI logic
-//	  if (HAL_GPIO_ReadPin(GPIOD, IMD_STATUS_IN_Pin) == GPIO_PIN_SET)
-//	  {
-//		  HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin, GPIO_PIN_SET);
-//		  //HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin, GPIO_PIN_RESET);
-//	  }
-//	  else
-//	  {
-//		  HAL_GPIO_WritePin(GPIOB, TSSI_R_Pin, GPIO_PIN_SET);
-//		  //HAL_GPIO_WritePin(GPIOB, TSSI_R_Pin, GPIO_PIN_RESET);
-//	  }
+	  if (HAL_GPIO_ReadPin(GPIOD, IMD_STATUS_IN_Pin) == GPIO_PIN_SET)
+	  {
+		  HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin, GPIO_PIN_SET);
+		  //HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin, GPIO_PIN_RESET);
+	  }
+	  else
+	  {
+		  HAL_GPIO_WritePin(GPIOB, TSSI_R_Pin, GPIO_PIN_SET);
+		  //HAL_GPIO_WritePin(GPIOB, TSSI_R_Pin, GPIO_PIN_RESET);
+	  }
 
 
 	  //Cycle LEDs
-//	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_1_Pin, GPIO_PIN_SET);
-//	  HAL_Delay(100);
-//	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_1_Pin, GPIO_PIN_RESET);
-//
-//	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_2_Pin, GPIO_PIN_SET);
-//	  HAL_Delay(100);
-//	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_2_Pin, GPIO_PIN_RESET);
-//
-//	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_3_Pin, GPIO_PIN_SET);
-//	  HAL_Delay(100);
-//	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_3_Pin, GPIO_PIN_RESET);
+	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_1_Pin, GPIO_PIN_SET);
+	  HAL_Delay(100);
+	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_1_Pin, GPIO_PIN_RESET);
+
+	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_2_Pin, GPIO_PIN_SET);
+	  HAL_Delay(100);
+	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_2_Pin, GPIO_PIN_RESET);
+
+	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_3_Pin, GPIO_PIN_SET);
+	  HAL_Delay(100);
+	  HAL_GPIO_WritePin(GPIOE, GPIO_LED_3_Pin, GPIO_PIN_RESET);
 
 	  //Cycle Contactors
-//	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_SET);
-//	  HAL_Delay(100);
-//	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
-//
-//	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_SET);
-//	  HAL_Delay(100);
-//	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
-//
-//	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_SET);
-//	  HAL_Delay(100);
-//	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
+	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_SET);
+	  HAL_Delay(100);
+	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
+
+	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_SET);
+	  HAL_Delay(100);
+	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
+
+	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_SET);
+	  HAL_Delay(100);
+	  HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
 
 	  // check rx-
 	  if (HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1, FDCAN_RX_FIFO0) > 0)
@@ -356,7 +371,7 @@ Error_Handler();
 
 
 	  printf("Print test\n");
-	  HAL_Delay(1000);
+	  HAL_Delay(100);
 
 	}
   /* USER CODE END 3 */
@@ -417,6 +432,24 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+/**
+  * @brief Peripherals Common Clock Configuration
+  * @retval None
+  */
+void PeriphCommonClock_Config(void)
+{
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+
+  /** Initializes the peripherals clock
+  */
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_CKPER;
+  PeriphClkInitStruct.CkperClockSelection = RCC_CLKPSOURCE_HSI;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();
   }
@@ -525,11 +558,11 @@ static void MX_SPI1_Init(void)
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_4BIT;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
