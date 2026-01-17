@@ -1,0 +1,2 @@
+../Core/Src/sd_card.c:7:6:sd_log_string	24	static
+../Core/Src/sd_card.c:53:6:print_sd_info	4	static

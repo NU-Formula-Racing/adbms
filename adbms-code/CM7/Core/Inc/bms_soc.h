@@ -3,8 +3,7 @@
 
 #include "bms.h"
 #include "bms_main_struct.h"
-#include "stm32f4xx_hal.h"
-#include "current_driver.h"
+#include "stm32h7xx_hal.h"
 
 void soc_initialize(mainboard_ *mainboard);
 void soc_update(mainboard_ *mainboard);

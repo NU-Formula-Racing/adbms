@@ -3,28 +3,24 @@
 
 mainboard_ mainboard;
 
-void bms_mainbaord_setup(SPI_HandleTypeDef *hspi, ADC_HandleTypeDef *hadc, CAN_HandleTypeDef *hcan1, CAN_HandleTypeDef *hcan2)
+void bms_mainbaord_setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 {
 	// initialize handles
-	mainboard.hadc = hadc;
-	mainboard.hcan_drive = hcan1;
-	mainboard.hcan_data = hcan2;
-
-	// get offset for current
-	mainboard.current_offset = getCurrentOffset(mainboard.hadc);
+	mainboard.hcan = hcan;
 
 	// initialize ad chip;
 	ADBMS_Initialize(&mainboard.adbms, hspi);
 
+	printf("print");
 	// initialize CAN;
-	BMS_Initialize_Can(&mainboard);
+	Bms_Initialize_Can(&mainboard);
 
 	// initialize SOC
-	soc_initialize(&mainboard);
+	//soc_initialize(&mainboard);
 
 	// initialize the timers: adbms_mainboard_loop, drive_can, data_can
-	timer_ t_adbms = CreateTimer(500, bms_mainboard_loop);
-	timer_ t_adbms_owc_check = CreateTimer(30000, adbms_owc_loop);
+	timer_ t_adbms = CreateTimer(500, print_test);
+	timer_ t_adbms_owc_check = CreateTimer(30000, print_test);
 	timer_ timers[NUM_TIMERS] = {t_adbms, t_adbms_owc_check};
 	mainboard.tg = CreateTimerGroup(timers);
 
@@ -33,7 +29,11 @@ void bms_mainbaord_setup(SPI_HandleTypeDef *hspi, ADC_HandleTypeDef *hadc, CAN_H
 	//initial states
 	mainboard.charging_state == charger_setup;
 	mainboard.state == Idle;
-	mainboard.vcu_command == waiting;
+	//mainboard.vcu_command == waiting;
+}
+
+void print_test(){ //DELETE LATER
+	printf("test works");
 }
 
 void tick_mainboard_timers()
@@ -66,68 +66,67 @@ void UpdateValues()
 
 	// update STM32 Pin values
 	// reads: shutdown_contactors, IMD_Status, 6822_State
-	mainboard.shutdown_present = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1); 	   // shutdown status
-	mainboard.imd_status = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_8);			   // IMD_Status
-	mainboard.comms_6822_state = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_15);	   // 6822_State
+//	mainboard.shutdown_present = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1); 	   // shutdown status
+//	mainboard.imd_status = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_8);			   // IMD_Status
+//	mainboard.comms_6822_state = HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_15);	   // 6822_State
 
 	//soc
-	soc_update(&mainboard);
+	//soc_update(&mainboard);
 	
 	// get current
-	mainboard.current = getCurrent(mainboard.hadc) - mainboard.current_offset;
-	mainboard.overcurrent_fault = mainboard.current > OVERCURRENT;
+	//mainboard.overcurrent_fault = mainboard.current > OVERCURRENT;
 
 	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
 	if(ENABLE_USB_COMMS) send_data_over_USB(); 
 }
 
-void CheckFaults()
-{
-	// raise fault flag if any fault is true
-	// faults are latching
-	mainboard.bms_fault = mainboard.bms_fault 
-							|| mainboard.adbms.overvoltage_fault_
-							|| mainboard.adbms.undervoltage_fault_
-							|| mainboard.adbms.overtemperature_fault_
-							|| mainboard.adbms.undertemperature_fault_
-							|| mainboard.adbms.openwire_fault_
-							|| mainboard.adbms.openwire_temp_fault_
-							|| mainboard.adbms.pec_fault_
-							|| mainboard.overcurrent_fault;
-
-	// write BMS_Status - healthy is high
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, !mainboard.bms_fault);
-
-	//include TSSI
-
-	// set external faults
-	// timeouts
-	if (mainboard.state == Charge)
-	{
-		// In charge states only check for charger timeout
-		float charger_time_since_msg = HAL_GetTick() - mainboard.charger_messege->last_msg_time;
-		mainboard.charger_messege->fault = charger_time_since_msg > CHARGER_CAN_TIMEOUT;
-
-		mainboard.timeout_fault = mainboard.charger_messege->fault;
-	}
-	else
-	{
-		// In non-charge states (i.e. in the car) only check for inverter and ecu timeouts
-		float ecu_time_since_msg = HAL_GetTick() - mainboard.ecu_messege->last_msg_time;
-		mainboard.ecu_messege->last_msg_time = ecu_time_since_msg > ECU_CAN_TIMEOUT;
-
-		float inverter_time_since_msg = HAL_GetTick() - mainboard.inverter_messege->last_msg_time;
-		mainboard.inverter_messege->last_msg_time = inverter_time_since_msg > INVERTER_CAN_TIMEOUT;
-
-		mainboard.timeout_fault = mainboard.ecu_messege->fault || mainboard.inverter_messege->fault;
-	}
-
-	mainboard.external_fault = !mainboard.shutdown_present || mainboard.timeout_fault;
-
-	// Turns on external LED if external fault
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, mainboard.external_fault);
-
-}
+//void CheckFaults()
+//{
+//	// raise fault flag if any fault is true
+//	// faults are latching
+//	mainboard.bms_fault = mainboard.bms_fault
+//							|| mainboard.adbms.overvoltage_fault_
+//							|| mainboard.adbms.undervoltage_fault_
+//							|| mainboard.adbms.overtemperature_fault_
+//							|| mainboard.adbms.undertemperature_fault_
+//							|| mainboard.adbms.openwire_fault_
+//							|| mainboard.adbms.openwire_temp_fault_
+//							|| mainboard.adbms.pec_fault_
+//							|| mainboard.overcurrent_fault;
+//
+//	// write BMS_Status - healthy is high
+//	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, !mainboard.bms_fault);
+//
+//	//include TSSI
+//
+//	// set external faults
+//	// timeouts
+//	if (mainboard.state == Charge)
+//	{
+//		// In charge states only check for charger timeout
+//		float charger_time_since_msg = HAL_GetTick() - mainboard.charger_messege->last_msg_time;
+//		mainboard.charger_messege->fault = charger_time_since_msg > CHARGER_CAN_TIMEOUT;
+//
+//		mainboard.timeout_fault = mainboard.charger_messege->fault;
+//	}
+//	else
+//	{
+//		// In non-charge states (i.e. in the car) only check for inverter and ecu timeouts
+//		float ecu_time_since_msg = HAL_GetTick() - mainboard.ecu_messege->last_msg_time;
+//		mainboard.ecu_messege->last_msg_time = ecu_time_since_msg > ECU_CAN_TIMEOUT;
+//
+//		float inverter_time_since_msg = HAL_GetTick() - mainboard.inverter_messege->last_msg_time;
+//		mainboard.inverter_messege->last_msg_time = inverter_time_since_msg > INVERTER_CAN_TIMEOUT;
+//
+//		mainboard.timeout_fault = mainboard.ecu_messege->fault || mainboard.inverter_messege->fault;
+//	}
+//
+//	mainboard.external_fault = !mainboard.shutdown_present || mainboard.timeout_fault;
+//
+//	// Turns on external LED if external fault
+//	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, mainboard.external_fault);
+//
+//}
 
 void send_data_over_printf()
 {

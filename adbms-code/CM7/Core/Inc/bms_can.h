@@ -35,7 +35,7 @@ typedef struct
 
 void Bms_Initialize_Can(mainboard_ *mainboard);
 
-void Check_Rx(FDCAN_HandleTypeDef *hfdcan);
+void Check_Rx(FDCAN_HandleTypeDef *hcan);
 
 /* CAN Loops */
 void Drive_Can_Loop();
@@ -48,7 +48,7 @@ void populate_bms_voltages(uint8_t *data, int volt_msg_num);
 void populate_bms_temparatures(uint8_t *data, int temp_num);
 
 /* send_can_messages updated to use FDCAN types and buffer index pointer */
-uint8_t send_can_messages(FDCAN_HandleTypeDef *hfdcan, FDCAN_TxHeaderTypeDef *TxHeader, uint8_t *data, uint32_t *TxBufferIndex);
+uint8_t send_can_messages(FDCAN_HandleTypeDef *hcan, FDCAN_TxHeaderTypeDef *TxHeader, uint8_t *data);
 
 
 #endif // ADBMS_CAN_H

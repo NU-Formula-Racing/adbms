@@ -2,14 +2,14 @@
 #define ADBMS_MAIN_STRUCT_H
 
 #include "adbms_interface.h"
-#include "current_driver.h"
 #include "virtual_timer.h"
-#include "stm32f4xx_it.h"
-#include "stm32f4xx_hal.h"
+#include "stm32H7xx_it.h"
+#include "stm32H7xx_hal.h"
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
 #include "main.h"
-#include "control.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 
 typedef struct
@@ -21,10 +21,9 @@ typedef struct
 	timer_group_ *tg;
 	timer_group_ *tg2;
 
-	// handles
-	ADC_HandleTypeDef *hadc;
-	CAN_HandleTypeDef *hcan_drive;
-	CAN_HandleTypeDef *hcan_data;
+	// FDCAN handle
+	FDCAN_HandleTypeDef *hcan;
+
 
 	// faults
 	bool external_fault;
@@ -39,7 +38,7 @@ typedef struct
 	bool shutdown_present;
 	bool imd_status;
 	float Inverter_DC_Voltage;
-	enum ECU_commands ecu_command;
+	//enum ECU_commands ecu_command;
 
 	//Last ECU command was valid
 	bool ecu_valid_command;
@@ -57,9 +56,9 @@ typedef struct
 
 	// timeouts
 	bool timeout_fault;
-	messege_condition ecu_messege;
-	messege_condition inverter_messege;
-	messege_condition charger_messege;
+//	message_condition ecu_message;
+//	message_condition inverter_message;
+//	message_condition charger_message;
 
 	bool comms_6822_state;
 	uint32_t start_time;

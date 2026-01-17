@@ -1,4 +1,4 @@
-#include "adbms_soc.h"
+#include "bms_soc.h"
 
 void soc_initialize(mainboard_ *mainboard)
 {

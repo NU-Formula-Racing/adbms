@@ -7,13 +7,29 @@ void Bms_Initialize_Can(mainboard_ *mainboard)
 	// Add mainboard
 	bms_can.mainboard = mainboard;
 
+	// if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig) != HAL_OK)
+    // {
+    //   Error_Handler();
+    // }
+
+ 	//  HAL_FDCAN_ConfigGlobalFilter(&hfdcan1, FDCAN_REJECT, FDCAN_REJECT, FDCAN_FILTER_REMOTE, FDCAN_FILTER_REMOTE);
+	// 	  // check rx-
+	//   if (HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1, FDCAN_RX_FIFO0) > 0)
+	//   {
+	// 	  FDCAN_RxHeaderTypeDef RxHeader;
+	// 	  uint8_t RxData[8];
+
+	// 	  // Retrieve the message
+	// 	  if (HAL_FDCAN_GetRxMessage(&hfdcan1, FDCAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK)
+	// 	  {
+	
 	// assign interrupt line to rx fifo
-	HAL_FDCAN_ConfigInterruptLines(adbms_can.mainboard->hcan_drive, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, FDCAN_INTERRUPT_LINE0);
+	HAL_FDCAN_ConfigInterruptLines(bms_can.mainboard->hcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, FDCAN_INTERRUPT_LINE0);
 
 	// activate interrupt line for rx fifo
-	HAL_FDCAN_ActivateNotification(adbms_can.mainboard->hcan_drive, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+	HAL_FDCAN_ActivateNotification(bms_can.mainboard->hcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
 
-	HAL_FDCAN_Start(adbms_can.mainboard->hcan_drive);
+	HAL_FDCAN_Start(bms_can.mainboard->hcan);
 
 	// SOC header initialization
     bms_can.TxHeaderSOC_.Identifier = SOC_ID;
@@ -83,98 +99,84 @@ void Bms_Initialize_Can(mainboard_ *mainboard)
 
 }
 
-void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hcan, uint32_t RxFifo0ITs)
 {
 	
     if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != 0)
     {
-        FDCAN_RxHeaderTypeDef RxHeader;
-        uint8_t RxData[8];
-        
-        // Get the message
-        if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &RxHeader, RxData) != HAL_OK)
-        {
-             return;
-        }
 
-        // Process Data
+//        // Get the message
+//        if (HAL_FDCAN_GetRxMessage(&hfdcan, FDCAN_RX_FIFO0, &bms_can.RxHeader_, bms_can.rxData_) == HAL_OK)
+//        {
+//            // ECU Message
+//            if (bms_can.RxHeader_.Identifier == 0x205)
+//            {
+//                // update ecu last msg time
+//                bms_can.mainboard->ecu_message->last_msg_time = HAL_GetTick();
+//
+//                uint8_t ecu_cmd = bms_can.rxData_[0];
+//                bms_can.mainboard->ECU_Cmd_Close_Contactors = !ecu_cmd; // ecu cmd 0 means close contactors
+//            }
+//
+//            // Inverter Message
+//            if (bms_can.RxHeader_.Identifier == 0x281)
+//            {
+//                // update inverter last msg time
+//                bms_can.mainboard->inverter_last_msg_time = HAL_GetTick();
+//
+//                uint16_t inverter_raw_voltage = (bms_can.rxData_[4] & 0xFF) | (bms_can.rxData_[5] << 8);
+//                bms_can.mainboard->Inverter_DC_Voltage = ((float)inverter_raw_voltage) * 0.1;
+//            }
+//
+//            // Charger Message
+//            if (bms_can.RxHeader_.Identifier == 0x18FF50E5)
+//            {
+//                // update charger last msg time
+//                bms_can.mainboard->charger_last_msg_time = HAL_GetTick();
+//
+//                // big endian
+//                bms_can.mainboard->charger_status = bms_can.rxData_[4];
+//                uint16_t charger_raw_voltage = (bms_can.rxData_[0] << 8) | (bms_can.rxData_[1] & 0xFF);
+//                uint16_t charger_raw_current = (bms_can.rxData_[2] << 8) | (bms_can.rxData_[3] & 0xFF);
+//                bms_can.mainboard->charger_voltage = ((float)charger_raw_voltage) * 0.1;
+//                bms_can.mainboard->charger_current = ((float)charger_raw_current) * 0.1;
+//            }
+//        }
+//        else
+//        {
+//            printf("CAN RX Error");
+//		    return;
+//        }
     }
 }
 
-void Check_Rx(FDCAN_HandleTypeDef *hfdcan)
-{
-    if (HAL_FDCAN_GetRxFifoFillLevel(&hfdcan, FDCAN_RX_FIFO0) > 0)
-    {
-		if (HAL_FDCAN_GetRxMessage(&hfdcan, FDCAN_RX_FIFO0, &bms_can.RxHeader_, bms_can.rxData_) == HAL_OK)
-        {
-            // ECU Message
-            if (bms_can.RxHeader_.Identifier == 0x205)
-            {
-                // update ecu last msg time
-                bms_can.mainboard->ecu_last_msg_time = HAL_GetTick();
 
-                uint8_t ecu_cmd = bms_can.rxData_[0];
-                bms_can.mainboard->ECU_Cmd_Close_Contactors = !ecu_cmd; // ecu cmd 0 means close contactors
-            }
-
-            // Inverter Message
-            if (bms_can.RxHeader_.Identifier == 0x281)
-            {
-                // update inverter last msg time
-                bms_can.mainboard->inverter_last_msg_time = HAL_GetTick();
-
-                uint16_t inverter_raw_voltage = (bms_can.rxData_[4] & 0xFF) | (bms_can.rxData_[5] << 8);
-                bms_can.mainboard->Inverter_DC_Voltage = ((float)inverter_raw_voltage) * 0.1;
-            }
-
-            // Charger Message
-            if (bms_can.RxHeader_.Identifier == 0x18FF50E5)
-            {
-                // update charger last msg time
-                bms_can.mainboard->charger_last_msg_time = HAL_GetTick();
-
-                // big endian
-                bms_can.mainboard->charger_status = bms_can.rxData_[4];
-                uint16_t charger_raw_voltage = (bms_can.rxData_[0] << 8) | (bms_can.rxData_[1] & 0xFF);
-                uint16_t charger_raw_current = (bms_can.rxData_[2] << 8) | (bms_can.rxData_[3] & 0xFF);
-                bms_can.mainboard->charger_voltage = ((float)charger_raw_voltage) * 0.1;
-                bms_can.mainboard->charger_current = ((float)charger_raw_current) * 0.1;
-            }
-        }
-        else
-        {
-            printf("CAN RX Error");
-		    return;
-        }
-	}
-}
-
-void Drive_Can_Loop()
+void Can_Loop()
 {
 	// printf("Sending Drive CAN\n");
 
 	// update and send soc
 	populate_bms_soc(bms_can.txDataSOC_);
-	send_can_messages(bms_can.mainboard->hcan_drive, &bms_can.TxHeaderSOC_, bms_can.txDataSOC_, &bms_can.TxMailBox_);
+	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderSOC_, bms_can.txDataSOC_);
 
 	// update and send faults
 	populate_bms_faults(bms_can.txDataFaults_);
-	send_can_messages(bms_can.mainboard->hcan_drive, &bms_can.TxHeaderFaults_, bms_can.txDataFaults_, &bms_can.TxMailBox_);
+	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderFaults_, bms_can.txDataFaults_);
 
 	// update and send status
 	populate_bms_status(bms_can.txDataStatus_);
-	send_can_messages(bms_can.mainboard->hcan_drive, &bms_can.TxHeaderStatus_, bms_can.txDataStatus_, &bms_can.TxMailBox_);
+	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderStatus_, bms_can.txDataStatus_);
 }
 
-uint8_t send_can_messages(CAN_HandleTypeDef *hcan, CAN_TxHeaderTypeDef *TxHeader, uint8_t *data, uint32_t *TxMailBox)
-{
+uint8_t send_can_messages(FDCAN_HandleTypeDef *hcan, FDCAN_TxHeaderTypeDef *TxHeader, uint8_t *data)
+{	
 	// send msg
-	HAL_StatusTypeDef msg_status = HAL_CAN_AddTxMessage(hcan, TxHeader, data, TxMailBox);
+	HAL_StatusTypeDef msg_status = HAL_FDCAN_AddMessageToTxFifoQ(hcan, TxHeader, data);
 
 	if (msg_status != HAL_OK)
 	{
 		// Error handling
-//		printf("CAN Message failed\n");
+		//printf("CAN Message failed\n");
 		return 1;
 	}
 	return 0;
@@ -182,21 +184,21 @@ uint8_t send_can_messages(CAN_HandleTypeDef *hcan, CAN_TxHeaderTypeDef *TxHeader
 
 void Data_Can_Loop()
 {
-	// send voltage messages
-	bms_can.TxHeaderVoltages_.StdId = 0x153; // set the message id for next iteration
-	for(int i = 0; i < NUM_DATA_CAN_VOLTAGE_MSGS; i++) {
-		populate_bms_voltages(bms_can.txDataVoltages_, i);
-		send_can_messages(bms_can.mainboard->hcan_data, &bms_can.TxHeaderVoltages_, bms_can.txDataVoltages_, &bms_can.TxMailBox_);
-		bms_can.TxHeaderVoltages_.StdId++;
-	}
-
-	// send temperature messages
-	bms_can.TxHeaderTemperatures_.StdId = 0x167; // set the message id for next iteration
-	for(int i = 0; i < NUM_DATA_CAN_TEMP_MSGS; i++) {
-		populate_bms_temparatures(bms_can.txDataTemperatures_, i);
-		send_can_messages(bms_can.mainboard->hcan_data, &bms_can.TxHeaderTemperatures_, bms_can.txDataTemperatures_, &bms_can.TxMailBox_);
-		bms_can.TxHeaderTemperatures_.StdId++;
-	}
+//	// send voltage messages
+//	bms_can.TxHeaderVoltages_.StdId = 0x153; // set the message id for next iteration
+//	for(int i = 0; i < NUM_DATA_CAN_VOLTAGE_MSGS; i++) {
+//		populate_bms_voltages(bms_can.txDataVoltages_, i);
+//		send_can_messages(bms_can.mainboard->hcan_data, &bms_can.TxHeaderVoltages_, bms_can.txDataVoltages_, &bms_can.TxMailBox_);
+//		bms_can.TxHeaderVoltages_.StdId++;
+//	}
+//
+//	// send temperature messages
+//	bms_can.TxHeaderTemperatures_.StdId = 0x167; // set the message id for next iteration
+//	for(int i = 0; i < NUM_DATA_CAN_TEMP_MSGS; i++) {
+//		populate_bms_temparatures(bms_can.txDataTemperatures_, i);
+//		send_can_messages(bms_can.mainboard->hcan_data, &bms_can.TxHeaderTemperatures_, bms_can.txDataTemperatures_, &bms_can.TxMailBox_);
+//		bms_can.TxHeaderTemperatures_.StdId++;
+//	}
 }
 
 void populate_bms_soc(uint8_t *data)
