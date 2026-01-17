@@ -43,11 +43,12 @@ void ADBMS_UpdateVoltages(adbms_ *adbms)
     bool pec = 0;
     ADBMS_WakeUP_ICs();
 
-    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVA, (adbms->ICs.cell + 0 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVB, (adbms->ICs.cell + 1 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVC, (adbms->ICs.cell + 2 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVD, (adbms->ICs.cell + 3 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVE, (adbms->ICs.cell + 4 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
+    //getting to the
+    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVA, (adbms->ICs.cell + 0 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 0-2 for each chip
+    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVB, (adbms->ICs.cell + 1 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 3-5 for each chip
+    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVC, (adbms->ICs.cell + 2 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 6-8 for each chip
+    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVD, (adbms->ICs.cell + 3 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 9-11 for each chip
+    //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVE, (adbms->ICs.cell + 4 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); DONT NEED VOLTAGES OVER 12 for nfr26 
     adbms->voltage_pec_failure = pec;
 
     // calulate new values with the updated raw ones
@@ -94,31 +95,61 @@ void ADBMS_CalculateValues_Voltages(adbms_ *adbms)
     adbms->total_v = 0;
     adbms->max_v = 0;
     adbms->min_v = FLT_MAX;
+    float even_total = 0;
+    float odd_total = 0;
     for (uint8_t cic = 0; cic < NUM_CHIPS; cic++)
     {
-        uint8_t num_reg_grps = NUM_VOLTAGES_CHIP / VOLTAGES_REG_GRP + (NUM_VOLTAGES_CHIP % VOLTAGES_REG_GRP != 0);
-        for (uint8_t creg_grp = 0; creg_grp < num_reg_grps; creg_grp++)
+        if (cic % 2 == 0) //even chip, 12 voltages
         {
-            for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
+            uint8_t num_reg_grps = NUM_VOLTAGES_EVEN_CHIP / VOLTAGES_REG_GRP + (NUM_VOLTAGES_EVEN_CHIP % VOLTAGES_REG_GRP != 0);//find how many register groups used to store voltages
+            for (uint8_t creg_grp = 0; creg_grp < num_reg_grps; creg_grp++) //index register groups, each contain 3 registers that represent a voltage
             {
-                if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_CHIP) break;   // only read 14 when getting 15 -- TODO CHANGE COMMENT
-                int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
-                float curr_voltage = ADBMS_getVoltage(raw_val);
-                adbms->voltages[cic*NUM_VOLTAGES_CHIP + creg_grp*DATA_LEN/2 + cbyte/2] = curr_voltage;
+                for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)//each reg_grp is 2 bytes (each reg is 1 byte) INDEX REGISTER THEN BYTES?
+                {
+                    if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_EVEN_CHIP) break;  //stop processing registers when desired voltage reading count is reached
+                    int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
+                    float curr_voltage = ADBMS_getVoltage(raw_val);
+                    
+                    adbms->voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2] = curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
 
-                adbms->total_v += curr_voltage;
-                if (curr_voltage > adbms->max_v){
-                    adbms->max_v = curr_voltage;
+                    even_total += curr_voltage;
+                    if (curr_voltage > adbms->max_v){
+                        adbms->max_v = curr_voltage;
+                    }
+                    if (curr_voltage < adbms->min_v){
+                        adbms->min_v = curr_voltage;
+                    }
                 }
-                if (curr_voltage < adbms->min_v){
-                    adbms->min_v = curr_voltage;
+            }
+        }
+        else //odd chip, 11 voltages
+        {
+            uint8_t num_reg_grps = NUM_VOLTAGES_ODD_CHIP / VOLTAGES_REG_GRP + (NUM_VOLTAGES_ODD_CHIP % VOLTAGES_REG_GRP != 0);//find how many register groups used to store voltages
+            for (uint8_t creg_grp = 0; creg_grp < num_reg_grps; creg_grp++) //index register groups, each contain 3 registers that represent a voltage
+            {
+                for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)//each reg_grp is 2 bytes (each reg is 1 byte) INDEX REGISTER THEN BYTES?
+                {
+                    if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_ODD_CHIP) break;  //stop processing registers when desired voltage reading count is reached
+                    int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
+                    float curr_voltage = ADBMS_getVoltage(raw_val);
+                    
+                    adbms->voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2] = curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
+
+                    odd_total += curr_voltage;
+                    if (curr_voltage > adbms->max_v){
+                        adbms->max_v = curr_voltage;
+                    }
+                    if (curr_voltage < adbms->min_v){
+                        adbms->min_v = curr_voltage;
+                    }
                 }
             }
         }
     }
-
+    
+    adbms->total_v = even_total + odd_total;
     // calculate the avg voltage
-    adbms->avg_v = adbms->total_v / (NUM_CHIPS * NUM_VOLTAGES_CHIP);
+    adbms->avg_v = adbms->total_v / (NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2));
 }
 
 void ADBMS_CalculateValues_Temps(adbms_ *adbms)

@@ -1,6 +1,8 @@
 "./Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.o"
 "./Core/Src/adbms_driver.o"
 "./Core/Src/adbms_interface.o"
+"./Core/Src/bms_can.o"
+"./Core/Src/control.o"
 "./Core/Src/main.o"
 "./Core/Src/nfr_can_driver.o"
 "./Core/Src/stm32h7xx_hal_msp.o"
