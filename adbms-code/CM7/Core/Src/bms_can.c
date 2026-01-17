@@ -7,6 +7,14 @@ void Bms_Initialize_Can(mainboard_ *mainboard)
 	// Add mainboard
 	bms_can.mainboard = mainboard;
 
+	// assign interrupt line to rx fifo
+	HAL_FDCAN_ConfigInterruptLines(adbms_can.mainboard->hcan_drive, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, FDCAN_INTERRUPT_LINE0);
+
+	// activate interrupt line for rx fifo
+	HAL_FDCAN_ActivateNotification(adbms_can.mainboard->hcan_drive, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+
+	HAL_FDCAN_Start(adbms_can.mainboard->hcan_drive);
+
 	// SOC header initialization
     bms_can.TxHeaderSOC_.Identifier = SOC_ID;
     bms_can.TxHeaderSOC_.IdType = FDCAN_STANDARD_ID;
@@ -73,6 +81,24 @@ void Bms_Initialize_Can(mainboard_ *mainboard)
     bms_can.TxHeaderTemperatures_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
     bms_can.TxHeaderTemperatures_.MessageMarker = 0;
 
+}
+
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
+{
+	
+    if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != 0)
+    {
+        FDCAN_RxHeaderTypeDef RxHeader;
+        uint8_t RxData[8];
+        
+        // Get the message
+        if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &RxHeader, RxData) != HAL_OK)
+        {
+             return;
+        }
+
+        // Process Data
+    }
 }
 
 void Check_Rx(FDCAN_HandleTypeDef *hfdcan)
