@@ -1,14 +1,14 @@
 #include "virtual_timer.h"
 
 // Creates a new timer
-timer_ CreateTimer(uint32_t duration_ms, Callback cb)
+timer_ Create_Timer(uint32_t duration_ms, Callback cb)
 {
 	uint32_t tickstart = HAL_GetTick();
 	timer_ timer = {tickstart, duration_ms, cb};
 	return timer;
 }
 
-timer_group_ *CreateTimerGroup(timer_ timers[NUM_TIMERS])
+timer_group_ *Create_Timer_Group(timer_ timers[NUM_TIMERS])
 {
 	// Allocate the timer group structure
 	timer_group_ *tg = (timer_group_ *)malloc(sizeof(timer_group_));
@@ -22,7 +22,7 @@ timer_group_ *CreateTimerGroup(timer_ timers[NUM_TIMERS])
 }
 
 // Ticks a timer group
-void TickTimerGroup(timer_group_ *tg)
+void Tick_Timer_Group(timer_group_ *tg)
 {
 	for (uint8_t i = 0; i < NUM_TIMERS; i++)
 	{
@@ -36,7 +36,7 @@ void TickTimerGroup(timer_group_ *tg)
 	}
 }
 
-void TickChargerTimer(timer_group_ *tg)
+void Tick_Charger_Timer(timer_group_ *tg)
 {
 	if ((HAL_GetTick() - tg->timers[0].tickstart) > tg->timers[0].durations_ms)
 	{

@@ -1,4 +1,4 @@
-../Core/Src/virtual_timer.c:4:8:CreateTimer	48	static
-../Core/Src/virtual_timer.c:11:15:CreateTimerGroup	24	static
-../Core/Src/virtual_timer.c:25:6:TickTimerGroup	32	static
-../Core/Src/virtual_timer.c:39:6:TickChargerTimer	16	static
+../Core/Src/virtual_timer.c:4:8:Create_Timer	48	static
+../Core/Src/virtual_timer.c:11:15:Create_Timer_Group	24	static
+../Core/Src/virtual_timer.c:25:6:Tick_Timer_Group	32	static
+../Core/Src/virtual_timer.c:39:6:Tick_Charger_Timer	16	static

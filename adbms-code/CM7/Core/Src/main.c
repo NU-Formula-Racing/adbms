@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "adbms_interface.h"
+#include "bms.h"
 
 int _write(int le, char *ptr, int len)
 {
@@ -95,8 +95,6 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-adbms_ adbms;
 
 /* USER CODE END 0 */
 
@@ -177,7 +175,7 @@ Error_Handler();
   MX_FATFS_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  bms_mainbaord_setup(&hspi1, &hfdcan1);
+  Bms_Mainbaord_Setup(&hspi1, &hfdcan1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -187,7 +185,7 @@ Error_Handler();
     /* USER CODE END WHILE */
 	 //printf("while\n");
     /* USER CODE BEGIN 3 */
-	  tick_mainboard_timers();
+	  Tick_Mainboard_Timers();
   }
   /* USER CODE END 3 */
 }

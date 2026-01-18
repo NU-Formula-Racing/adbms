@@ -1,10 +1,9 @@
 ../Core/Src/bms_can.c:5:6:Bms_Initialize_Can	1
-../Core/Src/bms_can.c:102:6:HAL_FDCAN_RxFifo0Callback	1
-../Core/Src/bms_can.c:154:6:Can_Loop	1
+../Core/Src/bms_can.c:86:6:HAL_FDCAN_RxFifo0Callback	6
+../Core/Src/bms_can.c:138:6:Can_Loop	3
 ../Core/Src/bms_can.c:171:9:send_can_messages	2
-../Core/Src/bms_can.c:185:6:Data_Can_Loop	1
-../Core/Src/bms_can.c:204:6:populate_bms_soc	1
-../Core/Src/bms_can.c:215:6:populate_bms_faults	3
-../Core/Src/bms_can.c:229:6:populate_bms_status	1
-../Core/Src/bms_can.c:244:6:populate_bms_voltages	2
-../Core/Src/bms_can.c:255:6:populate_bms_temparatures	2
+../Core/Src/bms_can.c:185:6:populate_bms_soc	1
+../Core/Src/bms_can.c:196:6:populate_bms_faults	3
+../Core/Src/bms_can.c:210:6:populate_bms_status	1
+../Core/Src/bms_can.c:225:6:populate_bms_voltages	2
+../Core/Src/bms_can.c:236:6:populate_bms_temparatures	2

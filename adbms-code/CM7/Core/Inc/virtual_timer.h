@@ -1,4 +1,7 @@
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "stm32h7xx_hal.h"
 #include "bms_system_prams.h"
 
@@ -16,10 +19,10 @@ typedef struct
     timer_ timers[NUM_TIMERS]; // Array of timers
 } timer_group_;
 
-timer_ CreateTimer(uint32_t duration_ms, Callback cb);
+timer_ Create_Timer(uint32_t duration_ms, Callback cb);
 
-timer_group_ *CreateTimerGroup(timer_ timers[NUM_TIMERS]);
+timer_group_ *Create_Timer_Group(timer_ timers[NUM_TIMERS]);
 
-void TickTimerGroup(timer_group_ *tg);
+void Tick_Timer_Group(timer_group_ *tg);
 
-void TickChargerTimer(timer_group_ *tg);
+void Tick_Charger_Timer(timer_group_ *tg);

@@ -6,6 +6,6 @@
 ../Core/Src/adbms_interface.c:212:6:UpdateADInternalFault	9
 ../Core/Src/adbms_interface.c:229:6:cellBalanceOn	5
 ../Core/Src/adbms_interface.c:252:6:cellBalanceOff	2
-../Core/Src/adbms_interface.c:265:6:UpdateOWCFault	15
+../Core/Src/adbms_interface.c:265:6:Update_Owc_Fault	15
 ../Core/Src/adbms_interface.c:362:6:ADBMS_Print_Vals	5
 ../Core/Src/adbms_interface.c:406:6:ADBMS_USB_Serial_Print_Vals	5

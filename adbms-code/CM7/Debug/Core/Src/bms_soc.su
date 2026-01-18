@@ -1,2 +1,2 @@
-../Core/Src/bms_soc.c:3:6:soc_initialize	48	static
-../Core/Src/bms_soc.c:14:6:soc_update	56	static
+../Core/Src/bms_soc.c:3:6:Soc_Initialize	48	static
+../Core/Src/bms_soc.c:14:6:Soc_Update	56	static

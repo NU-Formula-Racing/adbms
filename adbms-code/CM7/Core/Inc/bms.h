@@ -1,20 +1,23 @@
+#pragma once
+
 #ifndef ADBMS_MAINBOARD_H
 #define ADBMS_MAINBOARD_H
 
 //#include "bms_main_struct.h"
 #include "bms_can.h" 
-//#include "control.h"
+#include "bms_soc.h"
+#include "bms_control.h"
+#include <stdio.h>
 
-void bms_mainbaord_setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan);
+void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan);
+
+void Tick_Mainboard_Timers();
+
 void bms_mainboard_loop();
-
-void print_test();
-void tick_mainboard_timers();
-
-void UpdateValues();
-void CheckFaults();
-
 void adbms_owc_loop();
+
+void update_values();
+void check_faults();
 
 void send_data_over_printf();
 void send_data_over_USB();

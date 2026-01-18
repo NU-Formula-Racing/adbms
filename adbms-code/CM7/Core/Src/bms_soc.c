@@ -1,6 +1,6 @@
 #include "bms_soc.h"
 
-void soc_initialize(mainboard_ *mainboard)
+void Soc_Initialize(mainboard_ *mainboard)
 {
     ADBMS_UpdateVoltages(&mainboard->adbms);
     float avg_v = mainboard->adbms.avg_v;
@@ -11,7 +11,7 @@ void soc_initialize(mainboard_ *mainboard)
     mainboard->prev_time = HAL_GetTick();
 }
 
-void soc_update(mainboard_ *mainboard)
+void Soc_Update(mainboard_ *mainboard)
 {
     float tick = HAL_GetTick();
     float delta = (tick - mainboard->prev_time) / 1000.0f / 3600.0f; // convert to hours

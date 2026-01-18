@@ -35,11 +35,8 @@ typedef struct
 
 void Bms_Initialize_Can(mainboard_ *mainboard);
 
-void Check_Rx(FDCAN_HandleTypeDef *hcan);
-
 /* CAN Loops */
-void Drive_Can_Loop();
-void Data_Can_Loop();
+void Can_Loop();
 
 void populate_bms_soc(uint8_t *data);
 void populate_bms_faults(uint8_t *data);

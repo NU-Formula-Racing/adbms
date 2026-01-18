@@ -73,7 +73,7 @@ enum bms_states
 	Idle = 0,
 	Precharge = 1,
 	Active = 2,
-	Charge = 3, 
+	Charging = 3, 
 	Fault = 4
 };
 

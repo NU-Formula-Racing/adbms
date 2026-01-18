@@ -226,7 +226,7 @@ void UpdateADInternalFault(adbms_ *adbms)
     // TODO: check status regs for faults - need calcuate status reg values fn that handles status reg pec fualts
 }
 
-void cellBalanceOn(adbms_ *adbms)
+void cellBalanceOn(adbms_ *adbms) //TODO
 {
     // Turn on CB indication LED
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
@@ -262,7 +262,7 @@ void cellBalanceOff(adbms_ *adbms)
     ADBMS_Write_Data(adbms->ICs.hspi, WRCFGB, adbms->ICs.cfg_b, adbms->ICs.spi_dataBuf);
 }
 
-void UpdateOWCFault(adbms_ *adbms)
+void Update_Owc_Fault(adbms_ *adbms) //TODO
 {
     // check openwire fault
     ADBMS_WakeUP_ICs();
@@ -359,7 +359,7 @@ void UpdateOWCFault(adbms_ *adbms)
     HAL_Delay(1);    // S-Channels are updated at 8ms
 }
 
-void ADBMS_Print_Vals(adbms_ *adbms)
+void ADBMS_Print_Vals(adbms_ *adbms)// TODO
 {
     // print the total, max, min, and avg voltage
     printf("\nVOLTAGES\n");
@@ -403,7 +403,7 @@ void ADBMS_Print_Vals(adbms_ *adbms)
     printf("openwire_temp: %d\n", adbms->openwire_temp_fault_);
 }
 
-void ADBMS_USB_Serial_Print_Vals(adbms_ *adbms)
+void ADBMS_USB_Serial_Print_Vals(adbms_ *adbms) //TODO
 {
     #define BUFFER_SIZE 3500  // Increase this if more snprintfs are added
     char logBuf[BUFFER_SIZE];

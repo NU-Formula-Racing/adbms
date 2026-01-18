@@ -3,13 +3,11 @@
 
 #include "adbms_interface.h"
 #include "virtual_timer.h"
-#include "stm32H7xx_it.h"
-#include "stm32H7xx_hal.h"
+#include "stm32h7xx_it.h"
+#include "stm32h7xx_hal.h"
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
-#include "main.h"
-#include <stdio.h>
-#include <stdlib.h>
+#include "bms_system_prams.h"
 
 
 typedef struct
@@ -24,7 +22,6 @@ typedef struct
 	// FDCAN handle
 	FDCAN_HandleTypeDef *hcan;
 
-
 	// faults
 	bool external_fault;
 	bool bms_fault;
@@ -38,7 +35,7 @@ typedef struct
 	bool shutdown_present;
 	bool imd_status;
 	float Inverter_DC_Voltage;
-	//enum ECU_commands ecu_command;
+	bool ecu_close_contactors;
 
 	//Last ECU command was valid
 	bool ecu_valid_command;
@@ -55,10 +52,15 @@ typedef struct
 	float prev_time;
 
 	// timeouts
+	float ecu_last_msg_time;
+	float inverter_last_msg_time;
+	float charger_last_msg_time;
+
+	bool ecu_timeout;
+	bool inverter_timeout;
+	bool charger_timeout;
+
 	bool timeout_fault;
-//	message_condition ecu_message;
-//	message_condition inverter_message;
-//	message_condition charger_message;
 
 	bool comms_6822_state;
 	uint32_t start_time;
@@ -66,12 +68,6 @@ typedef struct
 	enum Charging_states charging_state;
 	
 } mainboard_;
-
-typedef struct
-{
-	float last_msg_time;
-	bool fault;
-}message_condition;
 
 
 #endif // ADBMS_MAIN_STRUCT_H
