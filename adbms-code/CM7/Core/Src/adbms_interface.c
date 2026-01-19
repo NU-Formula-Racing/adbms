@@ -226,24 +226,41 @@ void UpdateADInternalFault(adbms_ *adbms)
     // TODO: check status regs for faults - need calcuate status reg values fn that handles status reg pec fualts
 }
 
-void cellBalanceOn(adbms_ *adbms) //TODO
+void cellBalanceOn(adbms_ *adbms)
 {
     // Turn on CB indication LED
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
 
     for (int cic = 0; cic < NUM_CHIPS; cic++)
     {
-        uint16_t dcc = 0;
-        for (int cvoltage = 0; cvoltage < NUM_VOLTAGES_CHIP; cvoltage++)
+        if (cic % 2 == 0) //even chip, 12 voltages
         {
-            float curr_v = adbms->voltages[cic * NUM_VOLTAGES_CHIP + cvoltage];
-            if ((curr_v - adbms->min_v) > CB_THRESHOLD && curr_v > CB_MIN_V_THRESHOLD)
+            uint16_t dcc = 0;
+            for (int cvoltage = 0; cvoltage < NUM_VOLTAGES_EVEN_CHIP; cvoltage++)
             {
-                dcc |= 1 << cvoltage;
+                float curr_v = adbms->voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + cvoltage];
+                if ((curr_v - adbms->min_v) > CB_THRESHOLD && curr_v > CB_MIN_V_THRESHOLD)
+                {
+                    dcc |= 1 << cvoltage;
+                }
             }
+            adbms->cfb[cic].dcc = dcc;
+            // adbms->cfb[cic].dcc = 0xF;   // for testing
         }
-        adbms->cfb[cic].dcc = dcc;
-        // adbms->cfb[cic].dcc = 0xF;   // for testing
+        else //odd chip, 11 voltages
+        {
+            uint16_t dcc = 0;
+            for (int cvoltage = 0; cvoltage < NUM_VOLTAGES_ODD_CHIP; cvoltage++)
+            {
+                float curr_v = adbms->voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + cvoltage];
+                if ((curr_v - adbms->min_v) > CB_THRESHOLD && curr_v > CB_MIN_V_THRESHOLD)
+                {
+                    dcc |= 1 << cvoltage;
+                }
+            }
+            adbms->cfb[cic].dcc = dcc;
+            // adbms->cfb[cic].dcc = 0xF;   // for testing
+        }
     }
     ADBMS_Set_Config_B(adbms->cfb, adbms->ICs.cfg_b);
     ADBMS_Write_Data(adbms->ICs.hspi, WRCFGB, adbms->ICs.cfg_b, adbms->ICs.spi_dataBuf);
@@ -262,7 +279,7 @@ void cellBalanceOff(adbms_ *adbms)
     ADBMS_Write_Data(adbms->ICs.hspi, WRCFGB, adbms->ICs.cfg_b, adbms->ICs.spi_dataBuf);
 }
 
-void Update_Owc_Fault(adbms_ *adbms) //TODO
+void Update_Owc_Fault(adbms_ *adbms)
 {
     // check openwire fault
     ADBMS_WakeUP_ICs();
@@ -282,7 +299,7 @@ void Update_Owc_Fault(adbms_ *adbms) //TODO
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDSVB, (adbms->ICs.scell + 1 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDSVC, (adbms->ICs.scell + 2 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDSVD, (adbms->ICs.scell + 3 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDSVE, (adbms->ICs.scell + 4 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
+    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDSVE, (adbms->ICs.scell + 4 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); // probably don't need this
 
     if(pec){
         adbms->current_owc_failures += 1;
@@ -294,17 +311,37 @@ void Update_Owc_Fault(adbms_ *adbms) //TODO
 
     for (uint8_t cic = 0; cic < NUM_CHIPS; cic++)
     {
-        uint8_t num_reg_grps = NUM_VOLTAGES_CHIP / VOLTAGES_REG_GRP + (NUM_VOLTAGES_CHIP % VOLTAGES_REG_GRP != 0);
-        for (uint8_t creg_grp = 0; creg_grp < num_reg_grps; creg_grp++)
+        if( cic % 2 == 0) //even chip
         {
-            for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
+            uint8_t num_reg_grps = NUM_VOLTAGES_EVEN_CHIP / VOLTAGES_REG_GRP + (NUM_VOLTAGES_EVEN_CHIP % VOLTAGES_REG_GRP != 0);//find how many register groups used to store voltages
+            for (uint8_t creg_grp = 0; creg_grp < num_reg_grps; creg_grp++)
             {
-                if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_CHIP) break;   // only read 14 when getting 15 -- TODO CHANGE COMMENT
-                int16_t raw_val = (((uint16_t)adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
-                if (ADBMS_getVoltage(raw_val) < 0.5)
+                for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
                 {
-                    adbms->openwire_fault_ = 1;
-                    return;
+                    if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_EVEN_CHIP) break;
+                    int16_t raw_val = (((uint16_t)adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
+                    if (ADBMS_getVoltage(raw_val) < 0.5)
+                    {
+                        adbms->openwire_fault_ = 1;
+                        return;
+                    }
+                }
+            }
+        }
+        else //odd chip
+        {
+            uint8_t num_reg_grps = NUM_VOLTAGES_ODD_CHIP / VOLTAGES_REG_GRP + (NUM_VOLTAGES_ODD_CHIP % VOLTAGES_REG_GRP != 0);//find how many register groups used to store voltages
+            for (uint8_t creg_grp = 0; creg_grp < num_reg_grps; creg_grp++)
+            {
+                for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
+                {
+                    if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_ODD_CHIP) break;
+                    int16_t raw_val = (((uint16_t)adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
+                    if (ADBMS_getVoltage(raw_val) < 0.5)
+                    {
+                        adbms->openwire_fault_ = 1;
+                        return;
+                    }
                 }
             }
         }
@@ -323,7 +360,7 @@ void Update_Owc_Fault(adbms_ *adbms) //TODO
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDSVB, (adbms->ICs.scell + 1 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDSVC, (adbms->ICs.scell + 2 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDSVD, (adbms->ICs.scell + 3 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDSVE, (adbms->ICs.scell + 4 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
+    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDSVE, (adbms->ICs.scell + 4 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); // probably don't need this
 
     if(pec){
         adbms->current_owc_failures += 1;
@@ -335,17 +372,37 @@ void Update_Owc_Fault(adbms_ *adbms) //TODO
 
     for (uint8_t cic = 0; cic < NUM_CHIPS; cic++)
     {
-        uint8_t num_reg_grps = NUM_VOLTAGES_CHIP / VOLTAGES_REG_GRP + (NUM_VOLTAGES_CHIP % VOLTAGES_REG_GRP != 0);
-        for (uint8_t creg_grp = 0; creg_grp < num_reg_grps; creg_grp++)
+        if (cic % 2 == 0)
         {
-            for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
+            uint8_t num_reg_grps = NUM_VOLTAGES_EVEN_CHIP / VOLTAGES_REG_GRP + (NUM_VOLTAGES_EVEN_CHIP% VOLTAGES_REG_GRP != 0);
+            for (uint8_t creg_grp = 0; creg_grp < num_reg_grps; creg_grp++)
             {
-                if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_CHIP) break;   // only read 14 when getting 15 -- TODO CHANGE COMMENT
-                int16_t raw_val = (((uint16_t)adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
-                if (ADBMS_getVoltage(raw_val) < 0.5)
+                for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
                 {
-                    adbms->openwire_fault_ = 1;
-                    return;
+                    if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_EVEN_CHIP) break;  
+                    int16_t raw_val = (((uint16_t)adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
+                    if (ADBMS_getVoltage(raw_val) < 0.5)
+                    {
+                        adbms->openwire_fault_ = 1;
+                        return;
+                    }
+                }
+            }
+        }
+        else
+        {
+            uint8_t num_reg_grps = NUM_VOLTAGES_ODD_CHIP / VOLTAGES_REG_GRP + (NUM_VOLTAGES_ODD_CHIP % VOLTAGES_REG_GRP != 0);
+            for (uint8_t creg_grp = 0; creg_grp < num_reg_grps; creg_grp++)
+            {
+                for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
+                {
+                    if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_ODD_CHIP) break;
+                    int16_t raw_val = (((uint16_t)adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
+                    if (ADBMS_getVoltage(raw_val) < 0.5)
+                    {
+                        adbms->openwire_fault_ = 1;
+                        return;
+                    }
                 }
             }
         }
@@ -359,7 +416,7 @@ void Update_Owc_Fault(adbms_ *adbms) //TODO
     HAL_Delay(1);    // S-Channels are updated at 8ms
 }
 
-void ADBMS_Print_Vals(adbms_ *adbms)// TODO
+void ADBMS_Print_Vals(adbms_ *adbms)
 {
     // print the total, max, min, and avg voltage
     printf("\nVOLTAGES\n");
@@ -372,9 +429,19 @@ void ADBMS_Print_Vals(adbms_ *adbms)// TODO
     // print every voltage
     for (int i = 0; i < NUM_CHIPS; i++)
     {
-        for (int j = 0; j < NUM_VOLTAGES_CHIP; j++)
+        if (i % 2 == 0)
         {
-            printf("C%d=%fV\t", (i * NUM_VOLTAGES_CHIP + j + 1), adbms->voltages[i * NUM_VOLTAGES_CHIP + j]);
+            for (int j = 0; j < NUM_VOLTAGES_EVEN_CHIP; j++)
+            {
+                printf("C%d=%fV\t", (i * NUM_VOLTAGES_EVEN_CHIP + j + 1), adbms->voltages[i * NUM_VOLTAGES_EVEN_CHIP + j]);
+            }
+        }
+        else
+        {
+            for (int j = 0; j < NUM_VOLTAGES_ODD_CHIP; j++)
+            {
+                printf("C%d=%fV\t", (i * NUM_VOLTAGES_ODD_CHIP + j + 1), adbms->voltages[i * NUM_VOLTAGES_ODD_CHIP + j]);
+            }
         }
     }
     printf("\n");
@@ -428,13 +495,27 @@ void ADBMS_USB_Serial_Print_Vals(adbms_ *adbms) //TODO
 
     for (int i = 0; i < NUM_CHIPS; i++)
     {
-        for (int j = 0; j < NUM_VOLTAGES_CHIP; j++)
+        if (i % 2 == 0)
         {
-            len += snprintf(logBuf + len, remaining, "C%d=%fV\t", 
-                            (i * NUM_VOLTAGES_CHIP + j + 1), 
-                            adbms->voltages[i * NUM_VOLTAGES_CHIP + j]);
-            remaining = BUFFER_SIZE - len;
-            if (remaining <= 0) break;
+            for (int j = 0; j < NUM_VOLTAGES_EVEN_CHIP; j++)
+            {
+                len += snprintf(logBuf + len, remaining, "C%d=%fV\t", 
+                                (i * NUM_VOLTAGES_EVEN_CHIP + j + 1), 
+                                adbms->voltages[i * NUM_VOLTAGES_EVEN_CHIP + j]);
+                remaining = BUFFER_SIZE - len;
+                if (remaining <= 0) break;
+            }
+        }
+        else
+        {
+            for (int j = 0; j < NUM_VOLTAGES_ODD_CHIP; j++)
+            {
+                len += snprintf(logBuf + len, remaining, "C%d=%fV\t", 
+                                (i * NUM_VOLTAGES_ODD_CHIP + j + 1), 
+                                adbms->voltages[i * NUM_VOLTAGES_ODD_CHIP + j]);
+                remaining = BUFFER_SIZE - len;
+                if (remaining <= 0) break;
+            }
         }
     }
     len += snprintf(logBuf + len, remaining, "\r\n");
