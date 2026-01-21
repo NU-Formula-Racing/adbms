@@ -19,22 +19,18 @@ void Control_Loop(mainboard_ *mainboard)
 
 void in_car(mainboard_ *mainboard)
 {
-   if (!mainboard->ecu_close_contactors)
+   if (mainboard->ecu_precharge)
    {
-		HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
-        mainboard->state = Idle;
-	}
-	else
-    {
-       if (mainboard->state == Idle)
+         if (mainboard->state == Idle)
        {
             HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_SET);
 		    HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_SET);
             mainboard->state = Precharge;
        }
-       else if (mainboard->state == Precharge)
+	}
+	else if (mainboard->ecu_neutral)
+    {
+        if (mainboard->state == Precharge)
        {
            float inverter_v = mainboard->Inverter_DC_Voltage;
            float total_pack_v = mainboard->adbms.total_v;
@@ -43,10 +39,17 @@ void in_car(mainboard_ *mainboard)
            {
                HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
                HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_SET);
-               mainboard->state = Active;
+               mainboard->state = Neutral;
            }
        }
 	}
+    else
+    {
+        HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
+        mainboard->state = Idle;
+    }
 }
 
 //check for fault and update if needed, return bool

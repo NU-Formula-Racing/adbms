@@ -98,9 +98,11 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hcan, uint32_t RxFifo0ITs)
                // update ecu last msg time
                bms_can.mainboard->ecu_last_msg_time = HAL_GetTick();
 
-               uint8_t ecu_cmd = bms_can.rxData_[0];
-               bms_can.mainboard->ecu_close_contactors = !ecu_cmd; // ecu cmd 0 means close contactors
-           }
+               uint8_t ecu_precharge_cmd = bms_can.rxData_[0];
+			   uint8_t ecu_neutral_cmd = bms_can.rxData_[1];
+               bms_can.mainboard->ecu_precharge = !ecu_precharge_cmd; // ecu precharge 0 means close contactors
+			   bms_can.mainboard->ecu_neutral = !ecu_neutral_cmd; 
+			}
 
            // Inverter Message
            if (bms_can.RxHeader_.Identifier == 0x281)

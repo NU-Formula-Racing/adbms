@@ -35,7 +35,8 @@ typedef struct
 	bool shutdown_present;
 	bool imd_status;
 	float Inverter_DC_Voltage;
-	bool ecu_close_contactors;
+	bool ecu_precharge;
+	bool ecu_neutral;
 
 	//Last ECU command was valid
 	bool ecu_valid_command;
