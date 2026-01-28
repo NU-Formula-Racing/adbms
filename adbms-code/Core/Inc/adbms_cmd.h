@@ -1,5 +1,10 @@
 #include <stdint.h>
 
+/*ADCV Write for 2950*/
+
+static uint16_t ADI1          = 0x02E0;
+static uint16_t ADI2          = 0x01E8;
+
 /* configuration registers commands */
 static uint16_t WRCFGA        = 0x0001;
 static uint16_t WRCFGB        = 0x0024;
