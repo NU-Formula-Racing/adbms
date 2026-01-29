@@ -4,8 +4,7 @@
 // Note for NFR25 we precharged across the negative contactor. 
 // This might change in future years, if so change which contactors are closed accoringly in the FSM 
 
-#define NUM_CHIPS 10					/* Number of ICs 					*/
-#define NUM_VOLTAGES_CHIP 14			/* Number of Cells to read per IC 	*/
+#define NUM_CHIPS 2				    /* Number of ICs 					*/
 #define NUM_VOLTAGES_EVEN_CHIP 12		/* Nmber of Cells in even number ICs starting at 0 ending at 8*/
 #define NUM_VOLTAGES_ODD_CHIP  11  	   	/* Nmber of Cells in odd number ICs starting at 1 ending at 9*/
 #define NUM_TEMPS_CHIP 8				/* Number of Temps to read per IC 	*/
@@ -31,6 +30,9 @@
 #define NUM_DATA_CAN_TEMPS_PER_MSG 8    // will break if this is changed. Based on how data can and DBC are set up
 #define NUM_DATA_CAN_TEMP_MSGS (NUM_CHIPS * NUM_TEMPS_CHIP) / NUM_DATA_CAN_TEMPS_PER_MSG
 
+#define MAX_CHARGER_VOLTAGE 568
+#define MAX_CHARGER_CURRENT 3
+
 // BMS IC Parameters
 #define CELLS 	16														  /* Bms ic number of Cells                */
 #define CELL_REG_GRP 6													  /*Number of total voltage register groups (A-F)*/
@@ -50,7 +52,7 @@
 #define CHARGER_VOLTAGE_THRESHOLD 0.75 
 
 // CAN TIMEOUTS (ms)
-#define ECU_CAN_TIMEOUT 5000
+#define VCU_CAN_TIMEOUT 5000
 #define INVERTER_CAN_TIMEOUT 5000
 #define CHARGER_CAN_TIMEOUT 5000
 
@@ -72,19 +74,21 @@ enum bms_states
 {
 	Idle = 0,
 	Precharge = 1,
-	Neutral = 2,
+	Active = 2,
 	Charging = 3, 
 	Fault = 4
 };
 
-enum ECU_commands
+enum vcu_states
 {
-	waiting = 0,
-	go_to_idle = 1,
-	go_to_active = 2,
+	car_idle = 0,
+	car_precharge = 1,
+	car_neutral = 2,
+	car_drive = 3,
+	car_fault = 4
 };
 
-enum Charging_states
+enum charging_states
 {
 	charger_setup = 0,
 	charger_precharge = 1,

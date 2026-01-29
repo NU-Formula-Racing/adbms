@@ -33,16 +33,11 @@ typedef struct
 
 	// external values
 	bool shutdown_present;
-	bool imd_status;
+	bool imd_status; //high is healthy
 	float Inverter_DC_Voltage;
-	bool ecu_precharge;
-	bool ecu_neutral;
-
-	//Last ECU command was valid
-	bool ecu_valid_command;
 	
 	// chrager
-	bool charger_status;
+	uint8_t charger_status;
 	float charger_voltage;
 	float charger_current;
 
@@ -53,11 +48,11 @@ typedef struct
 	float prev_time;
 
 	// timeouts
-	float ecu_last_msg_time;
+	float vcu_last_msg_time;
 	float inverter_last_msg_time;
 	float charger_last_msg_time;
 
-	bool ecu_timeout;
+	bool vcu_timeout;
 	bool inverter_timeout;
 	bool charger_timeout;
 
@@ -65,8 +60,10 @@ typedef struct
 
 	bool comms_6822_state;
 	uint32_t start_time;
-	enum bms_states state;
-	enum Charging_states charging_state;
+	
+	enum bms_states internal_state;
+	enum vcu_states vcu_state_request;
+	enum charging_states charging_state;
 	
 } mainboard_;
 

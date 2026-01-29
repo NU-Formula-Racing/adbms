@@ -1,9 +1,9 @@
-//Responds to ECU commands and manages contactors
+//Manages contactors
 #include "bms_control.h"
 
 void Control_Loop(mainboard_ *mainboard)
 {
-   if (mainboard->state == Charging)
+   if (mainboard->internal_state == Charging)
    {
        charger_control(mainboard);
    }
@@ -19,50 +19,66 @@ void Control_Loop(mainboard_ *mainboard)
 
 void in_car(mainboard_ *mainboard)
 {
-   if (mainboard->ecu_precharge)
-   {
-         if (mainboard->state == Idle)
-       {
-            HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_SET);
-		    HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_SET);
-            mainboard->state = Precharge;
-       }
-	}
-	else if (mainboard->ecu_neutral)
-    {
-        if (mainboard->state == Precharge)
-       {
-           float inverter_v = mainboard->Inverter_DC_Voltage;
-           float total_pack_v = mainboard->adbms.total_v;
-           float percent_precharged = inverter_v / total_pack_v;
-           if(percent_precharged > INVERTER_VOLTAGE_THRESHOLD)
-           {
-               HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
-               HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_SET);
-               mainboard->state = Neutral;
-           }
-       }
-	}
-    else
-    {
+    switch (mainboard->vcu_state_request) {
+    case car_idle:
         HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
-        mainboard->state = Idle;
+        mainboard->internal_state = Idle;
+        break;
+    case car_precharge:
+        if (mainboard->internal_state == Idle)
+        {
+            HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_SET);
+		    HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_SET);
+            mainboard->internal_state = Precharge;
+        }
+        break;
+    case car_neutral:
+        if (mainboard->internal_state == Precharge)
+        {
+            float inverter_v = mainboard->Inverter_DC_Voltage;
+            float total_pack_v = mainboard->adbms.total_v;
+            float percent_precharged = inverter_v / total_pack_v;
+            if(percent_precharged > INVERTER_VOLTAGE_THRESHOLD)
+            {
+                HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
+                HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_SET);
+                mainboard->internal_state = Active;
+            }
+        }
+        break;
+    case car_drive:
+        // Not a BMS state
+        break;
+    case car_fault:
+        HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
+        mainboard->internal_state = Idle;
+        break;
     }
 }
 
 //check for fault and update if needed, return bool
 bool check_fault_status(mainboard_ *mainboard)
 {
-   if ((mainboard->state == Fault) || mainboard->bms_fault || mainboard->external_fault)
+   if ((mainboard->internal_state == Fault) || mainboard->bms_fault)
    {
-       mainboard->state = Fault;
-       HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
-       HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
-       HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
+        mainboard->internal_state = Fault;
+        HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
+	    HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
 
-       return false;
+        return false;
+   }
+   else if (!mainboard->imd_status || mainboard->external_fault)
+   {
+        mainboard->internal_state = Idle;
+        HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
+	    HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
+        return false;
    }
    else
    {
@@ -73,13 +89,13 @@ bool check_fault_status(mainboard_ *mainboard)
 
 void charger_control(mainboard_ *mainboard)
 {
-   if (mainboard->bms_fault == true)
-   {
-       mainboard->state = Fault;
-       HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
-       HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
-       HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
-   }
+    if (mainboard->bms_fault == true)
+    {
+        mainboard->internal_state = Fault;
+        HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
+    }
     else
     {
         if(!mainboard->charger_timeout) //if actively connected to charger
@@ -87,7 +103,7 @@ void charger_control(mainboard_ *mainboard)
             switch (mainboard->charging_state)
             {
                 case charger_setup:
-                    HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_SET);
+                    HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_SET);
                     HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_SET);
                     mainboard->charging_state = charger_precharge;
                     break;
@@ -95,9 +111,7 @@ void charger_control(mainboard_ *mainboard)
                     float percent_precharged = mainboard->charger_voltage / mainboard->adbms.total_v;
                     if (percent_precharged > CHARGER_VOLTAGE_THRESHOLD)
                     {
-                        
                         HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
-                        HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_SET);
                         HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_SET);
                         mainboard->charging_state = charger_active;
                     }
@@ -105,6 +119,13 @@ void charger_control(mainboard_ *mainboard)
                 case charger_active:
                     break;
             }
+        }
+        else
+        {
+            mainboard->internal_state = Idle;
+            HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
         }
     }
 }

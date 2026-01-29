@@ -48,7 +48,7 @@ void ADBMS_UpdateVoltages(adbms_ *adbms)
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVB, (adbms->ICs.cell + 1 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 3-5 for each chip
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVC, (adbms->ICs.cell + 2 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 6-8 for each chip
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVD, (adbms->ICs.cell + 3 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 9-11 for each chip
-    //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVE, (adbms->ICs.cell + 4 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); DONT NEED VOLTAGES OVER 12 for nfr26 
+    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVE, (adbms->ICs.cell + 4 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //DONT NEED VOLTAGES OVER 12 for nfr26 
     adbms->voltage_pec_failure = pec;
 
     // calulate new values with the updated raw ones
@@ -433,14 +433,15 @@ void ADBMS_Print_Vals(adbms_ *adbms)
         {
             for (int j = 0; j < NUM_VOLTAGES_EVEN_CHIP; j++)
             {
-                printf("C%d=%fV\t", (i * NUM_VOLTAGES_EVEN_CHIP + j + 1), adbms->voltages[i * NUM_VOLTAGES_EVEN_CHIP + j]);
+                printf("C%d=%fV\t", ((i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j + 1), adbms->voltages[i * NUM_VOLTAGES_EVEN_CHIP + j]);
             }
         }
         else
         {
             for (int j = 0; j < NUM_VOLTAGES_ODD_CHIP; j++)
             {
-                printf("C%d=%fV\t", (i * NUM_VOLTAGES_ODD_CHIP + j + 1), adbms->voltages[i * NUM_VOLTAGES_ODD_CHIP + j]);
+                
+                printf("C%d=%fV\t", ((i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j + 1), adbms->voltages[i * NUM_VOLTAGES_ODD_CHIP + j]);
             }
         }
     }

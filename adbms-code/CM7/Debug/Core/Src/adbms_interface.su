@@ -4,8 +4,8 @@
 ../Core/Src/adbms_interface.c:76:6:ADBMS_CalculateValues_Voltages	48	static
 ../Core/Src/adbms_interface.c:155:6:ADBMS_CalculateValues_Temps	48	static
 ../Core/Src/adbms_interface.c:212:6:UpdateADInternalFault	16	static
-../Core/Src/adbms_interface.c:229:6:cellBalanceOn	32	static
-../Core/Src/adbms_interface.c:252:6:cellBalanceOff	24	static
-../Core/Src/adbms_interface.c:265:6:Update_Owc_Fault	32	static
-../Core/Src/adbms_interface.c:362:6:ADBMS_Print_Vals	32	static
-../Core/Src/adbms_interface.c:406:6:ADBMS_USB_Serial_Print_Vals	3552	static
+../Core/Src/adbms_interface.c:229:6:cellBalanceOn	48	static
+../Core/Src/adbms_interface.c:269:6:cellBalanceOff	24	static
+../Core/Src/adbms_interface.c:282:6:Update_Owc_Fault	48	static
+../Core/Src/adbms_interface.c:419:6:ADBMS_Print_Vals	40	static
+../Core/Src/adbms_interface.c:474:6:ADBMS_USB_Serial_Print_Vals	3552	static

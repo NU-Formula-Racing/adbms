@@ -92,16 +92,13 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hcan, uint32_t RxFifo0ITs)
        // Get the message
        if (HAL_FDCAN_GetRxMessage(hcan, FDCAN_RX_FIFO0, &bms_can.RxHeader_, bms_can.rxData_) == HAL_OK)
        {
-           // ECU Message
+           // VCU Message
            if (bms_can.RxHeader_.Identifier == 0x205)
            {
-               // update ecu last msg time
-               bms_can.mainboard->ecu_last_msg_time = HAL_GetTick();
+               // update vcu last msg time
+               bms_can.mainboard->vcu_last_msg_time = HAL_GetTick();
 
-               uint8_t ecu_precharge_cmd = bms_can.rxData_[0];
-			   uint8_t ecu_neutral_cmd = bms_can.rxData_[1];
-               bms_can.mainboard->ecu_precharge = !ecu_precharge_cmd; // ecu precharge 0 means close contactors
-			   bms_can.mainboard->ecu_neutral = !ecu_neutral_cmd; 
+               bms_can.mainboard->vcu_state_request = bms_can.rxData_[0];
 			}
 
            // Inverter Message
@@ -112,6 +109,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hcan, uint32_t RxFifo0ITs)
 
                uint16_t inverter_raw_voltage = (bms_can.rxData_[4] & 0xFF) | (bms_can.rxData_[5] << 8);
                bms_can.mainboard->Inverter_DC_Voltage = ((float)inverter_raw_voltage) * 0.1;
+			   bms_can.mainboard->Inverter_DC_Voltage = bms_can.rxData_[0]; //HARD CODE FOR TESTING
            }
 
            // Charger Message
@@ -121,11 +119,15 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hcan, uint32_t RxFifo0ITs)
                bms_can.mainboard->charger_last_msg_time = HAL_GetTick();
 
                // big endian
-               bms_can.mainboard->charging_state = bms_can.rxData_[4];
+               bms_can.mainboard->charger_status = bms_can.rxData_[4];
                uint16_t charger_raw_voltage = (bms_can.rxData_[0] << 8) | (bms_can.rxData_[1] & 0xFF);
                uint16_t charger_raw_current = (bms_can.rxData_[2] << 8) | (bms_can.rxData_[3] & 0xFF);
                bms_can.mainboard->charger_voltage = ((float)charger_raw_voltage) * 0.1;
                bms_can.mainboard->charger_current = ((float)charger_raw_current) * 0.1;
+			   if (bms_can.mainboard->internal_state == Idle)
+			   {
+					bms_can.mainboard->internal_state = Charging;
+			   }
            }
        }
        else
@@ -167,6 +169,12 @@ void Can_Loop()
 		populate_bms_temparatures(bms_can.txDataTemperatures_, i);
 		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderTemperatures_, bms_can.txDataTemperatures_);
 		bms_can.TxHeaderTemperatures_.Identifier++;
+	}
+
+	if (bms_can.mainboard->internal_state == Charging)
+	{
+		populateCharger_Msg(adbms_can.txDataCharger_);
+		send_can_messages(adbms_can.mainboard->hcan_drive, &adbms_can.TxHeaderCharger_, adbms_can.txDataCharger_, &adbms_can.TxMailBox_);
 	}
 }
 
@@ -213,7 +221,7 @@ void populate_bms_status(uint8_t *data)
 {
 	RawCanSignal signals[7];
 
-	populateRawMessage(&signals[0], 0, 8, 1, 0);		 // BMS State
+	populateRawMessage(&signals[0], bms_can.mainboard->internal_state, 8, 1, 0);	 // BMS State
 	populateRawMessage(&signals[1], bms_can.mainboard->imd_status, 8, 1, 0);		 // IMD State
 	populateRawMessage(&signals[2], bms_can.mainboard->adbms.max_temp, 8, 1, -40);   // max cell temp
 	populateRawMessage(&signals[3], bms_can.mainboard->adbms.min_temp, 8, 1, -40);   // min cell temp
@@ -242,4 +250,23 @@ void populate_bms_temparatures(uint8_t *data, int temp_num)
 		populateRawMessage(&signals[i], bms_can.mainboard->adbms.temperatures[temp_num * NUM_DATA_CAN_TEMPS_PER_MSG + i], 8, 1, -40);
 	}
 	encodeSignals(data, NUM_DATA_CAN_TEMPS_PER_MSG, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]);
+}
+
+void populateCharger_Msg(uint8_t *data)
+{
+	uint16_t voltage = MAX_CHARGER_VOLTAGE * 10;
+	uint16_t current = MAX_CHARGER_CURRENT * 10;
+	data[0] = (voltage >> 8) & 0xFF;
+	data[1] = voltage & 0xFF;
+	data[2] = (current >> 8) & 0xFF;
+	data[3] = current & 0xFF;
+	if (bms_can.mainboard->internal_state == Charging)
+	{
+		data[4] = 0;
+	}
+	else
+	{
+		data[4] = 1;
+	}
+	 
 }

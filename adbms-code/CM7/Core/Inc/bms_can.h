@@ -43,6 +43,7 @@ void populate_bms_faults(uint8_t *data);
 void populate_bms_status(uint8_t *data);
 void populate_bms_voltages(uint8_t *data, int volt_msg_num);
 void populate_bms_temparatures(uint8_t *data, int temp_num);
+void populateCharger_Msg(uint8_t *data);
 
 /* send_can_messages updated to use FDCAN types and buffer index pointer */
 uint8_t send_can_messages(FDCAN_HandleTypeDef *hcan, FDCAN_TxHeaderTypeDef *TxHeader, uint8_t *data);

@@ -1,4 +1,4 @@
 ../Core/Src/bms_control.c:4:6:Control_Loop	16	static
 ../Core/Src/bms_control.c:20:6:in_car	32	static
-../Core/Src/bms_control.c:53:6:check_fault_status	16	static
-../Core/Src/bms_control.c:71:6:charger_control	24	static
+../Core/Src/bms_control.c:64:6:check_fault_status	16	static
+../Core/Src/bms_control.c:90:6:charger_control	24	static

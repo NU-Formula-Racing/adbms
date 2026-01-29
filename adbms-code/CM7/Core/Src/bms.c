@@ -1,6 +1,5 @@
 #include "bms.h"
 
-
 mainboard_ mainboard;
 
 void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
@@ -15,7 +14,7 @@ void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 	Bms_Initialize_Can(&mainboard);
 
 	// initialize SOC
-	Soc_Initialize(&mainboard);
+	//Soc_Initialize(&mainboard);
 
 	// initialize the timers: adbms_mainboard_loop, drive_can, data_can
 	timer_ t_adbms = Create_Timer(500, bms_mainboard_loop);
@@ -27,8 +26,8 @@ void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 
 	//initial states
 	mainboard.charging_state = charger_setup;
-	mainboard.state = Idle;
-	//mainboard.vcu_command == waiting;
+	mainboard.internal_state = Idle;
+	mainboard.imd_status = true; //start healthy because fault is latched (maybe not needed in software)
 }
 
 
@@ -61,15 +60,20 @@ void update_values()
 	UpdateADInternalFault(&mainboard.adbms);
 
 	// update STM32 Pin values
-    mainboard.shutdown_present = HAL_GPIO_ReadPin(GPIOD, Shutdown_Contactors_Pin); 	   // shutdown status
-    mainboard.imd_status = HAL_GPIO_ReadPin(GPIOD, IMD_STATUS_IN_Pin);		           // IMD_Status
-    mainboard.comms_6822_state = HAL_GPIO_ReadPin(GPIOD, AD6822_State_Pin);	   		   // 6822_State
+    mainboard.shutdown_present = HAL_GPIO_ReadPin(GPIOD, Shutdown_Contactors_Pin); 	   		  // shutdown status
+    mainboard.imd_status = mainboard.imd_status && HAL_GPIO_ReadPin(GPIOD, IMD_STATUS_IN_Pin); // IMD_Status (software latched)
+    mainboard.comms_6822_state = HAL_GPIO_ReadPin(GPIOD, AD6822_State_Pin);	 //Currently Unused  		   		  // 6822_State
+
+    //HARD CODE FOR TESTING
+    mainboard.shutdown_present = true;
+    mainboard.imd_status = true;
 
 	//soc
 	Soc_Update(&mainboard);
 	
-	// get current
-	mainboard.current = 80; //RANDOM HARD CODE TO NOT OVERCURRENT
+	
+	mainboard.current = 0; //HARD CODE no pack board
+
 	mainboard.overcurrent_fault = mainboard.current > OVERCURRENT;
 
 	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
@@ -95,7 +99,7 @@ void check_faults()
 
 	// set external faults
 	// timeouts
-	if (mainboard.state == Charging) //in charger
+	if (mainboard.internal_state == Charging) //in charger
 	{
 		// In charge states only check for charger timeout
 		float charger_dt = HAL_GetTick() - mainboard.charger_last_msg_time;
@@ -105,14 +109,14 @@ void check_faults()
 	}
 	else //in car
 	{
-		//In non-charge states (i.e. in the car)  check for inverter and ecu timeouts
-		float ecu_dt = HAL_GetTick() - mainboard.ecu_last_msg_time;
-		mainboard.ecu_timeout = ecu_dt > ECU_CAN_TIMEOUT;
+		//In non-charge states check for inverter and vcu timeouts
+		float vcu_dt = HAL_GetTick() - mainboard.vcu_last_msg_time;
+		mainboard.vcu_timeout = vcu_dt > VCU_CAN_TIMEOUT;
 
 		float inverter_dt = HAL_GetTick() - mainboard.inverter_last_msg_time;
 		mainboard.inverter_timeout = inverter_dt > INVERTER_CAN_TIMEOUT;
 
-		mainboard.timeout_fault = mainboard.ecu_timeout || mainboard.inverter_timeout;
+		mainboard.timeout_fault = mainboard.vcu_timeout || mainboard.inverter_timeout;
 	}
 
 	mainboard.external_fault = !mainboard.shutdown_present || mainboard.timeout_fault;
@@ -125,7 +129,6 @@ void check_faults()
 	{
 		HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin, GPIO_PIN_RESET);
 		HAL_GPIO_WritePin(GPIOB, TSSI_R_Pin, GPIO_PIN_SET);
-		
 	}
 	else
 	{

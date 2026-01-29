@@ -1,9 +1,0 @@
-../Core/Src/bms_can.c:5:6:Bms_Initialize_Can	16	static
-../Core/Src/bms_can.c:86:6:HAL_FDCAN_RxFifo0Callback	24	static
-../Core/Src/bms_can.c:138:6:Can_Loop	16	static
-../Core/Src/bms_can.c:171:9:send_can_messages	32	static
-../Core/Src/bms_can.c:185:6:populate_bms_soc	176	static
-../Core/Src/bms_can.c:196:6:populate_bms_faults	272	static
-../Core/Src/bms_can.c:210:6:populate_bms_status	240	static
-../Core/Src/bms_can.c:225:6:populate_bms_voltages	280	static
-../Core/Src/bms_can.c:236:6:populate_bms_temparatures	280	static
