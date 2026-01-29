@@ -173,8 +173,8 @@ void Can_Loop()
 
 	if (bms_can.mainboard->internal_state == Charging)
 	{
-		populateCharger_Msg(adbms_can.txDataCharger_);
-		send_can_messages(adbms_can.mainboard->hcan_drive, &adbms_can.TxHeaderCharger_, adbms_can.txDataCharger_, &adbms_can.TxMailBox_);
+		populateCharger_Msg(bms_can.txDataCharger_);
+		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderCharger_, bms_can.txDataCharger_);
 	}
 }
 
