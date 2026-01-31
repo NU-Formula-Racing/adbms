@@ -26,6 +26,13 @@ void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi)
     ADBMS_Set_ADCV(adbms->adcv, &adbms->ICs.adcv);
     ADBMS_Set_ADAX(adbms->adax, &adbms->ICs.adax);
 
+
+    //adsv brought up
+    adbms->adsv.cont = 1;
+    adbms->adsv.ow = 1; // Enable OW on even-channel 
+    ADBMS_Set_ADSV(adbms->adsv, &adbms->ICs.adsv);
+
+
     // Write Config 
     ADBMS_WakeUP_ICs();
     ADBMS_WakeUP_ICs();
@@ -53,7 +60,11 @@ void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi)
     ADBMS_Write_CMD(adbms->ICs.hspi, adbms->ICs.adcv);
     HAL_Delay(1);
     ADBMS_Write_CMD(adbms->ICs.hspi, adbms->ICs.adax);
-    HAL_Delay(8); // ADCs are updated at their conversion rate of 1ms
+    HAL_Delay(1); // ADCs are updated at their conversion rate of 1ms
+    
+    //adsv
+    ADBMS_Write_CMD(adbms->ICs.hspi, adbms->ICs.adsv);
+    HAL_Delay(8);
 }
 
 void ADBMS_UpdateVoltages(adbms_ *adbms)
@@ -62,12 +73,8 @@ void ADBMS_UpdateVoltages(adbms_ *adbms)
     bool pec = 0;
     ADBMS_WakeUP_ICs();
     
-    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVA, (adbms->ICs.cell + 0 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
-
-    //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDFCA,(adbms->ICs.cell + 0 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
-
-
-    //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVB, (adbms->ICs.cell + 1 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
+    //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVA, (adbms->ICs.cell + 0 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
+    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVB, (adbms->ICs.cell + 0 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
     //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVC, (adbms->ICs.cell + 2 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
     //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVD, (adbms->ICs.cell + 3 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
     //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVE, (adbms->ICs.cell + 4 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
@@ -125,21 +132,29 @@ void ADBMS2950_Calculate_Current(adbms_* adbms){
     int offset =  (NUM_CHIPS-1) * DATA_LEN;
 
     //getting raw data from cell readings
-    uint32_t i1_raw = ((uint32_t)(adbms->ICs.cell[2 + offset]) << 16) | ((uint32_t)(adbms->ICs.cell[1 + offset]) << 8) | adbms->ICs.cell[0 + offset];
-    uint32_t i2_raw = ((uint32_t)(adbms->ICs.cell[5 + offset]) << 16) | ((uint32_t)(adbms->ICs.cell[4 + offset]) << 8) | adbms->ICs.cell[3 + offset];
+    int32_t i1_raw = ((int32_t)(adbms->ICs.cell[2 + offset]) << 16) | ((int32_t)(adbms->ICs.cell[1 + offset]) << 8) | adbms->ICs.cell[0 + offset];
+    int32_t i2_raw = ((int32_t)(adbms->ICs.cell[5 + offset]) << 16) | ((int32_t)(adbms->ICs.cell[4 + offset]) << 8) | adbms->ICs.cell[3 + offset];
 
+    //sign extend because it is a 24 bit number but stored int32
+    if (i1_raw & 0x00800000) {     
+        i1_raw |= 0xFF000000;      
+    }
+
+    if(i2_raw & 0x00800000){
+        i2_raw |= 0xFF000000;
+    }
 
     //transfer to real value and store
-    adbms->data_2950.i1 = ADBMS2950_Transfer_Current(i1_raw);
+    //i1 is negative by default
+    adbms->data_2950.i1 = -ADBMS2950_Transfer_Current(i1_raw);
     adbms->data_2950.i2 = ADBMS2950_Transfer_Current(i2_raw);
 }
 
-float ADBMS2950_Transfer_Current(uint32_t data)
+float ADBMS2950_Transfer_Current(int32_t data)
 {
   float current;
-  // current = 1e-6 * (((int32_t)data << (32-24)) >> (32-24));
-  current = 1e-6 * ((int32_t)(data << (32-24)) >> (32-24));
-  // current = 1e-6 * ((int32_t)(data));
+  //the actual measured resistance is closer to 94 microolms instead of 100
+  current = (float) data / 94.0;
   return current;
 }
 
