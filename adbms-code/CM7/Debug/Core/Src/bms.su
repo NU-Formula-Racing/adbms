@@ -3,6 +3,6 @@
 ../Core/Src/bms.c:40:6:bms_mainboard_loop	8	static
 ../Core/Src/bms.c:49:6:adbms_owc_loop	8	static
 ../Core/Src/bms.c:54:6:update_values	8	static
-../Core/Src/bms.c:83:6:check_faults	24	static
-../Core/Src/bms.c:140:6:send_data_over_printf	8	static
-../Core/Src/bms.c:155:6:send_data_over_USB	288	static
+../Core/Src/bms.c:79:6:check_faults	24	static
+../Core/Src/bms.c:136:6:send_data_over_printf	8	static
+../Core/Src/bms.c:151:6:send_data_over_USB	288	static

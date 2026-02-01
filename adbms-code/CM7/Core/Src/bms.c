@@ -17,7 +17,7 @@ void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 	//Soc_Initialize(&mainboard);
 
 	// initialize the timers: adbms_mainboard_loop, drive_can, data_can
-	timer_ t_adbms = Create_Timer(500, bms_mainboard_loop);
+	timer_ t_adbms = Create_Timer(250, bms_mainboard_loop);
 	timer_ t_adbms_owc_check = Create_Timer(30000, adbms_owc_loop);
 	timer_ timers[NUM_TIMERS] = {t_adbms, t_adbms_owc_check};
 	mainboard.tg = Create_Timer_Group(timers);
@@ -64,12 +64,8 @@ void update_values()
     mainboard.imd_status = mainboard.imd_status && HAL_GPIO_ReadPin(GPIOD, IMD_STATUS_IN_Pin); // IMD_Status (software latched)
     mainboard.comms_6822_state = HAL_GPIO_ReadPin(GPIOD, AD6822_State_Pin);	 //Currently Unused  		   		  // 6822_State
 
-    //HARD CODE FOR TESTING
-    mainboard.shutdown_present = true;
-    mainboard.imd_status = true;
-
 	//soc
-	Soc_Update(&mainboard);
+	//Soc_Update(&mainboard);
 	
 	
 	mainboard.current = 0; //HARD CODE no pack board
@@ -128,7 +124,7 @@ void check_faults()
 	if (!mainboard.imd_status || mainboard.bms_fault)
 	{
 		HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOB, TSSI_R_Pin, GPIO_PIN_SET);
+		HAL_GPIO_TogglePin(GPIOB, TSSI_R_Pin);
 	}
 	else
 	{

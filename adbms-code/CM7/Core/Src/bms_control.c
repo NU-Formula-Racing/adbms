@@ -29,13 +29,13 @@ void in_car(mainboard_ *mainboard)
     case car_precharge:
         if (mainboard->internal_state == Idle)
         {
+            HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
             HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_SET);
 		    HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_SET);
             mainboard->internal_state = Precharge;
+
         }
-        break;
-    case car_neutral:
-        if (mainboard->internal_state == Precharge)
+        else if (mainboard->internal_state == Precharge)
         {
             float inverter_v = mainboard->Inverter_DC_Voltage;
             float total_pack_v = mainboard->adbms.total_v;
@@ -44,12 +44,16 @@ void in_car(mainboard_ *mainboard)
             {
                 HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
                 HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_SET);
+                HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_SET);
                 mainboard->internal_state = Active;
             }
         }
         break;
+    case car_neutral:
+        //VCU in netutral after BMS is in Active
+        break;
     case car_drive:
-        // Not a BMS state
+        // BMS Active
         break;
     case car_fault:
         HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
@@ -63,7 +67,7 @@ void in_car(mainboard_ *mainboard)
 //check for fault and update if needed, return bool
 bool check_fault_status(mainboard_ *mainboard)
 {
-   if ((mainboard->internal_state == Fault) || mainboard->bms_fault)
+   if ((mainboard->internal_state == Fault) || mainboard->bms_fault || !mainboard->imd_status)
    {
         mainboard->internal_state = Fault;
         HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
@@ -72,7 +76,7 @@ bool check_fault_status(mainboard_ *mainboard)
 
         return false;
    }
-   else if (!mainboard->imd_status || mainboard->external_fault)
+   else if (mainboard->external_fault)
    {
         mainboard->internal_state = Idle;
         HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);

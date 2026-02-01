@@ -207,12 +207,12 @@ void populate_bms_faults(uint8_t *data)
 {
 	RawCanSignal signals[8];
 	populateRawMessage(&signals[0], bms_can.mainboard->bms_fault, 1, 1, 0);																  	// fault summary
-	populateRawMessage(&signals[1], bms_can.mainboard->adbms.undervoltage_fault_, 1, 1, 0);												  	// undervoltage fault
-	populateRawMessage(&signals[2], bms_can.mainboard->adbms.overvoltage_fault_, 1, 1, 0);												   	// overvoltage fault
-	populateRawMessage(&signals[3], bms_can.mainboard->adbms.undertemperature_fault_, 1, 1, 0);												// undertemp fault
-	populateRawMessage(&signals[4], bms_can.mainboard->adbms.overtemperature_fault_, 1, 1, 0);											 	// overemp fault
-	populateRawMessage(&signals[5], bms_can.mainboard->overcurrent_fault, 1, 1, 0);														 	// overcurrent fault
-	populateRawMessage(&signals[6], bms_can.mainboard->external_fault, 1, 1, 0);													   			// external fault
+	populateRawMessage(&signals[1], bms_can.mainboard->external_fault, 1, 1, 0);													   		// external fault
+	populateRawMessage(&signals[2], bms_can.mainboard->adbms.undervoltage_fault_, 1, 1, 0);												  	// undervoltage fault
+	populateRawMessage(&signals[3], bms_can.mainboard->adbms.overvoltage_fault_, 1, 1, 0);												   	// overvoltage fault
+	populateRawMessage(&signals[4], bms_can.mainboard->adbms.undertemperature_fault_, 1, 1, 0);												// undertemp fault
+	populateRawMessage(&signals[5], bms_can.mainboard->adbms.overtemperature_fault_, 1, 1, 0);											 	// overemp fault
+	populateRawMessage(&signals[6], bms_can.mainboard->overcurrent_fault, 1, 1, 0);														 	// overcurrent fault
 	populateRawMessage(&signals[7], (bms_can.mainboard->adbms.openwire_fault_ || bms_can.mainboard->adbms.openwire_temp_fault_), 1, 1, 0);	// open wire fault
 	encodeSignals(data, 8, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]);
 }
