@@ -25,11 +25,23 @@ typedef struct
     uint16_t adax;
     uint16_t adax2;
 
+    //this is probably too big but it ok
     uint8_t cell[CELL_REG_GRP * NUM_CHIPS * DATA_LEN];
     uint8_t scell[CELL_REG_GRP * NUM_CHIPS * DATA_LEN];
     uint8_t aux[AUX_REG_GRP * NUM_CHIPS * DATA_LEN];
 
 } adbms6830_ICs;
+
+//2950 struct, could change in the future to add more parameters
+//depending on what gets measured
+typedef struct{
+
+  float vbat1;
+  float vbat2;
+  float i1;
+  float i2;
+
+} data_2950;
 
 typedef struct
 {

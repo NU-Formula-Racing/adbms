@@ -11,6 +11,10 @@ typedef struct
 {
     adbms6830_ICs ICs;
 
+    //all the data collected from 2950 will go into this struct
+    //has attibutes for current and voltage
+    data_2950 data_2950;
+
     cfa_ cfa[NUM_CHIPS];
     cfb_ cfb[NUM_CHIPS];
     adcv_ adcv;
@@ -51,6 +55,15 @@ void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi);
 void UpdateADInternalFault(adbms_ *adbms);
 
 void ADBMS_UpdateVoltages(adbms_ *adbms);
+
+//2950 function headerfiles
+void ADBMS_2950_Calculate_Values(adbms_* adbms);
+void ADBMS2950_Calculate_Vbat(adbms_* adbms);
+float ADBMS2950_Transfer_Vbat(uint16_t data);
+void ADBMS2950_Calculate_Current(adbms_* adbms);
+float ADBMS2950_Transfer_Current(int32_t data);
+
+
 void ADBMS_UpdateTemps(adbms_ *adbms);
 void UpdateOWCFault(adbms_ *adbms);
 
