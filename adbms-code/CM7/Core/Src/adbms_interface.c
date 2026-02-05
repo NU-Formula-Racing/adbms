@@ -33,7 +33,12 @@ void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi)
     ADBMS_WakeUP_ICs();
 
     //hardcode the 2950 refup bit to 1;
-    adbms->ICs.cfg_a[5] = 0x10;
+    //adbms->ICs.cfg_a[5] = 0x10;
+    adbms->ICs.cfg_a[5] |= 0x10; 
+
+    //also need to toggle GPO1C to 1, GPO1OD to 0 to open the mosfet for vbat
+    adbms->ICs.cfg_a[3] |= 0x01;
+    adbms->ICs.cfg_a[4] &= 0xFE;
 
     ADBMS_Write_Data(adbms->ICs.hspi, WRCFGA, adbms->ICs.cfg_a, adbms->ICs.spi_dataBuf);
     ADBMS_WakeUP_ICs();
@@ -204,7 +209,10 @@ float ADBMS2950_Calculate_Shunt_Temp(adbms_ *adbms){
 }
 
 float ADBMS2950_Transfer_Shunt_Temp(int16_t voltage){
-    
+
+    //vref is typically 1.25V
+
+
 }
 
 
