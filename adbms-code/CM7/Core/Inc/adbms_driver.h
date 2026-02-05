@@ -30,16 +30,33 @@ typedef struct
     uint8_t scell[CELL_REG_GRP * NUM_CHIPS * DATA_LEN];
     uint8_t aux[AUX_REG_GRP * NUM_CHIPS * DATA_LEN];
 
+    //add array to store v1v2 data
+    //the name is Jasper's and Jason's little easter egg
+    //turns out you dont actually need this
+    //uint8_t voltages[NUM_CHIPS * DATA_LEN];
+
+    //array to store shunt thermister voltages
+    uint8_t shunt_temp[NUM_CHIPS * DATA_LEN];
+
 } adbms6830_ICs;
 
 //2950 struct, could change in the future to add more parameters
 //depending on what gets measured
 typedef struct{
 
-  float vbat1;
-  float vbat2;
+  //pre contactor voltages
+  float vbat;
+
+  //current
   float i1;
   float i2;
+
+  //post contactor voltages
+  float v_TS;
+
+  //Shunt Thermistor Voltages
+  float v_shunt_1;
+  float v_shunt_2;
 
 } data_2950;
 

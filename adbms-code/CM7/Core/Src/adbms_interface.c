@@ -61,6 +61,15 @@ void ADBMS_UpdateVoltages(adbms_ *adbms)
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVC, (adbms->ICs.cell + 2 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVD, (adbms->ICs.cell + 3 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVE, (adbms->ICs.cell + 4 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
+
+    //this is reading v1adc and v2adc
+    //THIS IS THE WRONG SENT data, the v1 v2 gets read with RDCVD
+    //pec |= ADBMS_READ_DATA(adbms->ICs.hspi, RDCVD, (adbms->ICs.voltages), adbms->ICs.spi_dataBuf);
+
+    //this is reading v_shunt_1 (v7) and v_shunt_2 (v9)
+    pec |= ADBMS_READ_DATA(adbms->ICs.hspi, RDAUXC, (adbms->ICs.shunt_temp), adbms->ICs.spi_dataBuf);
+
+    //update pec error
     adbms->voltage_pec_failure = pec;
 
     // calulate new values with the updated raw ones
@@ -75,14 +84,15 @@ void ADBMS_2950_Calculate_Values(adbms_* adbms){
     
     ADBMS2950_Calculate_Vbat(adbms);
     ADBMS2950_Calculate_Current(adbms);
+    ADBMS2950_Calculate_Post_Voltage(adbms);
+    ADBMS2950_Calculate_Shunt_Temp(adbms);
 }
 
 //calculate 2950 vbat
 void ADBMS2950_Calculate_Vbat(adbms_* adbms){
    
     //initialize values 
-    adbms->data_2950.vbat1 = 0.0;
-    adbms->data_2950.vbat2 = 0.0;
+    adbms->data_2950.vbat= 0.0;
 
     //offset because RDCVB is the second command sent
     int command_offset = NUM_CHIPS * DATA_LEN;
@@ -90,18 +100,23 @@ void ADBMS2950_Calculate_Vbat(adbms_* adbms){
     int offset = (NUM_CHIPS-1) * DATA_LEN;
 
     //getting raw data from cell readings
-    uint16_t vbat1_raw = ((uint16_t)(adbms->ICs.cell[3 + command_offset + offset]) << 8) | (uint16_t)(adbms->ICs.cell[2 + command_offset + offset]);
-    uint16_t vbat2_raw = ((uint16_t)(adbms->ICs.cell[5 + command_offset + offset]) << 8) | (uint16_t)(adbms->ICs.cell[4 + command_offset + offset]);
+    int16_t vbat1_raw = ((int16_t)(adbms->ICs.cell[3 + command_offset + offset]) << 8) | (int16_t)(adbms->ICs.cell[2 + command_offset + offset]);
+    int16_t vbat2_raw = ((int16_t)(adbms->ICs.cell[5 + command_offset + offset]) << 8) | (int16_t)(adbms->ICs.cell[4 + command_offset + offset]);
 
-    //transfer to real value and store
-    adbms->data_2950.vbat1 = ADBMS2950_Transfer_Vbat(vbat1_raw);
-    adbms->data_2950.vbat2 = ADBMS2950_Transfer_Vbat(vbat2_raw);
+    adbms->data_2950.vbat = ADBMS_2950_Transfer_Vbat(vbat1_raw,vbat2_raw);
 }
 
-float ADBMS2950_Transfer_Vbat(uint16_t data){
-    float voltage;
-    voltage = 100e-6 * (int16_t)data; /* Interpreting as 16-bit to be sure of length so signed works */
-    return voltage;
+float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw){
+
+    float vbat_final = 0.0;
+
+    //transfer to real value and store
+    float vbat1 = (float)(vbat1_raw / 0.0041938); // (15000/3,600,000 + 15000)
+    float vbat2 = (float) vbat2_raw;
+
+    vbat_final = (vbat1-vbat2) * 0.0001; //100 microolms
+    
+    return vbat_final;
 }
 
 //calculate 2950 current
@@ -139,6 +154,57 @@ float ADBMS2950_Transfer_Current(int32_t data)
   //the actual measured resistance is closer to 94 microolms instead of 100
   current = (float) data / 94.0;
   return current;
+}
+
+float ADBMS2950_Calculate_Post_Voltage(adbms_ *adbms){
+
+    //initialize values
+    adbms->data_2950.v_TS = 0.0;
+
+    //RDCVD is the 4th command that we send that get puts into cell
+    int command_offset = (DATA_LEN * NUM_CHIPS) * 3;
+    //offset because 2950 is the lsat chip on the daisy chain
+    int offset = (NUM_CHIPS-1) * DATA_LEN;
+
+    //getting raw data from cell readings
+    int16_t v1_raw = (int16_t)(adbms->ICs.cell[3+offset+command_offset] << 8) | (int16_t)(adbms->ICs.cell[2+offset+command_offset]);
+    int16_t v2_raw = (int16_t)(adbms->ICs.cell[5+offset+command_offset] << 8) | (int16_t)(adbms->ICs.cell[1+offset+command_offset]);
+
+    adbms->data_2950.v_TS = ADBMS_Calculate_Post_Voltage(v1_raw, v2_raw);
+}
+
+float ADBMS_Calculate_Post_Voltage(int16_t v1_raw, int16_t v2_raw){
+
+    float v_TS = 0.0;
+
+    float v1 = (float) (v1_raw / 0.0041938); // (15000/3,600,000 + 15000)
+    float v2 = (float) (v2_raw);
+
+    v_TS = (v1-v2) * 0.0001; //100 microolms
+    
+    return v_TS;
+}
+
+
+float ADBMS2950_Calculate_Shunt_Temp(adbms_ *adbms){
+
+    //initilaize values
+    adbms->data_2950.v_shunt_1 = 0.0;
+    adbms->data_2950.v_shunt_2 = 0.0;
+
+    //offset because 2950 is the last chip ont he daisy chain
+    int offset = (NUM_CHIPS-1) * DATA_LEN;
+
+    //getting raw data 
+    int16_t v7 = (int16_t)(adbms->ICs.shunt_temp[1+offset] << 8) | (int16_t)(adbms->ICs.shunt_temp[0+offset]);
+    int16_t v9 = (int16_t)(adbms->ICs.shunt_temp[5+offset] << 8) | (int16_t)(adbms->ICs.shunt_temp[4+offset]);
+
+    adbms->data_2950.v_shunt_1 = ADBMS2950_Transfer_Shunt_Temp(v7);
+    adbms->data_2950.v_shunt_2 = ADBMS2950_Transfer_Shunt_Temp(v9);
+}
+
+float ADBMS2950_Transfer_Shunt_Temp(int16_t voltage){
+    
 }
 
 
@@ -433,8 +499,7 @@ void ADBMS_Print_Vals(adbms_ *adbms)
     printf("max-min: %f\n", adbms->max_v - adbms->min_v);
 
     // 2950 prints
-    printf("adbms2950 vbat1: %f\t", adbms->data_2950.vbat1);
-    printf("adbms2950 vbat2: %f\t", adbms->data_2950.vbat2);
+    printf("adbms2950 vbat: %f\t", adbms->data_2950.vbat);
     printf("adbms2950 i1: %f\t", adbms->data_2950.i1);
     printf("adbms2950 i2: %f\t", adbms->data_2950.i2);
 
@@ -496,10 +561,7 @@ void ADBMS_USB_Serial_Print_Vals(adbms_ *adbms)
     remaining = BUFFER_SIZE - len;
 
     //2950 prints
-    len += snprintf(logBuf + len, remaining, "adbms2950 vbat1: %f\t", adbms->data_2950.vbat1);
-    remaining = BUFFER_SIZE - len;
-
-    len += snprintf(logBuf + len, remaining, "adbms2950 vbat2: %f\t", adbms->data_2950.vbat2);
+    len += snprintf(logBuf + len, remaining, "adbms2950 vbat: %f\t", adbms->data_2950.vbat);
     remaining = BUFFER_SIZE - len;
 
     len += snprintf(logBuf + len, remaining, "adbms2950 i1: %f\t", adbms->data_2950.i1);
