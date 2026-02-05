@@ -48,7 +48,7 @@ void ADBMS_UpdateVoltages(adbms_ *adbms)
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVB, (adbms->ICs.cell + 1 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 3-5 for each chip
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVC, (adbms->ICs.cell + 2 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 6-8 for each chip
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVD, (adbms->ICs.cell + 3 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 9-11 for each chip
-    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVE, (adbms->ICs.cell + 4 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //DONT NEED VOLTAGES OVER 12 for nfr26 
+    //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVE, (adbms->ICs.cell + 4 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //DONT NEED VOLTAGES OVER 12 for nfr26
     adbms->voltage_pec_failure = pec;
 
     // calulate new values with the updated raw ones
@@ -181,8 +181,7 @@ void ADBMS_CalculateValues_Temps(adbms_ *adbms)
         {
             for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
             {
-                // skip because only want temps 2-10
-                if((creg_grp==0 && cbyte <= 2) || creg_grp*DATA_LEN/2 + cbyte/2 >= AUX_GPIO) continue;
+            	if(creg_grp*DATA_LEN/2 + cbyte/2 >= AUX_GPIO) continue;	// only 10 gpio's
 
                 int16_t raw_val = (((uint16_t)adbms->ICs.aux[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.aux[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
                 float raw_temp_voltage = ADBMS_getVoltage(raw_val);
@@ -194,7 +193,7 @@ void ADBMS_CalculateValues_Temps(adbms_ *adbms)
                     openwire_temp_fault = true;
 
                 float curr_temp = getTemp(raw_temp_voltage, vref);
-                adbms->temperatures[cic*NUM_TEMPS_CHIP + creg_grp*DATA_LEN/2 + cbyte/2 - 2] = curr_temp;  // -2 because offset for skipped temps
+                adbms->temperatures[cic*NUM_TEMPS_CHIP + creg_grp*DATA_LEN/2 + cbyte/2] = curr_temp;
                 total_temp += curr_temp;
                 if (curr_temp > adbms->max_temp)
                     adbms->max_temp = curr_temp;
