@@ -109,7 +109,6 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hcan, uint32_t RxFifo0ITs)
 
                uint16_t inverter_raw_voltage = (bms_can.rxData_[4] & 0xFF) | (bms_can.rxData_[5] << 8);
                bms_can.mainboard->Inverter_DC_Voltage = ((float)inverter_raw_voltage) * 0.1;
-			   bms_can.mainboard->Inverter_DC_Voltage = bms_can.rxData_[0]; //HARD CODE FOR TESTING
            }
 
            // Charger Message
