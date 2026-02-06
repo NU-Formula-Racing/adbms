@@ -53,6 +53,7 @@ void UpdateADInternalFault(adbms_ *adbms);
 void ADBMS_UpdateVoltages(adbms_ *adbms);
 void ADBMS_UpdateTemps(adbms_ *adbms);
 void Update_Owc_Fault(adbms_ *adbms);
+void Update_Owc_C_Channel_Fault(adbms_ *adbms);
 
 void ADBMS_CalculateValues_Voltages(adbms_ *adbms);
 void ADBMS_CalculateValues_Temps(adbms_ *adbms);

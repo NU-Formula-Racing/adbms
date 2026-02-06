@@ -2,7 +2,7 @@
 ../Core/Src/bms.c:34:6:Tick_Mainboard_Timers	1
 ../Core/Src/bms.c:40:6:bms_mainboard_loop	1
 ../Core/Src/bms.c:49:6:adbms_owc_loop	1
-../Core/Src/bms.c:54:6:update_values	3
-../Core/Src/bms.c:79:6:check_faults	17
-../Core/Src/bms.c:136:6:send_data_over_printf	1
-../Core/Src/bms.c:151:6:send_data_over_USB	2
+../Core/Src/bms.c:55:6:update_values	3
+../Core/Src/bms.c:80:6:check_faults	17
+../Core/Src/bms.c:137:6:send_data_over_printf	1
+../Core/Src/bms.c:152:6:send_data_over_USB	2

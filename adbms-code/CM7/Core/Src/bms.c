@@ -49,6 +49,7 @@ void bms_mainboard_loop()
 void adbms_owc_loop()
 { 
 	Update_Owc_Fault(&mainboard.adbms);
+	Update_Owc_C_Channel_Fault(&mainboard.adbms);
 }
 
 void update_values()
