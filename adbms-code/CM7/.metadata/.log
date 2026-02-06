@@ -1,0 +1,135 @@
+!SESSION 2026-02-05 21:38:58.628 -----------------------------------------------
+eclipse.buildId=Version 1.19.0
+java.version=21.0.3
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=macosx, ARCH=x86_64, WS=cocoa, NL=en_CN
+Framework arguments:  -keyring /Users/jasperweng/.eclipse_keyring
+Command-line arguments:  -os macosx -ws cocoa -arch x86_64 -keyring /Users/jasperweng/.eclipse_keyring
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2026-02-05 21:39:14.419
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2026-02-05 21:39:14.420
+!MESSAGE Log4j2 initialized with config file /Users/jasperweng/STM32Cube/adbms/adbms-code/CM7/.metadata/.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2026-02-05 21:39:17.928
+!MESSAGE Started RMI Server, listening on port 41337
+
+!ENTRY org.eclipse.core.jobs 2 2 2026-02-05 21:39:21.251
+!MESSAGE Job found still running after platform shutdown.  Jobs should be canceled by the plugin that scheduled them during shutdown: org.eclipse.ui.internal.Workbench$39 RUNNING
+	 at java.base/java.lang.Class.isArray(Native Method)
+	 at java.base/java.lang.Class.getComponentType(Class.java:1312)
+	 at java.base/java.util.HashMap.prepareArray(HashMap.java:934)
+	 at java.base/java.util.LinkedHashMap$LinkedValues.toArray(LinkedHashMap.java:821)
+	 at java.base/sun.reflect.annotation.AnnotationParser.toArray(AnnotationParser.java:864)
+	 at java.base/java.lang.reflect.Field.getDeclaredAnnotations(Field.java:1267)
+	 at java.base/java.lang.reflect.AccessibleObject.getAnnotations(AccessibleObject.java:589)
+	 at org.glassfish.jaxb.runtime.v2.model.annotation.RuntimeInlineAnnotationReader.getAllFieldAnnotations(RuntimeInlineAnnotationReader.java:54)
+	 at org.glassfish.jaxb.runtime.v2.model.annotation.RuntimeInlineAnnotationReader.getAllFieldAnnotations(RuntimeInlineAnnotationReader.java:29)
+	 at org.glassfish.jaxb.runtime.v2.model.impl.ClassInfoImpl.findFieldProperties(ClassInfoImpl.java:367)
+	 at org.glassfish.jaxb.runtime.v2.model.impl.ClassInfoImpl.getProperties(ClassInfoImpl.java:297)
+	 at org.glassfish.jaxb.runtime.v2.model.impl.RuntimeClassInfoImpl.getProperties(RuntimeClassInfoImpl.java:159)
+	 at org.glassfish.jaxb.runtime.v2.model.impl.ModelBuilder.getClassInfo(ModelBuilder.java:219)
+	 at org.glassfish.jaxb.runtime.v2.model.impl.RuntimeModelBuilder.getClassInfo(RuntimeModelBuilder.java:72)
+	 at org.glassfish.jaxb.runtime.v2.model.impl.RuntimeModelBuilder.getClassInfo(RuntimeModelBuilder.java:52)
+	 at org.glassfish.jaxb.runtime.v2.model.impl.ModelBuilder.getClassInfo(ModelBuilder.java:185)
+	 at org.glassfish.jaxb.runtime.v2.model.impl.RuntimeModelBuilder.getClassInfo(RuntimeModelBuilder.java:67)
+	 at org.glassfish.jaxb.runtime.v2.model.impl.RuntimeModelBuilder.getClassInfo(RuntimeModelBuilder.java:52)
+	 at org.glassfish.jaxb.runtime.v2.model.impl.ModelBuilder.getTypeInfo(ModelBuilder.java:332)
+	 at org.glassfish.jaxb.runtime.v2.model.impl.ModelBuilder.getTypeInfo(ModelBuilder.java:347)
+	 at org.glassfish.jaxb.runtime.v2.runtime.JAXBContextImpl.getTypeInfoSet(JAXBContextImpl.java:415)
+	 at org.glassfish.jaxb.runtime.v2.runtime.JAXBContextImpl.<init>(JAXBContextImpl.java:255)
+	 at org.glassfish.jaxb.runtime.v2.runtime.JAXBContextImpl$JAXBContextBuilder.build(JAXBContextImpl.java:1115)
+	 at org.glassfish.jaxb.runtime.v2.ContextFactory.createContext(ContextFactory.java:144)
+	 at org.glassfish.jaxb.runtime.v2.JAXBContextFactory.createContext(JAXBContextFactory.java:44)
+	 at jakarta.xml.bind.ContextFinder.find(ContextFinder.java:368)
+	 at jakarta.xml.bind.JAXBContext.newInstance(JAXBContext.java:605)
+	 at jakarta.xml.bind.JAXBContext.newInstance(JAXBContext.java:546)
+	 at com.st.microxplorer.mcu.rtos.api.SupportedApi.loadFromStream(SupportedApi.java:101)
+	 at com.st.microxplorer.mcu.rtos.api.SupportedApi.load(SupportedApi.java:75)
+	 at com.st.microxplorer.mcu.rtos.RtosManager.<init>(RtosManager.java:534)
+	 at com.st.microxplorer.mcu.Mcu.getRtosManager(Mcu.java:7544)
+	 at com.st.microxplorer.mcu.Mcu.propertyChange(Mcu.java:1784)
+	 at java.desktop/java.beans.PropertyChangeSupport.fire(PropertyChangeSupport.java:343)
+	 at java.desktop/java.beans.PropertyChangeSupport.firePropertyChange(PropertyChangeSupport.java:335)
+	 at com.st.microxplorer.util.MXPropertyChangeSupport.refreshing(MXPropertyChangeSupport.java:72)
+	 at com.st.microxplorer.mcu.Mcu.refreshingMcu(Mcu.java:6099)
+	 at com.st.microxplorer.mxsystem.MxSystem.refreshing(MxSystem.java:921)
+	 at com.st.microxplorer.plugins.pinoutconfig.PinoutConfigView.<init>(PinoutConfigView.java:203)
+	 at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
+	 at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502)
+	 at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486)
+	 at com.st.microxplorer.plugin.PluginManage.loadPluginJar(PluginManage.java:352)
+	 at com.st.microxplorer.plugin.PluginManage.PluginSearch(PluginManage.java:224)
+	 at com.st.microxplorer.plugin.PluginManage.PluginDiscovery(PluginManage.java:67)
+	 at com.st.microxplorer.maingui.MainPanel.initialization(MainPanel.java:332)
+	 at com.st.microxplorer.maingui.AppletMainFrameCubeIde.init(AppletMainFrameCubeIde.java:242)
+	 at com.st.stm32cube.common.mx.core.CubeMxInstance.<init>(CubeMxInstance.java:117)
+	 at com.st.stm32cube.common.mx.core.CubeMxInstance.getInstance(CubeMxInstance.java:91)
+	 at com.st.stm32cube.common.mx.userauth.UserAuthAdapter.<init>(UserAuthAdapter.java:25)
+	 at com.st.stm32cube.common.mx.userauth.UserAuthProvider.getUserAuthAdapter(UserAuthProvider.java:16)
+	 at com.st.stm32cube.common.ecosystemintegration.ui.core.MCUEcoSystemIntegrationUiHelper.getUserAuth(MCUEcoSystemIntegrationUiHelper.java:100)
+	 at com.st.stm32cube.ide.mcu.userauth.UserAuthStartup.earlyStartup(UserAuthStartup.java:32)
+	 at org.eclipse.ui.internal.EarlyStartupRunnable.runEarlyStartup(EarlyStartupRunnable.java:79)
+	 at org.eclipse.ui.internal.EarlyStartupRunnable.run(EarlyStartupRunnable.java:55)
+	 at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:47)
+	 at org.eclipse.ui.internal.Workbench$39.run(Workbench.java:2733)
+	 at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+
+!ENTRY org.eclipse.core.jobs 2 2 2026-02-05 21:39:21.253
+!MESSAGE Job found still running after platform shutdown.  Jobs should be canceled by the plugin that scheduled them during shutdown: org.eclipse.urischeme.AutoRegisterSchemeHandlersJob RUNNING
+	 at java.base/java.lang.String.charAt(String.java:1557)
+	 at java.base/java.util.regex.Pattern$BmpCharProperty.match(Pattern.java:4133)
+	 at java.base/java.util.regex.Pattern$Curly.match(Pattern.java:4537)
+	 at java.base/java.util.regex.Pattern$Start.match(Pattern.java:3787)
+	 at java.base/java.util.regex.Matcher.search(Matcher.java:1767)
+	 at java.base/java.util.regex.Matcher.find(Matcher.java:787)
+	 at java.base/java.util.regex.Pattern.split(Pattern.java:1405)
+	 at java.base/java.util.regex.Pattern.split(Pattern.java:1305)
+	 at java.base/java.lang.String.split(String.java:3359)
+	 at java.base/java.lang.String.split(String.java:3447)
+	 at org.eclipse.urischeme.internal.registration.RegistrationMacOsX.determineHandlerLocation(RegistrationMacOsX.java:88)
+	 at org.eclipse.urischeme.internal.registration.RegistrationMacOsX.getSchemesInformation(RegistrationMacOsX.java:67)
+	 at org.eclipse.urischeme.AutoRegisterSchemeHandlersJob.run(AutoRegisterSchemeHandlersJob.java:84)
+	 at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+!SESSION 2026-02-05 21:46:53.546 -----------------------------------------------
+eclipse.buildId=Version 1.19.0
+java.version=21.0.3
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=macosx, ARCH=x86_64, WS=cocoa, NL=en_CN
+Framework arguments:  -keyring /Users/jasperweng/.eclipse_keyring
+Command-line arguments:  -os macosx -ws cocoa -arch x86_64 -keyring /Users/jasperweng/.eclipse_keyring
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2026-02-05 21:47:06.668
+!MESSAGE Log4j2 initialized with config file /Users/jasperweng/STM32Cube/adbms/adbms-code/CM7/.metadata/.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2026-02-05 21:47:11.256
+!MESSAGE Started RMI Server, listening on port 41337
+
+!ENTRY org.eclipse.core.jobs 2 2 2026-02-05 21:47:21.350
+!MESSAGE Job found still running after platform shutdown.  Jobs should be canceled by the plugin that scheduled them during shutdown: org.eclipse.ui.internal.Workbench$39 RUNNING
+	 at java.base/jdk.internal.misc.Unsafe.park(Native Method)
+	 at java.base/java.util.concurrent.locks.LockSupport.park(LockSupport.java:221)
+	 at java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer.acquire(AbstractQueuedSynchronizer.java:754)
+	 at java.base/java.util.concurrent.locks.AbstractQueuedSynchronizer.acquireSharedInterruptibly(AbstractQueuedSynchronizer.java:1099)
+	 at java.base/java.util.concurrent.CountDownLatch.await(CountDownLatch.java:230)
+	 at com.teamdev.jxbrowser.internal.rpc.transport.CommonThreadResponseConsumer.await(CommonThreadResponseConsumer.java:49)
+	 at com.teamdev.jxbrowser.internal.rpc.transport.CommonThreadCallExecutor.execute(CommonThreadCallExecutor.java:29)
+	 at com.teamdev.jxbrowser.internal.rpc.ServiceConnectionImpl.invoke(ServiceConnectionImpl.java:213)
+	 at com.teamdev.jxbrowser.navigation.internal.NavigationImpl.loadAndWait(NavigationImpl.java:227)
+	 at com.teamdev.jxbrowser.navigation.internal.NavigationImpl.loadUrlAndWait(NavigationImpl.java:104)
+	 at com.teamdev.jxbrowser.navigation.internal.NavigationImpl.loadUrlAndWait(NavigationImpl.java:91)
+	 at com.st.microxplorer.plugins.userauth.WebApp.startREACTclient(WebApp.java:595)
+	 at com.st.microxplorer.plugins.userauth.WebApp.<init>(WebApp.java:226)
+	 at com.st.microxplorer.plugins.userauth.WebApp.getInstance(WebApp.java:779)
+	 at com.st.microxplorer.plugins.userauth.UserAuth.getBrowserView(UserAuth.java:489)
+	 at com.st.microxplorer.plugins.userauth.UserAuth.activatePlugin(UserAuth.java:191)
+	 at com.st.stm32cube.common.mx.userauth.UserAuthAdapter.<init>(UserAuthAdapter.java:29)
+	 at com.st.stm32cube.common.mx.userauth.UserAuthProvider.getUserAuthAdapter(UserAuthProvider.java:16)
+	 at com.st.stm32cube.common.ecosystemintegration.ui.core.MCUEcoSystemIntegrationUiHelper.getUserAuth(MCUEcoSystemIntegrationUiHelper.java:100)
+	 at com.st.stm32cube.ide.mcu.userauth.UserAuthStartup.earlyStartup(UserAuthStartup.java:32)
+	 at org.eclipse.ui.internal.EarlyStartupRunnable.runEarlyStartup(EarlyStartupRunnable.java:79)
+	 at org.eclipse.ui.internal.EarlyStartupRunnable.run(EarlyStartupRunnable.java:55)
+	 at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:47)
+	 at org.eclipse.ui.internal.Workbench$39.run(Workbench.java:2733)
+	 at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)

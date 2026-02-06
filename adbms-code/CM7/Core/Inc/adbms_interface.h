@@ -63,6 +63,12 @@ float ADBMS2950_Transfer_Vbat(uint16_t data);
 void ADBMS2950_Calculate_Current(adbms_* adbms);
 float ADBMS2950_Transfer_Current(int32_t data);
 
+float ADBMS2950_Calculate_Post_Voltage(adbms_ *adbms);
+float ADBMS_Calculate_Post_Voltage(int16_t v1_raw, int16_t v2_raw);
+
+float ADBMS2950_Calculate_Shunt_Temp(adbms_ *adbms);
+float ADBMS2950_Transfer_Shunt_Temp(int16_t voltage);
+
 
 void ADBMS_UpdateTemps(adbms_ *adbms);
 void UpdateOWCFault(adbms_ *adbms);

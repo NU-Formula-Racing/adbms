@@ -210,7 +210,7 @@ float ADBMS2950_Calculate_Shunt_Temp(adbms_ *adbms){
 
 float ADBMS2950_Transfer_Shunt_Temp(int16_t voltage){
 
-    //vref is typically 1.25V
+    //use vref = 1.25V
 
 
 }
