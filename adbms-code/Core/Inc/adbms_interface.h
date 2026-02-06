@@ -9,12 +9,11 @@
 // Different from the ICs struct that the raw SPI data gets put into.
 typedef struct
 {
-    adbms_ICs ICs;
+    adbms6830_ICs ICs;
 
     //all the data collected from 2950 will go into this struct
     //has attibutes for current and voltage
     data_2950 data_2950;
-
 
     cfa_ cfa[NUM_CHIPS];
     cfb_ cfb[NUM_CHIPS];
@@ -57,11 +56,19 @@ void UpdateADInternalFault(adbms_ *adbms);
 
 void ADBMS_UpdateVoltages(adbms_ *adbms);
 
+//2950 function headerfiles
 void ADBMS_2950_Calculate_Values(adbms_* adbms);
 void ADBMS2950_Calculate_Vbat(adbms_* adbms);
-float ADBMS2950_Transfer_Vbat(uint16_t data);
+float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw);
 void ADBMS2950_Calculate_Current(adbms_* adbms);
 float ADBMS2950_Transfer_Current(int32_t data);
+
+float ADBMS2950_Calculate_Post_Voltage(adbms_ *adbms);
+float ADBMS_Calculate_Post_Voltage(int16_t v1_raw, int16_t v2_raw);
+
+float ADBMS2950_Calculate_Shunt_Temp(adbms_ *adbms);
+float ADBMS2950_Transfer_Shunt_Temp(int16_t voltage);
+
 
 void ADBMS_UpdateTemps(adbms_ *adbms);
 void UpdateOWCFault(adbms_ *adbms);

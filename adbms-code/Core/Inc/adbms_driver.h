@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -25,24 +26,40 @@ typedef struct
     uint16_t adax;
     uint16_t adax2;
 
-    //2950 data gets stored into cell with RDCVA and RDCVB
-    //changed to 5 for now because we are just measuring 5 values, might need to change later
-    uint8_t cell[1 * NUM_CHIPS * DATA_LEN];
-
+    //this is probably too big but it ok
+    uint8_t cell[CELL_REG_GRP * NUM_CHIPS * DATA_LEN];
     uint8_t scell[CELL_REG_GRP * NUM_CHIPS * DATA_LEN];
     uint8_t aux[AUX_REG_GRP * NUM_CHIPS * DATA_LEN];
 
-} adbms_ICs;
+    //add array to store v1v2 data
+    //the name is Jasper's and Jason's little easter egg
+    //turns out you dont actually need this
+    //uint8_t voltages[NUM_CHIPS * DATA_LEN];
 
-typedef struct 
-{
-  float vbat1;
-  float vbat2;
+    //array to store shunt thermister voltages
+    uint8_t shunt_temp[NUM_CHIPS * DATA_LEN];
+
+} adbms6830_ICs;
+
+//2950 struct, could change in the future to add more parameters
+//depending on what gets measured
+typedef struct{
+
+  //pre contactor voltages
+  float vbat;
+
+  //current
   float i1;
   float i2;
 
-} data_2950;
+  //post contactor voltages
+  float v_TS;
 
+  //Shunt Thermistor Voltages
+  float v_shunt_1;
+  float v_shunt_2;
+
+} data_2950;
 
 typedef struct
 {

@@ -1,5 +1,4 @@
 #include "adbms_interface.h"
-#include <stdint.h>
 
 void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi)
 {
@@ -9,8 +8,6 @@ void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi)
     {
         // Init config A
         adbms->cfa[cic].refon = 1;
-
-
         adbms->cfa[cic].gpo = 0x3FF;  // all gpo tunred on
 
         // Init config B
@@ -26,43 +23,34 @@ void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi)
     ADBMS_Set_ADCV(adbms->adcv, &adbms->ICs.adcv);
     ADBMS_Set_ADAX(adbms->adax, &adbms->ICs.adax);
 
-
-    //adsv brought up
+    //adsv brought up for 2950 VBAT measurements
     adbms->adsv.cont = 1;
     adbms->adsv.ow = 1; // Enable OW on even-channel 
     ADBMS_Set_ADSV(adbms->adsv, &adbms->ICs.adsv);
-
 
     // Write Config 
     ADBMS_WakeUP_ICs();
     ADBMS_WakeUP_ICs();
 
-    //set the refup bit to 1;
-    adbms->ICs.cfg_a[5] = 0x10;
+    //hardcode the 2950 refup bit to 1;
+    //adbms->ICs.cfg_a[5] = 0x10;
+    adbms->ICs.cfg_a[5] |= 0x10; 
+
+    //also need to toggle GPO1C to 1, GPO1OD to 0 to open the mosfet for vbat
+    adbms->ICs.cfg_a[3] |= 0x01;
+    adbms->ICs.cfg_a[4] &= 0xFE;
+
     ADBMS_Write_Data(adbms->ICs.hspi, WRCFGA, adbms->ICs.cfg_a, adbms->ICs.spi_dataBuf);
-    //read configuration
-    ADBMS_Read_Data(adbms->ICs.hspi,RDCFGA,adbms->ICs.cell,adbms->ICs.spi_dataBuf);
-
-
-    //ADBMS_WakeUP_ICs();
+    ADBMS_WakeUP_ICs();
     ADBMS_Write_Data(adbms->ICs.hspi, WRCFGB, adbms->ICs.cfg_b, adbms->ICs.spi_dataBuf);
-    //ADBMS_Read_Data(adbms->ICs.hspi,RDCFGB,adbms->ICs.cell,adbms->ICs.spi_dataBuf);
-
 
     // Turn on sensing
-    //directly write ADI1
-
-    //ADBMS_Write_CMD(adbms->ICs.hspi,ADI1);
-    //ADBMS_Write_CMD(adbms->ICs.hspi,ADI2);
-
-
-
     ADBMS_Write_CMD(adbms->ICs.hspi, adbms->ICs.adcv);
     HAL_Delay(1);
     ADBMS_Write_CMD(adbms->ICs.hspi, adbms->ICs.adax);
-    HAL_Delay(1); // ADCs are updated at their conversion rate of 1ms
-    
-    //adsv
+    HAL_Delay(8); // ADCs are updated at their conversion rate of 1ms
+
+    //adsv send for 2950 vbat
     ADBMS_Write_CMD(adbms->ICs.hspi, adbms->ICs.adsv);
     HAL_Delay(8);
 }
@@ -72,34 +60,44 @@ void ADBMS_UpdateVoltages(adbms_ *adbms)
     // get voltages from ADBMS
     bool pec = 0;
     ADBMS_WakeUP_ICs();
-    
-    //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVA, (adbms->ICs.cell + 0 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVB, (adbms->ICs.cell + 0 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
-    //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVC, (adbms->ICs.cell + 2 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
-    //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVD, (adbms->ICs.cell + 3 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
-    //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVE, (adbms->ICs.cell + 4 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
-    //adbms->voltage_pec_failure = pec;
+
+    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVA, (adbms->ICs.cell + 0 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
+    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVB, (adbms->ICs.cell + 1 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
+    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVC, (adbms->ICs.cell + 2 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
+    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVD, (adbms->ICs.cell + 3 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
+    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVE, (adbms->ICs.cell + 4 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
+
+    //this is reading v1adc and v2adc
+    //THIS IS THE WRONG SENT data, the v1 v2 gets read with RDCVD
+    //pec |= ADBMS_READ_DATA(adbms->ICs.hspi, RDCVD, (adbms->ICs.voltages), adbms->ICs.spi_dataBuf);
+
+    //this is reading v_shunt_1 (v7) and v_shunt_2 (v9)
+    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDAUXC, (adbms->ICs.shunt_temp), adbms->ICs.spi_dataBuf);
+
+    //update pec error
+    adbms->voltage_pec_failure = pec;
 
     // calulate new values with the updated raw ones
-    //ADBMS_CalculateValues_Voltages(adbms);
+    ADBMS_CalculateValues_Voltages(adbms);
 
-    // calculate new 2950 values with updated raw
+    // calculate 2950 values 
     ADBMS_2950_Calculate_Values(adbms);
 }
 
 //calculates values for 2950 from this
 void ADBMS_2950_Calculate_Values(adbms_* adbms){
     
-    //ADBMS2950_Calculate_Vbat(adbms);
+    ADBMS2950_Calculate_Vbat(adbms);
     ADBMS2950_Calculate_Current(adbms);
+    ADBMS2950_Calculate_Post_Voltage(adbms);
+    ADBMS2950_Calculate_Shunt_Temp(adbms);
 }
 
 //calculate 2950 vbat
 void ADBMS2950_Calculate_Vbat(adbms_* adbms){
    
     //initialize values 
-    adbms->data_2950.vbat1 = 0.0;
-    adbms->data_2950.vbat2 = 0.0;
+    adbms->data_2950.vbat= 0.0;
 
     //offset because RDCVB is the second command sent
     int command_offset = NUM_CHIPS * DATA_LEN;
@@ -107,18 +105,23 @@ void ADBMS2950_Calculate_Vbat(adbms_* adbms){
     int offset = (NUM_CHIPS-1) * DATA_LEN;
 
     //getting raw data from cell readings
-    uint16_t vbat1_raw = ((uint16_t)(adbms->ICs.cell[3 + command_offset + offset]) << 8) | (uint16_t)(adbms->ICs.cell[2 + command_offset + offset]);
-    uint16_t vbat2_raw = ((uint16_t)(adbms->ICs.cell[5 + command_offset + offset]) << 8) | (uint16_t)(adbms->ICs.cell[4 + command_offset + offset]);
+    int16_t vbat1_raw = ((int16_t)(adbms->ICs.cell[3 + command_offset + offset]) << 8) | (int16_t)(adbms->ICs.cell[2 + command_offset + offset]);
+    int16_t vbat2_raw = ((int16_t)(adbms->ICs.cell[5 + command_offset + offset]) << 8) | (int16_t)(adbms->ICs.cell[4 + command_offset + offset]);
 
-    //transfer to real value and store
-    adbms->data_2950.vbat1 = ADBMS2950_Transfer_Vbat(vbat1_raw);
-    adbms->data_2950.vbat2 = ADBMS2950_Transfer_Vbat(vbat2_raw);
+    adbms->data_2950.vbat = ADBMS_2950_Transfer_Vbat(vbat1_raw,vbat2_raw);
 }
 
-float ADBMS2950_Transfer_Vbat(uint16_t data){
-    float voltage;
-    voltage = 100e-6 * (int16_t)data; /* Interpreting as 16-bit to be sure of length so signed works */
-    return voltage;
+float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw){
+
+    float vbat_final = 0.0;
+
+    //transfer to real value and store
+    float vbat1 = (float)(vbat1_raw / 0.0041938); // (15000/3,600,000 + 15000)
+    float vbat2 = (float) vbat2_raw;
+
+    vbat_final = (vbat1-vbat2) * 0.0001; //100 microolms
+    
+    return vbat_final;
 }
 
 //calculate 2950 current
@@ -157,6 +160,61 @@ float ADBMS2950_Transfer_Current(int32_t data)
   current = (float) data / 94.0;
   return current;
 }
+
+float ADBMS2950_Calculate_Post_Voltage(adbms_ *adbms){
+
+    //initialize values
+    adbms->data_2950.v_TS = 0.0;
+
+    //RDCVD is the 4th command that we send that get puts into cell
+    int command_offset = (DATA_LEN * NUM_CHIPS) * 3;
+    //offset because 2950 is the lsat chip on the daisy chain
+    int offset = (NUM_CHIPS-1) * DATA_LEN;
+
+    //getting raw data from cell readings
+    int16_t v1_raw = (int16_t)(adbms->ICs.cell[3+offset+command_offset] << 8) | (int16_t)(adbms->ICs.cell[2+offset+command_offset]);
+    int16_t v2_raw = (int16_t)(adbms->ICs.cell[5+offset+command_offset] << 8) | (int16_t)(adbms->ICs.cell[1+offset+command_offset]);
+
+    adbms->data_2950.v_TS = ADBMS_Calculate_Post_Voltage(v1_raw, v2_raw);
+}
+
+float ADBMS_Calculate_Post_Voltage(int16_t v1_raw, int16_t v2_raw){
+
+    float v_TS = 0.0;
+
+    float v1 = (float) (v1_raw / 0.0041938); // (15000/3,600,000 + 15000)
+    float v2 = (float) (v2_raw);
+
+    v_TS = (v1-v2) * 0.0001; //100 microolms
+    
+    return v_TS;
+}
+
+
+float ADBMS2950_Calculate_Shunt_Temp(adbms_ *adbms){
+
+    //initilaize values
+    adbms->data_2950.v_shunt_1 = 0.0;
+    adbms->data_2950.v_shunt_2 = 0.0;
+
+    //offset because 2950 is the last chip ont he daisy chain
+    int offset = (NUM_CHIPS-1) * DATA_LEN;
+
+    //getting raw data 
+    int16_t v7 = (int16_t)(adbms->ICs.shunt_temp[1+offset] << 8) | (int16_t)(adbms->ICs.shunt_temp[0+offset]);
+    int16_t v9 = (int16_t)(adbms->ICs.shunt_temp[5+offset] << 8) | (int16_t)(adbms->ICs.shunt_temp[4+offset]);
+
+    adbms->data_2950.v_shunt_1 = ADBMS2950_Transfer_Shunt_Temp(v7);
+    adbms->data_2950.v_shunt_2 = ADBMS2950_Transfer_Shunt_Temp(v9);
+}
+
+float ADBMS2950_Transfer_Shunt_Temp(int16_t voltage){
+
+    //use vref = 1.25V
+
+
+}
+
 
 void ADBMS_UpdateTemps(adbms_ *adbms)
 {
@@ -198,8 +256,6 @@ void ADBMS_CalculateValues_Voltages(adbms_ *adbms)
     adbms->total_v = 0;
     adbms->max_v = 0;
     adbms->min_v = FLT_MAX;
-
-    //should be 0 to NUM_CHIPs-1 (2950 is the last one)
     for (uint8_t cic = 0; cic < NUM_CHIPS-1; cic++)
     {
         uint8_t num_reg_grps = NUM_VOLTAGES_CHIP / VOLTAGES_REG_GRP + (NUM_VOLTAGES_CHIP % VOLTAGES_REG_GRP != 0);
@@ -223,12 +279,10 @@ void ADBMS_CalculateValues_Voltages(adbms_ *adbms)
         }
     }
 
-    // calculate the avg voltage (just set to 0 if there are no 6830s)
-    if (NUM_CHIPS <= 1){
-        adbms->avg_v = 0;
-    }
-    else{
-        adbms->avg_v = adbms->total_v / (NUM_CHIPS-1 * NUM_VOLTAGES_CHIP);
+    // calculate the avg voltage
+    
+    if(NUM_CHIPS >= 2){
+        adbms->avg_v = adbms->total_v / ((NUM_CHIPS-1) * NUM_VOLTAGES_CHIP);
     }
 }
 
@@ -255,8 +309,6 @@ void ADBMS_CalculateValues_Temps(adbms_ *adbms)
     adbms->max_temp = 0;
     adbms->min_temp = FLT_MAX;
     bool openwire_temp_fault = false;
-
-    //same here chips-1 because 2950 is the last one
     for (int cic = 0; cic < NUM_CHIPS-1; cic++)
     {
         for (uint8_t creg_grp = 0; creg_grp < AUX_REG_GRP; creg_grp++)
@@ -287,12 +339,11 @@ void ADBMS_CalculateValues_Temps(adbms_ *adbms)
     }
     adbms->openwire_temp_fault_ = adbms->openwire_temp_fault_ || openwire_temp_fault;
     // calculate the avg temp
-    if (NUM_CHIPS <= 1){
-        adbms->avg_temp = 0;
-    }
-    else {
+    
+    if(NUM_CHIPS >= 2){
         adbms->avg_temp = total_temp / (NUM_CHIPS-1 * NUM_TEMPS_CHIP);
     }
+    
 }
 
 void UpdateADInternalFault(adbms_ *adbms)
@@ -317,7 +368,7 @@ void cellBalanceOn(adbms_ *adbms)
     // Turn on CB indication LED
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
 
-    for (int cic = 0; cic < NUM_CHIPS; cic++)
+    for (int cic = 0; cic < NUM_CHIPS-1; cic++)
     {
         uint16_t dcc = 0;
         for (int cvoltage = 0; cvoltage < NUM_VOLTAGES_CHIP; cvoltage++)
@@ -340,7 +391,7 @@ void cellBalanceOff(adbms_ *adbms)
     // Turn off CB indication LED
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
 
-    for (int cic = 0; cic < NUM_CHIPS; cic++)
+    for (int cic = 0; cic < NUM_CHIPS-1; cic++)
     {
         adbms->cfb[cic].dcc = 0;
     }
@@ -378,7 +429,7 @@ void UpdateOWCFault(adbms_ *adbms)
         return;
     }else adbms->current_owc_failures = 0;
 
-    for (uint8_t cic = 0; cic < NUM_CHIPS; cic++)
+    for (uint8_t cic = 0; cic < NUM_CHIPS-1; cic++)
     {
         uint8_t num_reg_grps = NUM_VOLTAGES_CHIP / VOLTAGES_REG_GRP + (NUM_VOLTAGES_CHIP % VOLTAGES_REG_GRP != 0);
         for (uint8_t creg_grp = 0; creg_grp < num_reg_grps; creg_grp++)
@@ -419,7 +470,7 @@ void UpdateOWCFault(adbms_ *adbms)
         return;
     }else adbms->current_owc_failures = 0;
 
-    for (uint8_t cic = 0; cic < NUM_CHIPS; cic++)
+    for (uint8_t cic = 0; cic < NUM_CHIPS-1; cic++)
     {
         uint8_t num_reg_grps = NUM_VOLTAGES_CHIP / VOLTAGES_REG_GRP + (NUM_VOLTAGES_CHIP % VOLTAGES_REG_GRP != 0);
         for (uint8_t creg_grp = 0; creg_grp < num_reg_grps; creg_grp++)
@@ -456,13 +507,13 @@ void ADBMS_Print_Vals(adbms_ *adbms)
     printf("max-min: %f\n", adbms->max_v - adbms->min_v);
 
     // 2950 prints
-    printf("adbms2950 vbat1: %f\t", adbms->data_2950.vbat1);
-    printf("adbms2950 vbat2: %f\t", adbms->data_2950.vbat2);
+    printf("adbms2950 vbat: %f\t", adbms->data_2950.vbat);
     printf("adbms2950 i1: %f\t", adbms->data_2950.i1);
     printf("adbms2950 i2: %f\t", adbms->data_2950.i2);
+    printf("adbms2950 TS: %f\t", adbms->data_2950.v_TS);
 
     // print every voltage
-    for (int i = 0; i < NUM_CHIPS; i++)
+    for (int i = 0; i < NUM_CHIPS-1; i++)
     {
         for (int j = 0; j < NUM_VOLTAGES_CHIP; j++)
         {
@@ -477,7 +528,7 @@ void ADBMS_Print_Vals(adbms_ *adbms)
     printf("min temp: %f\t", adbms->min_temp);
     printf("avg temp: %f\n", adbms->avg_temp);
 
-    for (int i = 0; i < NUM_CHIPS; i++)
+    for (int i = 0; i < NUM_CHIPS-1; i++)
     {
         for (int j = 0; j < NUM_TEMPS_CHIP; j++)
         {
@@ -497,7 +548,7 @@ void ADBMS_Print_Vals(adbms_ *adbms)
 
 void ADBMS_USB_Serial_Print_Vals(adbms_ *adbms)
 {
-    #define BUFFER_SIZE 4000 // Increase this if more snprintfs are added
+    #define BUFFER_SIZE 3500  // Increase this if more snprintfs are added
     char logBuf[BUFFER_SIZE];
     int len = 0;
     int remaining = BUFFER_SIZE;
@@ -518,12 +569,8 @@ void ADBMS_USB_Serial_Print_Vals(adbms_ *adbms)
     len += snprintf(logBuf + len, remaining, "max-min: %f\r\n", adbms->max_v - adbms->min_v);
     remaining = BUFFER_SIZE - len;
 
-
     //2950 prints
-    len += snprintf(logBuf + len, remaining, "adbms2950 vbat1: %f\t", adbms->data_2950.vbat1);
-    remaining = BUFFER_SIZE - len;
-
-    len += snprintf(logBuf + len, remaining, "adbms2950 vbat2: %f\t", adbms->data_2950.vbat2);
+    len += snprintf(logBuf + len, remaining, "adbms2950 vbat: %f\t", adbms->data_2950.vbat);
     remaining = BUFFER_SIZE - len;
 
     len += snprintf(logBuf + len, remaining, "adbms2950 i1: %f\t", adbms->data_2950.i1);
@@ -532,9 +579,7 @@ void ADBMS_USB_Serial_Print_Vals(adbms_ *adbms)
     len += snprintf(logBuf + len, remaining, "adbms2950 i2: %f\t\n", adbms->data_2950.i2);
     remaining = BUFFER_SIZE - len;
 
-
-
-    for (int i = 0; i < NUM_CHIPS; i++)
+    for (int i = 0; i < NUM_CHIPS-1; i++)
     {
         for (int j = 0; j < NUM_VOLTAGES_CHIP; j++)
         {
@@ -545,7 +590,6 @@ void ADBMS_USB_Serial_Print_Vals(adbms_ *adbms)
             if (remaining <= 0) break;
         }
     }
-
     len += snprintf(logBuf + len, remaining, "\r\n");
     remaining = BUFFER_SIZE - len;
 

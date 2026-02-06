@@ -1,3 +1,4 @@
+
 #include "adbms_driver.h"
 
 /* Precomputed CRC15 Table */
@@ -244,7 +245,6 @@ void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd)
 
     // Blocking Transmit the cmd
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-
     if (HAL_SPI_Transmit(hspi, spi_dataBuf, CMD_LEN + PEC_LEN, SPI_TIME_OUT) != HAL_OK)
     {
         // TODO: do something if fails
@@ -306,7 +306,7 @@ bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf,
 
     // Move the incoming data from the spi data buffer to the correspoding data buffer array in memory
     bool pec_error = 0;
-    for(uint8_t cic = 0; cic < NUM_CHIPS; cic++) 
+    for(uint8_t cic = 0; cic < NUM_CHIPS; cic++)
     {
         for(uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte++)
         {
