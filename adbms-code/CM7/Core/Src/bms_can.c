@@ -198,7 +198,7 @@ void populate_bms_soc(uint8_t *data)
 	populateRawMessage(&signals[1], 0, 12, 0.1, 0);									  // max regen current
 	populateRawMessage(&signals[2], bms_can.mainboard->adbms.total_v, 16, 0.01, 0);   // battery voltage
 	populateRawMessage(&signals[3], bms_can.mainboard->adbms.avg_temp, 8, 1, -40);    // battery temp
-	populateRawMessage(&signals[4], bms_can.mainboard->current, 16, 0.01, 0);		  // battery current
+	populateRawMessage(&signals[4], 100 + bms_can.mainboard->current, 16, 0.01, 0);		  // battery current
 	encodeSignals(data, 5, signals[0], signals[1], signals[2], signals[3], signals[4]);
 }
 
