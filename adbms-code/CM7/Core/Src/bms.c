@@ -121,6 +121,11 @@ void check_faults()
 	// Turns on external LED if external fault
 	HAL_GPIO_WritePin(GPIOE, GPIO_LED_1_Pin, mainboard.external_fault);
 
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) //TSSI Callback
+{
+	//Currently not checking which timer caused interrupt, should only be one
 	//TSSI Logic
 	if (!mainboard.imd_status || mainboard.bms_fault)
 	{

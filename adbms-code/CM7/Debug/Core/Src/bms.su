@@ -4,5 +4,6 @@
 ../Core/Src/bms.c:49:6:adbms_owc_loop	8	static
 ../Core/Src/bms.c:55:6:update_values	8	static
 ../Core/Src/bms.c:80:6:check_faults	24	static
-../Core/Src/bms.c:137:6:send_data_over_printf	8	static
-../Core/Src/bms.c:152:6:send_data_over_USB	288	static
+../Core/Src/bms.c:126:6:HAL_TIM_PeriodElapsedCallback	16	static
+../Core/Src/bms.c:142:6:send_data_over_printf	8	static
+../Core/Src/bms.c:157:6:send_data_over_USB	288	static
