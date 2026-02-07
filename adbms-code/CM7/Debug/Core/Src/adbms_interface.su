@@ -3,10 +3,10 @@
 ../Core/Src/adbms_interface.c:58:6:ADBMS_UpdateTemps	24	static
 ../Core/Src/adbms_interface.c:76:6:ADBMS_CalculateValues_Voltages	48	static
 ../Core/Src/adbms_interface.c:156:6:ADBMS_CalculateValues_Temps	48	static
-../Core/Src/adbms_interface.c:216:6:UpdateADInternalFault	16	static
-../Core/Src/adbms_interface.c:237:6:cellBalanceOn	48	static
-../Core/Src/adbms_interface.c:275:6:cellBalanceOff	24	static
-../Core/Src/adbms_interface.c:288:6:Update_Owc_Fault	64	static
-../Core/Src/adbms_interface.c:432:6:Update_Owc_C_Channel_Fault	64	static
-../Core/Src/adbms_interface.c:572:6:ADBMS_Print_Vals	40	static
-../Core/Src/adbms_interface.c:626:6:ADBMS_USB_Serial_Print_Vals	3552	static
+../Core/Src/adbms_interface.c:214:6:UpdateADInternalFault	16	static
+../Core/Src/adbms_interface.c:231:6:cellBalanceOn	48	static
+../Core/Src/adbms_interface.c:269:6:cellBalanceOff	24	static
+../Core/Src/adbms_interface.c:282:6:Update_Owc_Fault	64	static
+../Core/Src/adbms_interface.c:424:6:Update_Owc_C_Channel_Fault	64	static
+../Core/Src/adbms_interface.c:564:6:ADBMS_Print_Vals	40	static
+../Core/Src/adbms_interface.c:618:6:ADBMS_USB_Serial_Print_Vals	3552	static

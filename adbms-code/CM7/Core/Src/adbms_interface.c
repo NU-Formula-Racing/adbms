@@ -129,7 +129,7 @@ void ADBMS_CalculateValues_Voltages(adbms_ *adbms)
             {
                 for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)//each reg_grp is 2 bytes (each reg is 1 byte) INDEX REGISTER THEN BYTES?
                 {
-                    if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_ODD_CHIP) break;  //stop processing registers when desired voltage reading count is reached\
+                    if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_ODD_CHIP) break;  //stop processing registers when desired voltage reading count is reached
 
                     int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
                     float curr_voltage = ADBMS_getVoltage(raw_val);
@@ -155,8 +155,6 @@ void ADBMS_CalculateValues_Voltages(adbms_ *adbms)
 
 void ADBMS_CalculateValues_Temps(adbms_ *adbms)
 {
-    adbms->openwire_temp_fault_ = 0;
-
     // reset current pec failures if there is no current failure
     if(!adbms->voltage_pec_failure && !adbms->temp_pec_failure && !adbms->status_reg_pec_failure) { 
         adbms->current_pec_failures = 0;
@@ -216,20 +214,16 @@ void ADBMS_CalculateValues_Temps(adbms_ *adbms)
 void UpdateADInternalFault(adbms_ *adbms)
 {
     // check overvoltage fault
-    // adbms->overvoltage_fault_ = adbms->overvoltage_fault_ || (adbms->max_v > OVERVOLTAGE);
-    adbms->overvoltage_fault_ = (adbms->max_v > OVERVOLTAGE);
+    adbms->overvoltage_fault_ = adbms->overvoltage_fault_ || (adbms->max_v > OVERVOLTAGE);
 
     // check undervoltage fault
-    // adbms->undervoltage_fault_ = adbms->undervoltage_fault_ || (adbms->min_v < UNDERVOLTAGE);
-    adbms->undervoltage_fault_ = (adbms->min_v < UNDERVOLTAGE);
+    adbms->undervoltage_fault_ = adbms->undervoltage_fault_ || (adbms->min_v < UNDERVOLTAGE);
 
     // check overtemperature fault
-    // adbms->overtemperature_fault_ = adbms->overtemperature_fault_ || (adbms->max_temp > OVERTEMP);
-    adbms->overtemperature_fault_ = (adbms->max_temp > OVERTEMP);
+    adbms->overtemperature_fault_ = adbms->overtemperature_fault_ || (adbms->max_temp > OVERTEMP);
 
     // check undertemperature fault
-    // adbms->undertemperature_fault_ = adbms->undertemperature_fault_ || (adbms->min_temp < UNDERTEMP);
-    adbms->undertemperature_fault_ = (adbms->min_temp < UNDERTEMP);
+    adbms->undertemperature_fault_ = adbms->undertemperature_fault_ || (adbms->min_temp < UNDERTEMP);
 
     // TODO: check status regs for faults - need calcuate status reg values fn that handles status reg pec fualts
 }
@@ -287,8 +281,6 @@ void cellBalanceOff(adbms_ *adbms)
 
 void Update_Owc_Fault(adbms_ *adbms)
 {
-    adbms->openwire_fault_ = 0;
-
     // check openwire fault
     ADBMS_WakeUP_ICs();
     cellBalanceOff(adbms);   // need to turn off cell balancing to check for OWC
