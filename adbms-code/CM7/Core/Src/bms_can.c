@@ -198,13 +198,13 @@ void populate_bms_soc(uint8_t *data)
 	populateRawMessage(&signals[1], 0, 12, 0.1, 0);									  // max regen current
 	populateRawMessage(&signals[2], bms_can.mainboard->adbms.total_v, 16, 0.01, 0);   // battery voltage
 	populateRawMessage(&signals[3], bms_can.mainboard->adbms.avg_temp, 8, 1, -40);    // battery temp
-	populateRawMessage(&signals[4], bms_can.mainboard->current, 16, 0.01, 0);		  // battery current
+	populateRawMessage(&signals[4], 100 + bms_can.mainboard->current, 16, 0.01, 0);		  // battery current
 	encodeSignals(data, 5, signals[0], signals[1], signals[2], signals[3], signals[4]);
 }
 
 void populate_bms_faults(uint8_t *data)
 {
-	RawCanSignal signals[8];
+	RawCanSignal signals[11];
 	populateRawMessage(&signals[0], bms_can.mainboard->bms_fault, 1, 1, 0);																  	// fault summary
 	populateRawMessage(&signals[1], bms_can.mainboard->external_fault, 1, 1, 0);													   		// external fault
 	populateRawMessage(&signals[2], bms_can.mainboard->adbms.undervoltage_fault_, 1, 1, 0);												  	// undervoltage fault
@@ -212,8 +212,10 @@ void populate_bms_faults(uint8_t *data)
 	populateRawMessage(&signals[4], bms_can.mainboard->adbms.undertemperature_fault_, 1, 1, 0);												// undertemp fault
 	populateRawMessage(&signals[5], bms_can.mainboard->adbms.overtemperature_fault_, 1, 1, 0);											 	// overemp fault
 	populateRawMessage(&signals[6], bms_can.mainboard->overcurrent_fault, 1, 1, 0);														 	// overcurrent fault
-	populateRawMessage(&signals[7], (bms_can.mainboard->adbms.openwire_fault_ || bms_can.mainboard->adbms.openwire_temp_fault_), 1, 1, 0);	// open wire fault
-	encodeSignals(data, 8, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]);
+	populateRawMessage(&signals[7], bms_can.mainboard->adbms.openwire_fault_, 1, 1, 0);														// open wire fault
+	populateRawMessage(&signals[8], bms_can.mainboard->adbms.openwire_temp_fault_, 1, 1, 0);												// open wire temp fault
+	populateRawMessage(&signals[9], bms_can.mainboard->adbms.pec_fault_, 1, 1, 0);															//Pec Fault
+	encodeSignals(data, 8, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]); 				// Pec Failures
 }
 
 void populate_bms_status(uint8_t *data)
