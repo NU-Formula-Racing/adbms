@@ -260,17 +260,17 @@ void ADBMS_Write_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, u
     spi_dataBuf[2] = (uint8_t)(cmd_pec >> 8);
     spi_dataBuf[3] = (uint8_t)(cmd_pec);
 
-    // Decrementing because sends to last chip on the stack first
-    for(uint8_t cic = NUM_CHIPS; cic > 0; cic--){
+    // sends to last chip on the stack first
+    for(uint8_t cic = 0; cic < NUM_CHIPS; cic++){
         // Copy over data from data ptr
         for(uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte++){
-            spi_dataBuf[4 + cbyte + ((NUM_CHIPS-cic)*(DATA_LEN + PEC_LEN))] = data[(NUM_CHIPS-cic) * DATA_LEN + cbyte];
+            spi_dataBuf[4 + cbyte + (cic*(DATA_LEN + PEC_LEN))] = data[(NUM_CHIPS-1-cic) * DATA_LEN + cbyte];
         }
 
         // Caclulate PEC10
-        uint16_t data_pec = Pec10_Calc(false, DATA_LEN, (data + (NUM_CHIPS-cic) * DATA_LEN));  
-        spi_dataBuf[4 + DATA_LEN + ((NUM_CHIPS-cic)*(DATA_LEN + PEC_LEN))] = (uint8_t)(data_pec >> 8);
-        spi_dataBuf[4 + DATA_LEN + 1 + ((NUM_CHIPS-cic)*(DATA_LEN + PEC_LEN))] = (uint8_t)(data_pec);
+        uint16_t data_pec = Pec10_Calc(false, DATA_LEN, (data + (NUM_CHIPS-1-cic) * DATA_LEN));
+        spi_dataBuf[4 + DATA_LEN + ((cic)*(DATA_LEN + PEC_LEN))] = (uint8_t)(data_pec >> 8);
+        spi_dataBuf[4 + DATA_LEN + 1 + ((cic)*(DATA_LEN + PEC_LEN))] = (uint8_t)(data_pec);
     }
 
     // Blocking Transmit the cmd and data
