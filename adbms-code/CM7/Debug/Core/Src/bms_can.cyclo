@@ -3,8 +3,8 @@
 ../Core/Src/bms_can.c:141:6:Can_Loop	4
 ../Core/Src/bms_can.c:180:9:send_can_messages	2
 ../Core/Src/bms_can.c:194:6:populate_bms_soc	1
-../Core/Src/bms_can.c:205:6:populate_bms_faults	3
-../Core/Src/bms_can.c:219:6:populate_bms_status	1
-../Core/Src/bms_can.c:234:6:populate_bms_voltages	2
-../Core/Src/bms_can.c:245:6:populate_bms_temparatures	2
-../Core/Src/bms_can.c:254:6:populateCharger_Msg	2
+../Core/Src/bms_can.c:205:6:populate_bms_faults	1
+../Core/Src/bms_can.c:222:6:populate_bms_status	1
+../Core/Src/bms_can.c:237:6:populate_bms_voltages	2
+../Core/Src/bms_can.c:248:6:populate_bms_temparatures	2
+../Core/Src/bms_can.c:257:6:populateCharger_Msg	2

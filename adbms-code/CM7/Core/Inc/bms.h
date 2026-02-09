@@ -7,9 +7,10 @@
 #include "bms_can.h" 
 #include "bms_soc.h"
 #include "bms_control.h"
+#include "sd_card.h"
 #include <stdio.h>
 
-void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan);
+void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan, TIM_HandleTypeDef *htim);
 
 void Tick_Mainboard_Timers();
 
@@ -21,5 +22,6 @@ void check_faults();
 
 void send_data_over_printf();
 void send_data_over_USB();
+
 
 #endif // ADBMS_MAINBOARD_H

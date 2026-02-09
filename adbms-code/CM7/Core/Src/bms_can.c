@@ -214,8 +214,9 @@ void populate_bms_faults(uint8_t *data)
 	populateRawMessage(&signals[6], bms_can.mainboard->overcurrent_fault, 1, 1, 0);														 	// overcurrent fault
 	populateRawMessage(&signals[7], bms_can.mainboard->adbms.openwire_fault_, 1, 1, 0);														// open wire fault
 	populateRawMessage(&signals[8], bms_can.mainboard->adbms.openwire_temp_fault_, 1, 1, 0);												// open wire temp fault
-	populateRawMessage(&signals[9], bms_can.mainboard->adbms.pec_fault_, 1, 1, 0);															//Pec Fault
-	encodeSignals(data, 8, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]); 				// Pec Failures
+	populateRawMessage(&signals[9], bms_can.mainboard->adbms.pec_fault_, 1, 1, 0);															// Pec Fault
+	populateRawMessage(&signals[10],bms_can.mainboard->adbms.total_pec_failures, 8, 1, 0);	  											// Total PEC failures
+	encodeSignals(data, 8, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]); 				
 }
 
 void populate_bms_status(uint8_t *data)

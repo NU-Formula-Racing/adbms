@@ -54,7 +54,14 @@ Core/Src/bms_soc.o: ../Core/Src/bms_soc.c ../Core/Inc/bms_soc.h \
  ../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_core.h \
  ../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h \
  ../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h \
- ../Core/Inc/bms_soc.h ../Core/Inc/bms_control.h
+ ../Core/Inc/bms_soc.h ../Core/Inc/bms_control.h ../Core/Inc/sd_card.h \
+ ../FATFS/App/fatfs.h ../../Middlewares/Third_Party/FatFs/src/ff.h \
+ ../../Middlewares/Third_Party/FatFs/src/integer.h \
+ ../FATFS/Target/ffconf.h ../FATFS/Target/bsp_driver_sd.h \
+ ../FATFS/Target/fatfs_platform.h \
+ ../../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h \
+ ../../Middlewares/Third_Party/FatFs/src/diskio.h \
+ ../../Middlewares/Third_Party/FatFs/src/ff.h ../FATFS/Target/sd_diskio.h
 ../Core/Inc/bms_soc.h:
 ../Core/Inc/bms.h:
 ../Core/Inc/bms_can.h:
@@ -120,3 +127,14 @@ Core/Src/bms_soc.o: ../Core/Src/bms_soc.c ../Core/Inc/bms_soc.h \
 ../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h:
 ../Core/Inc/bms_soc.h:
 ../Core/Inc/bms_control.h:
+../Core/Inc/sd_card.h:
+../FATFS/App/fatfs.h:
+../../Middlewares/Third_Party/FatFs/src/ff.h:
+../../Middlewares/Third_Party/FatFs/src/integer.h:
+../FATFS/Target/ffconf.h:
+../FATFS/Target/bsp_driver_sd.h:
+../FATFS/Target/fatfs_platform.h:
+../../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h:
+../../Middlewares/Third_Party/FatFs/src/diskio.h:
+../../Middlewares/Third_Party/FatFs/src/ff.h:
+../FATFS/Target/sd_diskio.h:

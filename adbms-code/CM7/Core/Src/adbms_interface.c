@@ -52,7 +52,7 @@ void ADBMS_UpdateVoltages(adbms_ *adbms)
     adbms->voltage_pec_failure = pec;
 
     // calulate new values with the updated raw ones
-     ADBMS_CalculateValues_Voltages(adbms);
+    ADBMS_CalculateValues_Voltages(adbms);
 }
 
 void ADBMS_UpdateTemps(adbms_ *adbms)
@@ -148,7 +148,8 @@ void ADBMS_CalculateValues_Voltages(adbms_ *adbms)
         }
     }
     
-    adbms->total_v = even_total + odd_total;
+    // adbms->total_v = even_total + odd_total;
+    adbms->total_v = 60;    // hard coded for testing
     // calculate the avg voltage
     adbms->avg_v = adbms->total_v / (NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2));
 }

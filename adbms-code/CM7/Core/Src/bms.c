@@ -2,10 +2,20 @@
 
 mainboard_ mainboard;
 
-void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
+void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan, TIM_HandleTypeDef *htim)
 {
 	// initialize handles
 	mainboard.hcan = hcan;
+
+	//initialize sd_card
+	if(ENABLE_SD_LOGGING_BIN)
+	{
+		sd_init_bin();
+	}
+	else if (ENABLE_SD_LOGGING_CSV)
+	{
+		sd_init_csv();
+	}
 
 	// initialize ad chip;
 	ADBMS_Initialize(&mainboard.adbms, hspi);
@@ -16,7 +26,10 @@ void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 	// initialize SOC
 	//Soc_Initialize(&mainboard);
 
-	// initialize the timers: adbms_mainboard_loop, drive_can, data_can
+	//initialize TSSI timer
+	HAL_TIM_Base_Start_IT(htim);
+
+	// initialize virtual timers
 	timer_ t_adbms = Create_Timer(250, bms_mainboard_loop);
 	timer_ t_adbms_owc_check = Create_Timer(30000, adbms_owc_loop);
 	timer_ timers[NUM_TIMERS] = {t_adbms, t_adbms_owc_check};
@@ -75,6 +88,16 @@ void update_values()
 
 	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
 	if(ENABLE_USB_COMMS) send_data_over_USB(); 
+	if(ENABLE_SD_LOGGING_BIN)
+	{
+		uint32_t tick = HAL_GetTick();
+		log_bms_data_bin(tick, mainboard.adbms.ICs.cell, NUM_CHIPS * CELL_REG_GRP * DATA_LEN, mainboard.adbms.ICs.aux, NUM_CHIPS * CELL_REG_GRP * DATA_LEN);
+	}
+	else if (ENABLE_SD_LOGGING_CSV)
+	{
+		uint32_t tick = HAL_GetTick();
+		log_bms_data_csv(tick, mainboard.adbms.voltages, NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2), mainboard.adbms.temperatures, NUM_CHIPS * NUM_TEMPS_CHIP);
+	}
 }
 
 void check_faults()
@@ -99,6 +122,7 @@ void check_faults()
 	if (mainboard.internal_state == Charging) //in charger
 	{
 		// In charge states only check for charger timeout
+		cellBalanceOn(&mainboard.adbms);
 		float charger_dt = HAL_GetTick() - mainboard.charger_last_msg_time;
 		mainboard.charger_timeout = charger_dt > CHARGER_CAN_TIMEOUT;
 
@@ -180,3 +204,4 @@ void send_data_over_USB()
 
 	CDC_Transmit_FS((uint8_t*) logBuf, strlen(logBuf));
 }
+

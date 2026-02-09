@@ -25,9 +25,10 @@ typedef struct
     uint16_t adax;
     uint16_t adax2;
 
-    uint8_t cell[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
-    uint8_t scell[NUM_CHIPS * CELL_REG_GRP * DATA_LEN]; //(ALL OF THESE TAKE UP MORE SPACE THAN NEEDED)
-    uint8_t aux[NUM_CHIPS * CELL_REG_GRP * DATA_LEN]; 
+    //(ALL OF THESE TAKE UP MORE SPACE THAN NEEDED)
+    uint8_t cell[NUM_CHIPS * CELL_REG_GRP * DATA_LEN]; //voltages
+    uint8_t scell[NUM_CHIPS * CELL_REG_GRP * DATA_LEN]; //OWC
+    uint8_t aux[NUM_CHIPS * CELL_REG_GRP * DATA_LEN]; //Temps
 
 } adbms6830_ICs;
 
