@@ -103,6 +103,10 @@ void check_faults()
 		mainboard.charger_timeout = charger_dt > CHARGER_CAN_TIMEOUT;
 
 		mainboard.timeout_fault = mainboard.charger_timeout;
+		if (!mainboard.charger_timeout)
+		{
+			cellBalanceOn(&mainboard.adbms);
+		}
 	}
 	else //in car
 	{

@@ -52,7 +52,7 @@ void ADBMS_UpdateVoltages(adbms_ *adbms)
     adbms->voltage_pec_failure = pec;
 
     // calulate new values with the updated raw ones
-    ADBMS_CalculateValues_Voltages(adbms);
+     ADBMS_CalculateValues_Voltages(adbms);
 }
 
 void ADBMS_UpdateTemps(adbms_ *adbms)
@@ -148,8 +148,7 @@ void ADBMS_CalculateValues_Voltages(adbms_ *adbms)
         }
     }
     
-    // adbms->total_v = even_total + odd_total;
-    adbms->total_v = 60;
+    adbms->total_v = even_total + odd_total;
     // calculate the avg voltage
     adbms->avg_v = adbms->total_v / (NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2));
 }
@@ -247,7 +246,8 @@ void cellBalanceOn(adbms_ *adbms)
                     dcc |= 1 << cvoltage;
                 }
             }
-            adbms->cfb[cic].dcc = dcc;
+            // adbms->cfb[cic].dcc = dcc;
+            adbms->cfb[cic].dcc = 1 << 0;
         }
         else //odd chip, 11 voltages
         {
@@ -260,7 +260,8 @@ void cellBalanceOn(adbms_ *adbms)
                     dcc |= 1 << cvoltage;
                 }
             }
-            adbms->cfb[cic].dcc = dcc;
+            // adbms->cfb[cic].dcc = dcc;
+            adbms->cfb[cic].dcc = 1 << 1;
         }
     }
     ADBMS_Set_Config_B(adbms->cfb, adbms->ICs.cfg_b);

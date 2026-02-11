@@ -50,7 +50,7 @@ void Bms_Initialize_Can(mainboard_ *mainboard)
 
 	// Charger header initialization
 	bms_can.TxHeaderCharger_.Identifier = CHARGER_ID;
-    bms_can.TxHeaderCharger_.IdType = FDCAN_STANDARD_ID;
+    bms_can.TxHeaderCharger_.IdType = FDCAN_EXTENDED_ID;
     bms_can.TxHeaderCharger_.TxFrameType = FDCAN_DATA_FRAME;
     bms_can.TxHeaderCharger_.DataLength = FDCAN_DLC_BYTES_8;
     bms_can.TxHeaderCharger_.ErrorStateIndicator = FDCAN_ESI_ACTIVE;

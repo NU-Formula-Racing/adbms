@@ -1,5 +1,5 @@
 #include "bms_main_struct.h"
-
+#include "adbms_interface.h"
 void Control_Loop(mainboard_ *mainboard);
 
 void in_car(mainboard_ *mainboard);
