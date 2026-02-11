@@ -166,6 +166,9 @@ Error_Handler();
 
   /* USER CODE BEGIN SysInit */
 
+  // For when it gets removed by cube MX 
+  // if (HAL_GPIO_ReadPin(SD_CARD_DETECT_GPIO_Port, SD_CARD_DETECT_Pin)) MX_SDMMC1_SD_Init(); 
+  
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
