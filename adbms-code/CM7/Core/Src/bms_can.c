@@ -261,7 +261,7 @@ void populateCharger_Msg(uint8_t *data)
 	data[1] = voltage & 0xFF;
 	data[2] = (current >> 8) & 0xFF;
 	data[3] = current & 0xFF;
-	if (bms_can.mainboard->internal_state == Charging)
+	if (bms_can.mainboard->internal_state == Charging && bms_can.mainboard->charging_state == charger_active )
 	{
 		data[4] = 0;
 	}

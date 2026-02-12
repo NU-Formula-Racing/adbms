@@ -7,4 +7,4 @@
 ../Core/Src/bms_can.c:221:6:populate_bms_status	1
 ../Core/Src/bms_can.c:236:6:populate_bms_voltages	2
 ../Core/Src/bms_can.c:247:6:populate_bms_temparatures	2
-../Core/Src/bms_can.c:256:6:populateCharger_Msg	2
+../Core/Src/bms_can.c:256:6:populateCharger_Msg	3

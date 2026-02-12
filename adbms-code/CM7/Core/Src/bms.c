@@ -60,6 +60,11 @@ void update_values()
 
 	UpdateADInternalFault(&mainboard.adbms);
 
+	if (mainboard.internal_state == Charging)
+	{
+		cellBalanceOn(&mainboard.adbms);
+	}
+
 	// update STM32 Pin values
     mainboard.shutdown_present = HAL_GPIO_ReadPin(GPIOD, Shutdown_Contactors_Pin); 	   		  // shutdown status
     mainboard.imd_status = mainboard.imd_status && HAL_GPIO_ReadPin(GPIOD, IMD_STATUS_IN_Pin); // IMD_Status (software latched)
@@ -103,10 +108,7 @@ void check_faults()
 		mainboard.charger_timeout = charger_dt > CHARGER_CAN_TIMEOUT;
 
 		mainboard.timeout_fault = mainboard.charger_timeout;
-		if (!mainboard.charger_timeout)
-		{
-			cellBalanceOn(&mainboard.adbms);
-		}
+		
 	}
 	else //in car
 	{
