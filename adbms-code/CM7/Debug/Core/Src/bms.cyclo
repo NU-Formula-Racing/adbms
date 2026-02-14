@@ -1,4 +1,4 @@
-../Core/Src/bms.c:5:6:Bms_Mainbaord_Setup	1
+../Core/Src/bms.c:5:6:Bms_Mainboard_Setup	1
 ../Core/Src/bms.c:34:6:Tick_Mainboard_Timers	1
 ../Core/Src/bms.c:40:6:bms_mainboard_loop	1
 ../Core/Src/bms.c:49:6:adbms_owc_loop	1

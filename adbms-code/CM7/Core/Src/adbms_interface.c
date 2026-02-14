@@ -398,7 +398,7 @@ void UpdateADInternalFault(adbms_ *adbms)
 void cellBalanceOn(adbms_ *adbms)
 {
     // Turn on CB indication LED
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_SET);
 
     for (int cic = 0; cic < NUM_CHIPS; cic++)
     {
@@ -438,7 +438,7 @@ void cellBalanceOn(adbms_ *adbms)
 void cellBalanceOff(adbms_ *adbms)
 {
     // Turn off CB indication LED
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_RESET);
 
     for (int cic = 0; cic < NUM_CHIPS; cic++)
     {

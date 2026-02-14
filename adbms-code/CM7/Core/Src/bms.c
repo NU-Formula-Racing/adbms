@@ -2,7 +2,7 @@
 
 mainboard_ mainboard;
 
-void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
+void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 {
 	// initialize handles
 	mainboard.hcan = hcan;

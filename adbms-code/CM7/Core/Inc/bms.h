@@ -9,7 +9,7 @@
 #include "bms_control.h"
 #include <stdio.h>
 
-void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan);
+void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan);
 
 void Tick_Mainboard_Timers();
 

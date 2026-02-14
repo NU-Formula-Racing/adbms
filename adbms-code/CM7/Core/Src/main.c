@@ -178,7 +178,7 @@ Error_Handler();
   MX_TIM2_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-  Bms_Mainbaord_Setup(&hspi1, &hfdcan1);
+  Bms_Mainboard_Setup(&hspi1, &hfdcan1);
   HAL_TIM_Base_Start_IT(&htim4);
 
   /* USER CODE END 2 */
