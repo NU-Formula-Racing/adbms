@@ -15,7 +15,9 @@ typedef struct
     //has attibutes for current and voltage
     data_2950 data_2950;
 
-    cfa_ cfa[NUM_CHIPS];
+    //one less because of the 2950
+    cfa_ cfa[NUM_CHIPS-1];
+    cfa2950_ cfa2950;
     cfb_ cfb[NUM_CHIPS];
     adcv_ adcv;
     adsv_ adsv;
@@ -51,6 +53,7 @@ typedef struct
 
 
 void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi);
+void ADBMS_2950_config(uint8_t* cfg_a, cfa2950_* cfa2950);
 
 void UpdateADInternalFault(adbms_ *adbms);
 

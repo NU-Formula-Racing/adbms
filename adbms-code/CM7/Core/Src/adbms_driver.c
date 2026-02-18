@@ -158,9 +158,9 @@ float ADBMS_getVoltage(int data)
     return voltage_float;
 }
 
-void ADBMS_Set_Config_A(cfa_ *cfg_a, uint8_t *cfg_a_tx_buffer)
+void ADBMS_Set_Config_A(cfa_ *cfg_a, uint8_t *cfg_a_tx_buffer, uint8_t num_6830)
 {
-    for(uint8_t cic = 0; cic < NUM_CHIPS; cic++)
+    for(uint8_t cic = 0; cic < num_6830; cic++)
     {
         cfg_a_tx_buffer[cic * DATA_LEN + 0] = (uint8_t)(((cfg_a[cic].refon & 0x01) << 7) | (cfg_a[cic].cth & 0x07));
         cfg_a_tx_buffer[cic * DATA_LEN + 1] = (uint8_t)(cfg_a[cic].flag_d & 0xFF);
@@ -169,6 +169,17 @@ void ADBMS_Set_Config_A(cfa_ *cfg_a, uint8_t *cfg_a_tx_buffer)
         cfg_a_tx_buffer[cic * DATA_LEN + 4] = (uint8_t)((cfg_a[cic].gpo & 0x0300) >> 8);
         cfg_a_tx_buffer[cic * DATA_LEN + 5] = (uint8_t)(((cfg_a[cic].snap & 0x01) << 5) | ((cfg_a[cic].mute_st & 0x01) << 4) | ((cfg_a[cic].comm_bk & 0x01) << 3) | (cfg_a[cic].fc & 0x07));
     }
+}
+
+void ADBMS_Set_Config_A_2950(cfa2950_* cfg_a2950, uint8_t* cfg_a_tx_buffer, uint8_t chip_position){
+    
+    cfg_a_tx_buffer[(chip_position-1) * DATA_LEN + 0] = (uint8_t)((cfg_a2950->ocen & 0x01) << 7) | (uint8_t)((cfg_a2950->vs5 & 0x01) << 6) | (uint8_t)((cfg_a2950->vs4 & 0x01) << 5) | (uint8_t)((cfg_a2950->vs3 & 0x01) << 4) | (uint8_t)((cfg_a2950->vs2 & 0x03) << 2) | (uint8_t)(cfg_a2950->vs1 & 0x03);
+    cfg_a_tx_buffer[(chip_position-1) * DATA_LEN + 1] = (uint8_t)((cfg_a2950->injtm & 0x01) << 7) | (uint8_t)((cfg_a2950->injecc & 0x01) << 6) | (uint8_t)(0x0 << 5) | (uint8_t)((cfg_a2950->injts & 0x01) << 4) | (uint8_t)((cfg_a2950->injmon & 0x03) << 2) | (uint8_t)(cfg_a2950->injosc & 0x03);
+    cfg_a_tx_buffer[(chip_position-1) * DATA_LEN + 2] = (uint8_t)((cfg_a2950->soak & 0x07) << 5) | (uint8_t)((cfg_a2950->vs10 & 0x01) << 4) | (uint8_t)((cfg_a2950->vs9 & 0x01) << 3) | (uint8_t)((cfg_a2950->vs8 & 0x01) << 2) | (uint8_t)((cfg_a2950->vs7 & 0x01) << 1) | (uint8_t)(cfg_a2950->vs6 & 0x01);
+    cfg_a_tx_buffer[(chip_position-1) * DATA_LEN + 3] = (uint8_t)(0x0 << 7) | (uint8_t)((cfg_a2950->gpo6c & 0x03) << 5) | (uint8_t)((cfg_a2950->gpo5c & 0x01) << 4) | (uint8_t)((cfg_a2950->gpo4c & 0x01) << 3) | (uint8_t)((cfg_a2950->gpo3c & 0x01) << 2) | (uint8_t)((cfg_a2950->gpo2c & 0x01) << 1) | (uint8_t)(cfg_a2950->gpo1c & 0x01);
+    cfg_a_tx_buffer[(chip_position-1) * DATA_LEN + 4] = (uint8_t)((cfg_a2950->spi3w & 0x01) << 7) | (uint8_t)((cfg_a2950->gpio1fe & 0x01) << 6) | (uint8_t)((cfg_a2950->gpo6od & 0x01) << 5) | (uint8_t)((cfg_a2950->gpo5od & 0x01) << 4) | (uint8_t)((cfg_a2950->gpo4od & 0x01) << 3) | (uint8_t)((cfg_a2950->gpo3od & 0x01) << 2) | (uint8_t)((cfg_a2950->gpo2od & 0x01) << 1) | (uint8_t)(cfg_a2950->gpo1od & 0x01);
+    cfg_a_tx_buffer[(chip_position-1) * DATA_LEN + 5] = (uint8_t)((cfg_a2950->vb2mux & 0x01) << 7) | (uint8_t)((cfg_a2950->vb1mux & 0x01) << 6) | (uint8_t)((cfg_a2950->snapst & 0x01) << 5) | (uint8_t)((cfg_a2950->refup & 0x01) << 4) | (uint8_t)((cfg_a2950->commbk & 0x01) << 3) | (uint8_t)(cfg_a2950->acci & 0x07);
+    
 }
 
 void ADBMS_Set_Config_B(cfb_ *cfg_b, uint8_t *cfg_b_tx_buffer)
