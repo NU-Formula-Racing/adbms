@@ -24,7 +24,7 @@ void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi)
     adbms->adsv.cont = 1;
 
     // Package config and sensing structs into transmitable data
-    ADBMS_Set_Config_A(adbms->cfa, adbms->ICs.cfg_a,(NUM_CHIPS-1));
+    ADBMS_Set_Config_A(adbms->cfa, adbms->ICs.cfg_a, (NUM_CHIPS));
     ADBMS_Set_Config_B(adbms->cfb, adbms->ICs.cfg_b);
     ADBMS_Set_ADCV(adbms->adcv, &adbms->ICs.adcv);
     ADBMS_Set_ADAX(adbms->adax, &adbms->ICs.adax);
@@ -43,6 +43,10 @@ void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi)
     //adbms->ICs.cfg_a[4] &= 0xFE;
 
     ADBMS_Write_Data(adbms->ICs.hspi, WRCFGA, adbms->ICs.cfg_a, adbms->ICs.spi_dataBuf);
+
+    //read configuration
+    //ADBMS_WakeUP_ICs();
+    //ADBMS_Read_Data(adbms->ICs.hspi,RDCFGA,adbms->ICs.cell,adbms->ICs.spi_dataBuf);
     ADBMS_WakeUP_ICs();
     ADBMS_Write_Data(adbms->ICs.hspi, WRCFGB, adbms->ICs.cfg_b, adbms->ICs.spi_dataBuf);
 
@@ -64,7 +68,7 @@ void ADBMS_2950_config(uint8_t* cfg_a, cfa2950_* cfa2950){
     cfa2950->gpo1od = 0;
 
     //set config
-    ADBMS_Set_Config_A_2950(cfa2950,cfg_a,NUM_CHIPS);
+    ADBMS_Set_Config_A_2950(cfa2950, cfg_a, NUM_CHIPS);
 }
 
 void ADBMS_UpdateVoltages(adbms_ *adbms)
@@ -85,7 +89,7 @@ void ADBMS_UpdateVoltages(adbms_ *adbms)
     //pec |= ADBMS_READ_DATA(adbms->ICs.hspi, RDCVD, (adbms->ICs.voltages), adbms->ICs.spi_dataBuf);
 
     //this is reading v_shunt_1 (v7) and v_shunt_2 (v9)
-    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDAUXC, (adbms->ICs.shunt_temp), adbms->ICs.spi_dataBuf);
+    //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDAUXC, (adbms->ICs.shunt_temp), adbms->ICs.spi_dataBuf);
     
     adbms->voltage_pec_failure = pec;
 
@@ -284,7 +288,7 @@ void ADBMS_CalculateValues_Voltages(adbms_ *adbms)
                 for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)//each reg_grp is 2 bytes (each reg is 1 byte) INDEX REGISTER THEN BYTES?
                 {
                     if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_EVEN_CHIP) break;  //stop processing registers when desired voltage reading count is reached
-                    int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * (NUM_CHIPS-1) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * (NUM_CHIPS-1) * DATA_LEN + cic * DATA_LEN + cbyte];
+                    int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte];
                     float curr_voltage = ADBMS_getVoltage(raw_val);
                     
                     adbms->voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2] = curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
@@ -308,7 +312,7 @@ void ADBMS_CalculateValues_Voltages(adbms_ *adbms)
                 {
                     if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_ODD_CHIP) break;  //stop processing registers when desired voltage reading count is reached
 
-                    int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * (NUM_CHIPS-1) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * (NUM_CHIPS-1) * DATA_LEN + cic * DATA_LEN + cbyte];
+                    int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte];
                     float curr_voltage = ADBMS_getVoltage(raw_val);
                     
                     adbms->voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2] = curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
@@ -366,7 +370,7 @@ void ADBMS_CalculateValues_Temps(adbms_ *adbms)
             {
             	if(creg_grp*DATA_LEN/2 + cbyte/2 >= AUX_GPIO) continue;	// only 10 gpio's
 
-                int16_t raw_val = (((uint16_t)adbms->ICs.aux[creg_grp * (NUM_CHIPS-1) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.aux[creg_grp * (NUM_CHIPS-1) * DATA_LEN + cic * DATA_LEN + cbyte];
+                int16_t raw_val = (((uint16_t)adbms->ICs.aux[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.aux[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte];
                 float raw_temp_voltage = ADBMS_getVoltage(raw_val);
 
                 // get ref voltage from status reg - not getting status regs because takes too long
@@ -509,7 +513,7 @@ void Update_Owc_Fault(adbms_ *adbms)
                 for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
                 {
                     if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_EVEN_CHIP) break;
-                    int16_t raw_val = (((uint16_t)adbms->ICs.scell[creg_grp * (NUM_CHIPS-1) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
+                    int16_t raw_val = (((uint16_t)adbms->ICs.scell[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
                     if (ADBMS_getVoltage(raw_val) < 0.5)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
@@ -527,7 +531,7 @@ void Update_Owc_Fault(adbms_ *adbms)
                 for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
                 {
                     if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_ODD_CHIP) break;
-                    int16_t raw_val = (((uint16_t)adbms->ICs.scell[creg_grp * (NUM_CHIPS-1) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
+                    int16_t raw_val = (((uint16_t)adbms->ICs.scell[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
                     if (ADBMS_getVoltage(raw_val) < 0.5)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
@@ -572,7 +576,7 @@ void Update_Owc_Fault(adbms_ *adbms)
                 for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
                 {
                     if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_EVEN_CHIP) break;  
-                    int16_t raw_val = (((uint16_t)adbms->ICs.scell[creg_grp * (NUM_CHIPS-1) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
+                    int16_t raw_val = (((uint16_t)adbms->ICs.scell[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
                     if (ADBMS_getVoltage(raw_val) < 0.5)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
@@ -590,7 +594,7 @@ void Update_Owc_Fault(adbms_ *adbms)
                 for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
                 {
                     if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_ODD_CHIP) break;
-                    int16_t raw_val = (((uint16_t)adbms->ICs.scell[creg_grp * (NUM_CHIPS-1) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
+                    int16_t raw_val = (((uint16_t)adbms->ICs.scell[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
                     if (ADBMS_getVoltage(raw_val) < 0.5)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
@@ -649,7 +653,7 @@ void Update_Owc_C_Channel_Fault(adbms_ *adbms)
                 for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
                 {
                     if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_EVEN_CHIP) break;
-                    int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * (NUM_CHIPS-1) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
+                    int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
                     if (ADBMS_getVoltage(raw_val) < 0.5)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
@@ -667,7 +671,7 @@ void Update_Owc_C_Channel_Fault(adbms_ *adbms)
                 for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
                 {
                     if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_ODD_CHIP) break;
-                    int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * (NUM_CHIPS-1) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
+                    int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
                     if (ADBMS_getVoltage(raw_val) < 0.5)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
@@ -712,7 +716,7 @@ void Update_Owc_C_Channel_Fault(adbms_ *adbms)
                 for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
                 {
                     if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_EVEN_CHIP) break;  
-                    int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * (NUM_CHIPS-1) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
+                    int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
                     if (ADBMS_getVoltage(raw_val) < 0.5)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
@@ -730,7 +734,7 @@ void Update_Owc_C_Channel_Fault(adbms_ *adbms)
                 for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
                 {
                     if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_ODD_CHIP) break;
-                    int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * (NUM_CHIPS-1) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
+                    int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
                     if (ADBMS_getVoltage(raw_val) < 0.5)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
