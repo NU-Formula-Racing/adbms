@@ -17,7 +17,7 @@ void Soc_Update(mainboard_ *mainboard)
     float delta = (tick - mainboard->prev_time) / 1000.0f / 3600.0f; // convert to hours
     mainboard->prev_time = tick;
 
-    mainboard->soc = mainboard->soc - delta * mainboard->current / (SYSTEM_CAPACITY);
+    mainboard->soc = mainboard->soc - delta * mainboard->adbms.current / (SYSTEM_CAPACITY);
     int curridx1 = fmin(fmax(0, (int)floor((SYSTEM_CAPACITY * 1000.0 / 3.0 - (mainboard->soc * SYSTEM_CAPACITY)) * 1000.0 / 3.0 / 6.0)), 4500);
     int curridx2 = fmin(fmax(0, (int)ceil((SYSTEM_CAPACITY * 1000.0 / 3.0 - (mainboard->soc * SYSTEM_CAPACITY)) * 1000.0 / 3.0 / 6.0)), 4500);
     mainboard->dcir = (a2r_lookup[curridx2] - a2r_lookup[curridx1]) * (((SYSTEM_CAPACITY * 1000.0 / 3.0 - (mainboard->soc * SYSTEM_CAPACITY)) * 1000.0 / 3.0) - floor((SYSTEM_CAPACITY - (mainboard->soc * SYSTEM_CAPACITY)) * 1000.0 / 3.0)) + a2r_lookup[curridx1];

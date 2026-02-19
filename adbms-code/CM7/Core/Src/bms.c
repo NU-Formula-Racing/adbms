@@ -14,7 +14,7 @@ void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 	Bms_Initialize_Can(&mainboard);
 
 	// initialize SOC
-	//Soc_Initialize(&mainboard);
+	Soc_Initialize(&mainboard);
 
 	// initialize the timers: adbms_mainboard_loop, drive_can, data_can
 	timer_ t_adbms = Create_Timer(250, bms_mainboard_loop);
@@ -71,11 +71,8 @@ void update_values()
     mainboard.comms_6822_state = HAL_GPIO_ReadPin(GPIOD, AD6822_State_Pin);	 //Currently Unused  		   		  // 6822_State
 
 	//soc
-	//Soc_Update(&mainboard);
+	Soc_Update(&mainboard);
 	
-	
-	mainboard.current = 0; //HARD CODE no pack board
-
 	mainboard.overcurrent_fault = mainboard.current > OVERCURRENT;
 
 	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 

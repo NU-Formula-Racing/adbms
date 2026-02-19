@@ -127,6 +127,7 @@ void ADBMS2950_Calculate_Vbat(adbms_* adbms){
     int16_t vbat2_raw = ((int16_t)(adbms->ICs.cell[5 + command_offset + offset]) << 8) | (int16_t)(adbms->ICs.cell[4 + command_offset + offset]);
 
     adbms->data_2950.vbat = ADBMS_2950_Transfer_Vbat(vbat1_raw,vbat2_raw);
+    adbms->precontactor_voltage = adbms->data_2950.vbat;
 }
 
 float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw){
@@ -167,8 +168,15 @@ void ADBMS2950_Calculate_Current(adbms_* adbms){
 
     //transfer to real value and store
     //i1 is negative by default
+
+
+
     adbms->data_2950.i1 = -ADBMS2950_Transfer_Current(i1_raw);
     adbms->data_2950.i2 = ADBMS2950_Transfer_Current(i2_raw);
+
+    adbms->current = adbms->data_2950.i1;
+    //i2 doesn't work yet, technically we should take the average of i1 and i2
+    //adbms->current = (adbms->data_2950.i1 + adbms->data_2950.i2) / 2;
 }
 
 float ADBMS2950_Transfer_Current(int32_t data)
