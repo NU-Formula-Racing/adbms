@@ -23,12 +23,18 @@ void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi)
     //for 2950 measurements
     adbms->adsv.cont = 1;
 
+    //2950 adv 
+    adbms->adv.ow = 0; //open wire source off
+    adbms->adv.vch = 0; //vch = 0 (this is complicated, for reference check datasheet table 57/58)
+
     // Package config and sensing structs into transmitable data
     ADBMS_Set_Config_A(adbms->cfa, adbms->ICs.cfg_a, (NUM_CHIPS));
     ADBMS_Set_Config_B(adbms->cfb, adbms->ICs.cfg_b);
     ADBMS_Set_ADCV(adbms->adcv, &adbms->ICs.adcv);
     ADBMS_Set_ADAX(adbms->adax, &adbms->ICs.adax);
     ADBMS_Set_ADSV(adbms->adsv, &adbms->ICs.adsv);
+    // ADBMS_Set_ADV(adbms->adv, &adbms->ICs.adv); //2950 ADV command to turn on V1adc and V2adc
+
 
     // Write Config 
     ADBMS_WakeUP_ICs();
@@ -57,6 +63,8 @@ void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi)
     HAL_Delay(8); // ADCs are updated at their conversion rate of 1ms
     ADBMS_Write_CMD(adbms->ICs.hspi, adbms->ICs.adsv);
     HAL_Delay(8);
+    // ADBMS_Write_CMD(adbms->ICs.hspi, adbms->ICs.adv); //new 2950 command to start V1adc and V2adc
+    // HAL_Delay(8);
 }
 
 void ADBMS_2950_config(uint8_t* cfg_a, cfa2950_* cfa2950){
@@ -107,8 +115,8 @@ void ADBMS_2950_Calculate_Values(adbms_* adbms){
     
     ADBMS2950_Calculate_Vbat(adbms);
     ADBMS2950_Calculate_Current(adbms);
-    ADBMS2950_Calculate_Post_Voltage(adbms);
-    ADBMS2950_Calculate_Shunt_Temp(adbms);
+    //ADBMS2950_Calculate_Post_Voltage(adbms);
+    //ADBMS2950_Calculate_Shunt_Temp(adbms);
 }
 
 //calculate 2950 vbat
@@ -168,7 +176,6 @@ void ADBMS2950_Calculate_Current(adbms_* adbms){
 
     //transfer to real value and store
     //i1 is negative by default
-
 
 
     adbms->data_2950.i1 = -ADBMS2950_Transfer_Current(i1_raw);
@@ -337,7 +344,8 @@ void ADBMS_CalculateValues_Voltages(adbms_ *adbms)
         }
     }
     
-    adbms->total_v = even_total + odd_total;
+    //adbms->total_v = even_total + odd_total;
+    adbms->total_v = 60.0;
     // calculate the avg voltage
     if(NUM_CHIPS > 1){
         adbms->avg_v = adbms->total_v / ((NUM_CHIPS-1) * NUM_VOLTAGES_ODD_CHIP + (((NUM_CHIPS))/2));

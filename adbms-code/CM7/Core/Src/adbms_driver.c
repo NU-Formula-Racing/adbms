@@ -232,6 +232,15 @@ void ADBMS_Set_ADAX2(adax2_ adax2, uint16_t *adax2_cmd_buffer)
                         | (adax2.ch && 0xF);
 }
 
+void ADBMS_Set_ADV(adv_ adv, uint16_t* adv_cmd_buffer){
+
+    *adv_cmd_buffer = (0x1 << 10)
+                    | (adv.ow && 0x3 << 6)
+                    | (0x3 << 4)
+                    | (adv.vch && 0xF);
+
+}
+
 void ADBMS_WakeUP_ICs()
 {
     for(uint8_t i = 0; i < NUM_CHIPS; i++){

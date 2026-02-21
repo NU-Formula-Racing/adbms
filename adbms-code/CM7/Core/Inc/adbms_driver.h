@@ -25,6 +25,9 @@ typedef struct
     uint16_t adax;
     uint16_t adax2;
 
+    // 2950 commands 
+    uint16_t adv;
+
     uint8_t cell[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
     uint8_t scell[NUM_CHIPS * CELL_REG_GRP * DATA_LEN]; //(ALL OF THESE TAKE UP MORE SPACE THAN NEEDED)
     uint8_t aux[NUM_CHIPS * CELL_REG_GRP * DATA_LEN]; 
@@ -36,6 +39,7 @@ typedef struct
 
     //array to store shunt thermister voltages
     uint8_t shunt_temp[NUM_CHIPS * DATA_LEN];
+    
 
 } adbms6830_ICs;
 
@@ -58,6 +62,14 @@ typedef struct{
   float v_shunt_2;
 
 } data_2950;
+
+//this struct is for sending command adv for 2950 which starts v1adc and v2adc
+typedef struct
+{
+  uint8_t       ow      :2;
+  uint8_t       vch     :4;
+  
+}adv_;
 
 typedef struct
 {
@@ -168,6 +180,7 @@ void ADBMS_Set_ADCV(adcv_ adcv, uint16_t *adcv_cmd_buffer);
 void ADBMS_Set_ADSV(adsv_ adsv, uint16_t *adsv_cmd_buffer);
 void ADBMS_Set_ADAX(adax_ adax, uint16_t *adax_cmd_buffer);
 void ADBMS_Set_ADAX2(adax2_ adax2, uint16_t *adax2_cmd_buffer);
+void ADBMS_Set_ADV(adv_ adv, uint16_t* adv_cmd_buffer);
 
 void ADBMS_WakeUP_ICs();
 void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd);

@@ -15,14 +15,15 @@ typedef struct
     //has attibutes for current and voltage
     data_2950 data_2950;
 
-    //one less because of the 2950
-    cfa_ cfa[NUM_CHIPS-1];
-    cfa2950_ cfa2950;
+    cfa_ cfa[NUM_CHIPS-1]; //one less because of the 2950
     cfb_ cfb[NUM_CHIPS];
     adcv_ adcv;
     adsv_ adsv;
     adax_ adax;
 
+    //2950 specific configurations and commands
+    cfa2950_ cfa2950;
+    adv_ adv;
 
     //2950 
     float current;

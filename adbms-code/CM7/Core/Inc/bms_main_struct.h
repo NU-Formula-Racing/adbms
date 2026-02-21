@@ -27,7 +27,7 @@ typedef struct
 	bool bms_fault;
 
 	// current
-	float current;
+	// float current;
 	float current_offset;
 	bool overcurrent_fault;
 

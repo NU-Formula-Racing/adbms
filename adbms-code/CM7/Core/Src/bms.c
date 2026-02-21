@@ -73,7 +73,7 @@ void update_values()
 	//soc
 	Soc_Update(&mainboard);
 	
-	mainboard.overcurrent_fault = mainboard.current > OVERCURRENT;
+	mainboard.overcurrent_fault = mainboard.adbms.current > OVERCURRENT;
 
 	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
 	if(ENABLE_USB_COMMS) send_data_over_USB(); 
@@ -151,7 +151,7 @@ void send_data_over_printf()
 	printf("Time: %d\n", (int)(HAL_GetTick() - mainboard.start_time));
 	printf("BMS fault: %d\n", mainboard.bms_fault);
 	printf("External fault: %d\n", mainboard.external_fault);
-	printf("Current: %f\n", mainboard.current);
+	printf("Current: %f\n", mainboard.adbms.current);
 	
 	// TODO Add more prints as needed
 
@@ -170,7 +170,7 @@ void send_data_over_USB()
     len += snprintf(logBuf + len, remaining, "Time: %d\r\n", (int)(HAL_GetTick() - mainboard.start_time));
     remaining = BUFFER_SIZE - len;
 
-	len += snprintf(logBuf + len, remaining, "Current: %f\r\n", mainboard.current);
+	len += snprintf(logBuf + len, remaining, "Current: %f\r\n", mainboard.adbms.current);
    remaining = BUFFER_SIZE - len;
 
 	len += snprintf(logBuf + len, remaining, "BMS_fault: %d\r\n", mainboard.bms_fault);
