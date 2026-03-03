@@ -7,6 +7,6 @@
 ../Core/Src/adbms_interface.c:232:6:cellBalanceOn	11
 ../Core/Src/adbms_interface.c:270:6:cellBalanceOff	2
 ../Core/Src/adbms_interface.c:283:6:Update_Owc_Fault	29
-../Core/Src/adbms_interface.c:425:6:Update_Owc_C_Channel_Fault	29
-../Core/Src/adbms_interface.c:565:6:ADBMS_Print_Vals	11
-../Core/Src/adbms_interface.c:619:6:ADBMS_USB_Serial_Print_Vals	8
+../Core/Src/adbms_interface.c:421:6:Update_Owc_C_Channel_Fault	29
+../Core/Src/adbms_interface.c:557:6:ADBMS_Print_Vals	11
+../Core/Src/adbms_interface.c:611:6:ADBMS_USB_Serial_Print_Vals	8

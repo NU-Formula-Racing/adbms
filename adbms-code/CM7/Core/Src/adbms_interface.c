@@ -325,7 +325,6 @@ void Update_Owc_Fault(adbms_ *adbms)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
                         adbms->openwire_fault_ = 1;
-                        return;
                     }
                 }
             }
@@ -343,7 +342,6 @@ void Update_Owc_Fault(adbms_ *adbms)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
                         adbms->openwire_fault_ = 1;
-                        return;
                     }
                 }
             }
@@ -388,7 +386,6 @@ void Update_Owc_Fault(adbms_ *adbms)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
                         adbms->openwire_fault_ = 1;
-                        return;
                     }
                 }
             }
@@ -406,7 +403,6 @@ void Update_Owc_Fault(adbms_ *adbms)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
                         adbms->openwire_fault_ = 1;
-                        return;
                     }
                 }
             }
@@ -465,7 +461,6 @@ void Update_Owc_C_Channel_Fault(adbms_ *adbms)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
                         adbms->openwire_fault_ = 1;
-                        return;
                     }
                 }
             }
@@ -483,7 +478,6 @@ void Update_Owc_C_Channel_Fault(adbms_ *adbms)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
                         adbms->openwire_fault_ = 1;
-                        return;
                     }
                 }
             }
@@ -528,7 +522,6 @@ void Update_Owc_C_Channel_Fault(adbms_ *adbms)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
                         adbms->openwire_fault_ = 1;
-                        return;
                     }
                 }
             }
@@ -546,7 +539,6 @@ void Update_Owc_C_Channel_Fault(adbms_ *adbms)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
                         adbms->openwire_fault_ = 1;
-                        return;
                     }
                 }
             }
