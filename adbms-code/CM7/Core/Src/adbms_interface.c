@@ -110,7 +110,7 @@ void ADBMS_CalculateValues_Voltages(adbms_ *adbms)
                     int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
                     float curr_voltage = ADBMS_getVoltage(raw_val);
                     
-                    adbms->voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2] = curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
+                    adbms->voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2] = 3; //HARD CODE FOR LOGGING //curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
 
                     even_total += curr_voltage;
                     if (curr_voltage > adbms->max_v){
@@ -134,7 +134,8 @@ void ADBMS_CalculateValues_Voltages(adbms_ *adbms)
                     int16_t raw_val = (((uint16_t)adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms->ICs.cell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
                     float curr_voltage = ADBMS_getVoltage(raw_val);
                     
-                    adbms->voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2] = curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
+                    adbms->voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2] = 3; //HARD CODE FOR LOGGING //curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
+
 
                     odd_total += curr_voltage;
                     if (curr_voltage > adbms->max_v){
@@ -195,7 +196,7 @@ void ADBMS_CalculateValues_Temps(adbms_ *adbms)
                     openwire_temp_fault = true;
 
                 float curr_temp = getTemp(raw_temp_voltage, vref);
-                adbms->temperatures[cic*NUM_TEMPS_CHIP + creg_grp*DATA_LEN/2 + cbyte/2] = curr_temp;
+                adbms->temperatures[cic*NUM_TEMPS_CHIP + creg_grp*DATA_LEN/2 + cbyte/2] = 20; //HARD CODE FOR LOGGING//curr_temp;
                 total_temp += curr_temp;
                 if (curr_temp > adbms->max_temp)
                     adbms->max_temp = curr_temp;

@@ -21,7 +21,7 @@
 #define CB_MIN_V_THRESHOLD 3			/* Cells under this threshold will not be balanced even when CB is enabled */
 
 #define ENABLE_PRINTF_DEBUG_COMMS 1		/* Flag to enable Printf debug comms */
-#define ENABLE_USB_COMMS 1				/* Flag to enable USB comms */
+#define ENABLE_USB_COMMS 0				/* Flag to enable USB comms */
 #define ENABLE_SD_LOGGING_BIN 0			/* Flag to enable logging to SD Card as binary files */
 #define ENABLE_SD_LOGGING_CSV 1			/* Flag to enable logging to SD Card as CSV files (ASCII)*/
 

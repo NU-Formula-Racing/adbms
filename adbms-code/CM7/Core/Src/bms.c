@@ -14,7 +14,7 @@ void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan, TIM
 	}
 	else if (ENABLE_SD_LOGGING_CSV)
 	{
-		sd_init_csv();
+		sd_init_csv(NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2), NUM_CHIPS * NUM_TEMPS_CHIP);
 	}
 
 	// initialize ad chip;
@@ -53,7 +53,7 @@ void Tick_Mainboard_Timers()
 void bms_mainboard_loop()
 {
 	update_values();
-	check_faults();
+	//check_faults();
 	Can_Loop();
 	Control_Loop(&mainboard);
 }
@@ -61,17 +61,17 @@ void bms_mainboard_loop()
 // Seprate loop that gets ticked to run OWC
 void adbms_owc_loop()
 { 
-	Update_Owc_Fault(&mainboard.adbms);
-	Update_Owc_C_Channel_Fault(&mainboard.adbms);
+	//Update_Owc_Fault(&mainboard.adbms);
+	//Update_Owc_C_Channel_Fault(&mainboard.adbms);
 }
 
 void update_values()
 {
 	// ADBMS values
-	ADBMS_UpdateVoltages(&mainboard.adbms);
-	ADBMS_UpdateTemps(&mainboard.adbms);
+	//ADBMS_UpdateVoltages(&mainboard.adbms);
+	//ADBMS_UpdateTemps(&mainboard.adbms);
 
-	UpdateADInternalFault(&mainboard.adbms);
+	//UpdateADInternalFault(&mainboard.adbms);
 
 	// update STM32 Pin values
     mainboard.shutdown_present = HAL_GPIO_ReadPin(GPIOD, Shutdown_Contactors_Pin); 	   		  // shutdown status
@@ -83,7 +83,16 @@ void update_values()
 	
 	
 	mainboard.current = 0; //HARD CODE no pack board
+	
+	//HARD CODE VALUES FOR LOGGING TEST
+	ADBMS_CalculateValues_Voltages(&mainboard.adbms);
+	ADBMS_CalculateValues_Temps(&mainboard.adbms);
 
+	for (uint8_t i = 0; i < 20; i += 4)
+	{
+		mainboard.adbms.ICs.cell[i] = i;
+	}
+	
 	mainboard.overcurrent_fault = mainboard.current > OVERCURRENT;
 
 	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
