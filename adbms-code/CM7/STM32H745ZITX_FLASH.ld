@@ -55,6 +55,14 @@ MEMORY
 /* Sections */
 SECTIONS
 {
+
+  .dma_buffer (NOLOAD) :
+  {
+    . = ALIGN(4);
+    *(.dma_buffer)
+    . = ALIGN(4);
+  } >RAM_D2
+
   /* The startup code into "FLASH" Rom type memory */
   .isr_vector :
   {

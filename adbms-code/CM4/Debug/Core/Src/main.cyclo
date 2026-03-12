@@ -1,3 +1,4 @@
 ../Core/Src/main.c:76:5:main	2
-../Core/Src/main.c:134:6:MX_SPI1_Init	2
-../Core/Src/main.c:185:6:Error_Handler	1
+../Core/Src/main.c:133:6:PeriphCommonClock_Config	2
+../Core/Src/main.c:152:6:MX_SPI1_Init	2
+../Core/Src/main.c:203:6:Error_Handler	1

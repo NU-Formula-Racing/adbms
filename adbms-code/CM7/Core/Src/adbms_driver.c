@@ -28,6 +28,39 @@ const uint16_t Crc15Table[256] =
   0x585a, 0x8ba7, 0x4e3e, 0x450c, 0x8095
 };
 
+static volatile uint8_t spi_dma_complete = 0;
+
+//waiting so is basically blocking code 
+static void ADBMS_SPI_WaitDMA(void)
+{
+    uint32_t tickstart = HAL_GetTick();
+    while (!spi_dma_complete)
+    {
+        if ((HAL_GetTick() - tickstart) > SPI_DMA_TIMEOUT)
+        {
+            // TODO: do something if fails
+            break;
+        }
+    }
+    spi_dma_complete = 0;
+}
+
+
+//called at end of TX-only DMA transfers.
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+    (void)hspi;
+    spi_dma_complete = 1;
+}
+
+
+// called at end of full-duplex DMA transfers
+void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+    (void)hspi;
+    spi_dma_complete = 1;
+}
+
 /**
 *******************************************************************************
 * Function: Pec15_Calc
@@ -224,7 +257,6 @@ void ADBMS_Set_ADAX2(adax2_ adax2, uint16_t *adax2_cmd_buffer)
 void ADBMS_WakeUP_ICs()
 {
     for(uint8_t i = 0; i < NUM_CHIPS; i++){
-        // Blocking Transmit the msg
     	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
     	HAL_Delay(1);
         HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
@@ -232,22 +264,22 @@ void ADBMS_WakeUP_ICs()
     }
 }
 
-void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd)
+void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *cmd_buf)
 {
-    uint8_t spi_dataBuf[4];
-    spi_dataBuf[0] = (uint8_t)(tx_cmd >> 8);
-    spi_dataBuf[1] = (uint8_t)(tx_cmd);
+    cmd_buf[0] = (uint8_t)(tx_cmd >> 8);
+    cmd_buf[1] = (uint8_t)(tx_cmd);
 
-    uint16_t cmd_pec = Pec15_Calc(2, spi_dataBuf);
-    spi_dataBuf[2] = (uint8_t)(cmd_pec >> 8);
-    spi_dataBuf[3] = (uint8_t)(cmd_pec);
+    uint16_t cmd_pec = Pec15_Calc(2, cmd_buf);
+    cmd_buf[2] = (uint8_t)(cmd_pec >> 8);
+    cmd_buf[3] = (uint8_t)(cmd_pec);
 
-    // Blocking Transmit the cmd
+    spi_dma_complete = 0;
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-    if (HAL_SPI_Transmit(hspi, spi_dataBuf, CMD_LEN + PEC_LEN, SPI_TIME_OUT) != HAL_OK)
+    if (HAL_SPI_Transmit_DMA(hspi, cmd_buf, CMD_LEN + PEC_LEN) != HAL_OK)
     {
         // TODO: do something if fails
     }
+    ADBMS_SPI_WaitDMA();
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 }
 
@@ -273,18 +305,19 @@ void ADBMS_Write_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, u
         spi_dataBuf[4 + DATA_LEN + 1 + ((cic)*(DATA_LEN + PEC_LEN))] = (uint8_t)(data_pec);
     }
 
-    // Blocking Transmit the cmd and data
+    spi_dma_complete = 0;
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-    if (HAL_SPI_Transmit(hspi, spi_dataBuf, DATABUF_LEN, SPI_TIME_OUT) != HAL_OK)
+    if (HAL_SPI_Transmit_DMA(hspi, spi_dataBuf, DATABUF_LEN) != HAL_OK)
     {
         // TODO: do something if fails
     }
+    ADBMS_SPI_WaitDMA();
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 }
 
-bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf)
+bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf, uint8_t *spi_tx_dataBuf)
 {
-    uint8_t spi_tx_dataBuf[4] = {0};
+    memset(spi_tx_dataBuf, 0, DATABUF_LEN);
     spi_tx_dataBuf[0] = (uint8_t)(tx_cmd >> 8);
     spi_tx_dataBuf[1] = (uint8_t)(tx_cmd);
 
@@ -292,13 +325,14 @@ bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf,
     spi_tx_dataBuf[2] = (uint8_t)(cmd_pec >> 8);
     spi_tx_dataBuf[3] = (uint8_t)(cmd_pec);
 
-    // Blocking Transmit Receive the cmd and data
+    spi_dma_complete = 0;
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-    if (HAL_SPI_TransmitReceive(hspi, spi_tx_dataBuf, spi_dataBuf, DATABUF_LEN, SPI_TIME_OUT) != HAL_OK)
+    if (HAL_SPI_TransmitReceive_DMA(hspi, spi_tx_dataBuf, spi_dataBuf, DATABUF_LEN) != HAL_OK)
     {
         // TODO: do something if fails
     	printf("spi failed");
     }
+    ADBMS_SPI_WaitDMA();
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 
     // Discard data received during transmit phase

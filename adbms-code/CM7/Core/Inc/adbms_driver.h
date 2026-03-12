@@ -8,12 +8,21 @@
 #include "bms_system_prams.h"
 
 // TODO: Change this value
-#define SPI_TIME_OUT HAL_MAX_DELAY  /* SPI Time out delay */
+#define SPI_TIME_OUT HAL_MAX_DELAY      /* SPI Time out delay */
+#define SPI_DMA_TIMEOUT 100             /* DMA transfer timeout in ms */
+
 typedef struct
 {
     SPI_HandleTypeDef *hspi;
 
     uint8_t spi_dataBuf[DATABUF_LEN];
+
+    /*additional buffers for DMA*/
+    //for ADBMS_Read_Data
+    uint8_t spi_tx_dataBuf[DATABUF_LEN];
+
+    //for ADBMS_Write_CMD
+    uint8_t cmd_buf[CMD_LEN + PEC_LEN];
 
     // Config groups a,b
     uint8_t cfg_a[NUM_CHIPS * DATA_LEN];
@@ -99,6 +108,6 @@ void ADBMS_Set_ADAX(adax_ adax, uint16_t *adax_cmd_buffer);
 void ADBMS_Set_ADAX2(adax2_ adax2, uint16_t *adax2_cmd_buffer);
 
 void ADBMS_WakeUP_ICs();
-void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd);
+void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *cmd_buf);
 void ADBMS_Write_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf);
-bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf);
+bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf, uint8_t *spi_tx_dataBuf);

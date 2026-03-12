@@ -1,6 +1,8 @@
 #include "bms.h"
 
-mainboard_ mainboard;
+//mainboard_ mainboard;
+/* TO allow DMA to access values in mainboard struct*/
+mainboard_ mainboard __attribute__((section(".dma_buffer")));
 
 void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 {
