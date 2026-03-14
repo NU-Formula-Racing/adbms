@@ -21,7 +21,7 @@
 #define CB_MIN_V_THRESHOLD 3			/* Cells under this threshold will not be balanced even when CB is enabled */
 
 #define ENABLE_PRINTF_DEBUG_COMMS 1	/* Flag to enable Printf debug comms */
-#define ENABLE_USB_COMMS 1				/* Flag to enable USB comms */
+#define ENABLE_USB_COMMS 0				/* Flag to enable USB comms */
 
 #define NUM_CURRENT_OFFSET_CYCLES 10	/* Numbeer of Cycles to get ADC Offset */
 

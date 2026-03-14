@@ -1,6 +1,7 @@
 #include "bms.h"
 
 mainboard_ mainboard;
+osMutexId_t adbms_spi_mutex;
 
 void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 {
@@ -9,6 +10,7 @@ void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 
 	// initialize ad chip;
 	ADBMS_Initialize(&mainboard.adbms, hspi);
+	adbms_spi_mutex = osMutexNew(NULL);
 
 	// initialize CAN;
 	Bms_Initialize_Can(&mainboard);
@@ -52,15 +54,25 @@ void do_can()
 // Seprate loop that gets ticked to run OWC
 void adbms_owc_loop()
 { 
-	Update_Owc_Fault(&mainboard.adbms);
-	Update_Owc_C_Channel_Fault(&mainboard.adbms);
+	if (osMutexAcquire(adbms_spi_mutex, osWaitForever) == osOK)
+    {
+		Update_Owc_Fault(&mainboard.adbms);
+		Update_Owc_C_Channel_Fault(&mainboard.adbms);
+		osMutexRelease(adbms_spi_mutex);
+    }
+	
 }
 
 void volt_temp()
 {
-	// ADBMS values
-	ADBMS_UpdateVoltages(&mainboard.adbms);
-	ADBMS_UpdateTemps(&mainboard.adbms);
+	if (osMutexAcquire(adbms_spi_mutex, osWaitForever) == osOK)
+    {
+		// ADBMS values
+		ADBMS_UpdateVoltages(&mainboard.adbms);
+		ADBMS_UpdateTemps(&mainboard.adbms);
+		osMutexRelease(adbms_spi_mutex);
+    }
+	
 }
 
 void update_values()

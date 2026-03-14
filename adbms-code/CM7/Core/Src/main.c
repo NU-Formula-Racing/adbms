@@ -82,28 +82,28 @@ TIM_HandleTypeDef htim4;
 osThreadId_t Faults_ControlsHandle;
 const osThreadAttr_t Faults_Controls_attributes = {
   .name = "Faults_Controls",
-  .stack_size = 128 * 4,
+  .stack_size = 1024  * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for AD_Coms */
 osThreadId_t AD_ComsHandle;
 const osThreadAttr_t AD_Coms_attributes = {
   .name = "AD_Coms",
-  .stack_size = 128 * 4,
+  .stack_size = 1024  * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for CAN_Task */
 osThreadId_t CAN_TaskHandle;
 const osThreadAttr_t CAN_Task_attributes = {
   .name = "CAN_Task",
-  .stack_size = 128 * 4,
+  .stack_size = 1024  * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for OWC_Task */
 osThreadId_t OWC_TaskHandle;
 const osThreadAttr_t OWC_Task_attributes = {
   .name = "OWC_Task",
-  .stack_size = 128 * 4,
+  .stack_size = 1024  * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* USER CODE BEGIN PV */
@@ -729,7 +729,7 @@ void StartOWC_Task(void *argument)
   for(;;)
   {
     osDelay(30000);
-    adbms_owc_loop();
+    //adbms_owc_loop();
   }
   /* USER CODE END StartOWC_Task */
 }

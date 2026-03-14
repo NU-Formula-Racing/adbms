@@ -8,6 +8,7 @@
 #include "bms_soc.h"
 #include "bms_control.h"
 #include <stdio.h>
+#include "cmsis_os.h"
 
 void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan);
 
