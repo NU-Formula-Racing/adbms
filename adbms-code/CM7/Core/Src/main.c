@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "fatfs.h"
 #include "usb_device.h"
 
@@ -77,6 +78,34 @@ SPI_HandleTypeDef hspi1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim4;
 
+/* Definitions for Faults_Controls */
+osThreadId_t Faults_ControlsHandle;
+const osThreadAttr_t Faults_Controls_attributes = {
+  .name = "Faults_Controls",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for AD_Coms */
+osThreadId_t AD_ComsHandle;
+const osThreadAttr_t AD_Coms_attributes = {
+  .name = "AD_Coms",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for CAN_Task */
+osThreadId_t CAN_TaskHandle;
+const osThreadAttr_t CAN_Task_attributes = {
+  .name = "CAN_Task",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for OWC_Task */
+osThreadId_t OWC_TaskHandle;
+const osThreadAttr_t OWC_Task_attributes = {
+  .name = "OWC_Task",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -91,6 +120,11 @@ static void MX_SPI1_Init(void);
 static void MX_FDCAN1_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM4_Init(void);
+void StartFaultsControls(void *argument);
+void StartAD_Coms(void *argument);
+void StartCAN_Task(void *argument);
+void StartOWC_Task(void *argument);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -172,7 +206,6 @@ Error_Handler();
   MX_GPIO_Init();
   MX_SDMMC1_SD_Init();
   MX_SPI1_Init();
-  MX_USB_DEVICE_Init();
   MX_FDCAN1_Init();
   MX_FATFS_Init();
   MX_TIM2_Init();
@@ -183,6 +216,51 @@ Error_Handler();
 
   /* USER CODE END 2 */
 
+  /* Init scheduler */
+  osKernelInitialize();
+
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* creation of Faults_Controls */
+  Faults_ControlsHandle = osThreadNew(StartFaultsControls, NULL, &Faults_Controls_attributes);
+
+  /* creation of AD_Coms */
+  AD_ComsHandle = osThreadNew(StartAD_Coms, NULL, &AD_Coms_attributes);
+
+  /* creation of CAN_Task */
+  CAN_TaskHandle = osThreadNew(StartCAN_Task, NULL, &CAN_Task_attributes);
+
+  /* creation of OWC_Task */
+  OWC_TaskHandle = osThreadNew(StartOWC_Task, NULL, &OWC_Task_attributes);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -190,7 +268,7 @@ Error_Handler();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  Tick_Mainboard_Timers();
+	  //Tick_Mainboard_Timers();
   }
   /* USER CODE END 3 */
 }
@@ -578,6 +656,84 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE END 4 */
 
+/* USER CODE BEGIN Header_StartFaultsControls */
+/**
+  * @brief  Function implementing the Faults_Controls thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartFaultsControls */
+void StartFaultsControls(void *argument)
+{
+  /* init code for USB_DEVICE */
+  MX_USB_DEVICE_Init();
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+    bms_mainboard_loop();
+    osDelay(1);
+  }
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartAD_Coms */
+/**
+* @brief Function implementing the AD_Coms thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartAD_Coms */
+void StartAD_Coms(void *argument)
+{
+  /* USER CODE BEGIN StartAD_Coms */
+  /* Infinite loop */
+  for(;;)
+  {
+    volt_temp();
+    osDelay(1);
+  }
+  /* USER CODE END StartAD_Coms */
+}
+
+/* USER CODE BEGIN Header_StartCAN_Task */
+/**
+* @brief Function implementing the CAN_Task thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartCAN_Task */
+void StartCAN_Task(void *argument)
+{
+  /* USER CODE BEGIN StartCAN_Task */
+  /* Infinite loop */
+  for(;;)
+  {
+    do_can();
+    osDelay(1000);
+  }
+  /* USER CODE END StartCAN_Task */
+}
+
+/* USER CODE BEGIN Header_StartOWC_Task */
+/**
+* @brief Function implementing the OWC_Task thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartOWC_Task */
+void StartOWC_Task(void *argument)
+{
+  /* USER CODE BEGIN StartOWC_Task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(30000);
+    adbms_owc_loop();
+  }
+  /* USER CODE END StartOWC_Task */
+}
+
  /* MPU Configuration */
 
 void MPU_Config(void)
@@ -605,6 +761,33 @@ void MPU_Config(void)
   /* Enables the MPU */
   HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 
+}
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM6 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM6)
+  {
+    HAL_IncTick();
+  }
+  else if (htim->Instance == TIM4)
+  {
+    TSSI_Callback(htim);
+  }
+  
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
 }
 
 /**

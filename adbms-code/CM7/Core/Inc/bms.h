@@ -16,8 +16,12 @@ void Tick_Mainboard_Timers();
 void bms_mainboard_loop();
 void adbms_owc_loop();
 
+void do_can();
+void volt_temp();
 void update_values();
 void check_faults();
+
+void TSSI_Callback(TIM_HandleTypeDef *htim);
 
 void send_data_over_printf();
 void send_data_over_USB();

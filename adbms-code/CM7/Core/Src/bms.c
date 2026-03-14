@@ -41,8 +41,12 @@ void bms_mainboard_loop()
 {
 	update_values();
 	check_faults();
-	Can_Loop();
 	Control_Loop(&mainboard);
+}
+
+void do_can()
+{
+	Can_Loop();
 }
 
 // Seprate loop that gets ticked to run OWC
@@ -52,11 +56,16 @@ void adbms_owc_loop()
 	Update_Owc_C_Channel_Fault(&mainboard.adbms);
 }
 
-void update_values()
+void volt_temp()
 {
 	// ADBMS values
 	ADBMS_UpdateVoltages(&mainboard.adbms);
 	ADBMS_UpdateTemps(&mainboard.adbms);
+}
+
+void update_values()
+{
+	
 
 	UpdateADInternalFault(&mainboard.adbms);
 
@@ -123,7 +132,7 @@ void check_faults()
 
 }
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) //TSSI Callback
+void TSSI_Callback(TIM_HandleTypeDef *htim) //TSSI Callback
 {
 	//Currently not checking which timer caused interrupt, should only be one
 	//TSSI Logic
