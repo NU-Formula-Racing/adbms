@@ -12,13 +12,13 @@ void ADBMS_2950_Calculate_Values(adbms_* adbms,adbms_2950_* adbms_2950)
 void ADBMS_2950_Calculate_Vbat(adbms_* adbms,adbms_2950_* adbms_2950)
 {
     //initialize values
-    adbms_2950->raw_data.vbat1_raw = 0.0;
-    adbms_2950->raw_data.vbat2_raw = 0.0;
+    adbms_2950->raw_data.vbat1_raw = 0;
+    adbms_2950->raw_data.vbat2_raw = 0;
 
     //offset because RDCVB is the second command sent
     int command_offset = NUM_CHIPS * DATA_LEN;
     //offset because 2950 is the last chip on the daisy chain
-    int offset = (NUM_CHIPS-1) * DATA_LEN;
+    int offset = (NUM_6830) * DATA_LEN;
 
     //take raw bit values from adbms and place into raw_data in adbms_2950
     adbms_2950->raw_data.vbat1_raw = ((int16_t)(adbms->raw_value.cell[3 + command_offset + offset]) << 8) | (int16_t)(adbms->raw_value.cell[2 + command_offset + offset]);
@@ -42,5 +42,89 @@ float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw){
 
 void ADBMS_2950_Calculate_Current(adbms_* adbms, adbms_2950_* adbms_2950)
 {
+    //initialize values
+    adbms_2950->raw_data.i1_raw = 0;
+    adbms_2950->raw_data.i2_raw = 0;
+
+    //offset because 2950 is the last chip on the daisy chain
+    int offset =  (NUM_6830) * DATA_LEN;
+
+    //getting raw data from cell readings and putting it in adbms_2950 
+    adbms_2950->raw_data.i1_raw = ((int32_t)(adbms->raw_value.cell[2 + offset]) << 16) | ((int32_t)(adbms->raw_value.cell[1 + offset]) << 8) | adbms->raw_value.cell[0 + offset];
+    adbms_2950->raw_data.i2_raw = ((int32_t)(adbms->raw_value.cell[5 + offset]) << 16) | ((int32_t)(adbms->raw_value.cell[4 + offset]) << 8) | adbms->raw_value.cell[3 + offset];
+
+    //sign extend because it is a 24 bit number but stored int32
+    if (adbms_2950->raw_data.i1_raw & 0x00800000) {     
+        adbms_2950->raw_data.i1_raw |= 0xFF000000;      
+    }
+
+    if(adbms_2950->raw_data.i2_raw & 0x00800000){
+        adbms_2950->raw_data.i2_raw |= 0xFF000000;
+    }
+
+    //i2 doesn't work yet, or else we should only have 1 final current reading
+    adbms_2950->data.current1 = -ADBMS_2950_Transfer_current(adbms_2950->raw_data.i1_raw);
+    adbms_2950->data.current2 = ADBMS_2950_Transfer_current(adbms_2950->raw_data.i2_raw);
+}
+
+float ADBMS_2950_Transfer_Current(int32_t data)
+{
+  float current;
+  //the actual measured resistance is closer to 94 microolms instead of 100
+  current = (float) data / 94.0;
+  return current;
+}
+
+void ADBMS_2950_Calculate_Post_Voltage(adbms_* adbms, adbms_2950_* adbms_2950){
+
+    //initialize values
+    adbms_2950->raw_data.v1_raw = 0;
+    adbms_2950->raw_data.v2_raw = 0;
+
+    //RDCVD is the 4th command that we send that get puts into cell
+    int command_offset = (DATA_LEN * NUM_CHIPS) * 3;
+    //offset because 2950 is the lsat chip on the daisy chain
+    int offset = (NUM_6830) * DATA_LEN;
+
+    //getting raw data from cell readings
+    adbms_2950->raw_data.v1_raw = (int16_t)(adbms->raw_value.cell[3+offset+command_offset] << 8) | (int16_t)(adbms->raw_value.cell[2+offset+command_offset]);
+    adbms_2950->raw_data.v2_raw = (int16_t)(adbms->raw_value.cell[5+offset+command_offset] << 8) | (int16_t)(adbms->raw_value.cell[1+offset+command_offset]);
+
+    adbms_2950->data.postcontactor_voltage = ADBMS_2950_Transfer_Post_Voltage(adbms_2950->raw_data.v1_raw, adbms_2950->raw_data.v2_raw);
+}
+
+float ADBMS_2950_Transfer_Post_Voltage(int16_t v1_raw, int16_t v2_raw){
+
+    float v_TS = 0.0;
+
+    float v1 = (float) (v1_raw / 0.0041938); // (15000/3,600,000 + 15000)
+    float v2 = (float) (v2_raw);
+
+    v_TS = (v1-v2) * 0.0001; //100 microolms
     
+    return v_TS;
+}
+
+void ADBMS_2950_Calculate_Shunt_Temp(adbms_* adbms, adbms_2950_* adbms_2950){
+
+    //initilaize values
+    adbms_2950->raw_data.v7 = 0;
+    adbms_2950->raw_data.v9 = 0;
+
+    //offset because 2950 is the last chip ont he daisy chain
+    int offset = (NUM_6830) * DATA_LEN;
+
+    //getting raw data 
+    adbms_2950->raw_data.v7 = (int16_t)(adbms->raw_value.shunt_temp[1+offset] << 8) | (int16_t)(adbms->raw_value.shunt_temp[0+offset]);
+    adbms_2950->raw_data.v9 = (int16_t)(adbms->raw_value.shunt_temp[5+offset] << 8) | (int16_t)(adbms->raw_value.shunt_temp[4+offset]);
+
+    adbms_2950->data.pack_temperature_1 = ADBMS_2950_Transfer_Shunt_Temp(adbms_2950->raw_data.v7);
+    adbms_2950->data.pack_temperature_2 = ADBMS_2950_Transfer_Shunt_Temp(adbms_2950->raw_data.v9);
+
+}
+
+float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage){
+
+//write this later :)
+
 }

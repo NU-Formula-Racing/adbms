@@ -15,23 +15,36 @@ typedef struct
     int16_t vbat2_raw;
 
     //currents 
-    float i1;
-    float i2;
+    int32_t i1_raw;
+    int32_t i2_raw;
 
     //post contactor voltages
-    float v_TS;
+    int16_t v1_raw;
+    int16_t v2_raw;
 
     //Shunt Thermistor Voltages
-    float v_shunt_1;
-    float v_shunt_2;
+    int16_t v7;
+    int16_t v9;
 
 }raw_data_2950_;
 
 typedef struct
 {
     float precontactor_voltage;
-    float current;
+    float current_1;
+    float current_2;
     float postcontactor_voltage;
-    float pack_temperature;
+    float pack_temperature_1;
+    float pack_temperature_2;
 
 }data_2950_;
+
+void ADBMS_2950_Calculate_Values(adbms_* adbms,adbms_2950_* adbms_2950);
+void ADBMS_2950_Calculate_Vbat(adbms_* adbms,adbms_2950_* adbms_2950);
+float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw);
+void ADBMS_2950_Calculate_Current(adbms_* adbms, adbms_2950_* adbms_2950);
+float ADBMS_2950_Transfer_Current(int32_t data);
+void ADBMS_2950_Calculate_Post_Voltage(adbms_* adbms, adbms_2950_* adbms_2950);
+float ADBMS_2950_Transfer_Post_Voltage(int16_t v1_raw, int16_t v2_raw);
+void ADBMS_2950_Calculate_Shunt_Temp(adbms_* adbms, adbms_2950_* adbms_2950);
+float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage);
