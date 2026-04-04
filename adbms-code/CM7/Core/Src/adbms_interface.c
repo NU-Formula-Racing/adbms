@@ -27,6 +27,7 @@ void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi)
     ADBMS_WakeUP_ICs();
     ADBMS_WakeUP_ICs();
     ADBMS_Write_Data(adbms->ICs.hspi, WRCFGA, adbms->ICs.cfg_a, adbms->ICs.spi_dataBuf);
+    HAL_Delay(1);
     ADBMS_WakeUP_ICs();
     ADBMS_Write_Data(adbms->ICs.hspi, WRCFGB, adbms->ICs.cfg_b, adbms->ICs.spi_dataBuf);
 

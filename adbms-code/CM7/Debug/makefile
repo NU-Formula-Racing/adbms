@@ -12,6 +12,7 @@ RM := rm -rf
 -include USB_DEVICE/Target/subdir.mk
 -include USB_DEVICE/App/subdir.mk
 -include Middlewares/Third_Party/OpenAMP/subdir.mk
+-include Middlewares/Third_Party/FreeRTOS/subdir.mk
 -include Middlewares/Third_Party/FatFs/subdir.mk
 -include Middlewares/ST/STM32_USB_Device_Library/subdir.mk
 -include FATFS/Target/subdir.mk

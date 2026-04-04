@@ -31,18 +31,23 @@ const uint16_t Crc15Table[256] =
 static volatile uint8_t spi_dma_complete = 0;
 
 //waiting so is basically blocking code 
-static void ADBMS_SPI_WaitDMA(void)
+static void ADBMS_SPI_WaitDMA(SPI_HandleTypeDef *hspi)
 {
-    uint32_t tickstart = HAL_GetTick();
-    while (!spi_dma_complete)
-    {
-        if ((HAL_GetTick() - tickstart) > SPI_DMA_TIMEOUT)
-        {
-            // TODO: do something if fails
-            break;
-        }
-    }
-    spi_dma_complete = 0;
+    while (hspi->hdmatx->State != HAL_DMA_STATE_READY);
+    while (hspi->hdmarx->State != HAL_DMA_STATE_READY);
+    while (hspi->State == HAL_SPI_STATE_BUSY_TX); /* wait end of transfer */
+    while(hspi->State != HAL_SPI_STATE_READY) { __NOP(); }
+
+    // uint32_t tickstart = HAL_GetTick();
+    // while (!spi_dma_complete)
+    // {
+    //     if ((HAL_GetTick() - tickstart) > SPI_DMA_TIMEOUT)
+    //     {
+    //         // TODO: do something if fails
+    //         break;
+    //     }
+    // }
+    // spi_dma_complete = 0;
 }
 
 
@@ -279,7 +284,7 @@ void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *cmd_buf)
     {
         // TODO: do something if fails
     }
-    ADBMS_SPI_WaitDMA();
+    ADBMS_SPI_WaitDMA(hspi);
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 }
 
@@ -311,7 +316,8 @@ void ADBMS_Write_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, u
     {
         // TODO: do something if fails
     }
-    ADBMS_SPI_WaitDMA();
+    ADBMS_SPI_WaitDMA(hspi);
+    // Temporary debug check
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 }
 
@@ -332,7 +338,7 @@ bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf,
         // TODO: do something if fails
     	printf("spi failed");
     }
-    ADBMS_SPI_WaitDMA();
+    ADBMS_SPI_WaitDMA(hspi);
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 
     // Discard data received during transmit phase

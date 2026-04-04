@@ -90,7 +90,12 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-
+	volatile uint32_t CFSR  = SCB->CFSR;   // Configurable Fault Status
+	volatile uint32_t HFSR  = SCB->HFSR;   // HardFault Status
+	volatile uint32_t MMFAR = SCB->MMFAR;  // MemManage fault address
+	volatile uint32_t BFAR  = SCB->BFAR;   // BusFault address
+	__disable_irq();
+	while(1) { __NOP(); }
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {

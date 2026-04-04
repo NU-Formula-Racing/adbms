@@ -9,7 +9,7 @@
 
 // TODO: Change this value
 #define SPI_TIME_OUT HAL_MAX_DELAY      /* SPI Time out delay */
-#define SPI_DMA_TIMEOUT 100             /* DMA transfer timeout in ms */
+#define SPI_DMA_TIMEOUT 1000             /* DMA transfer timeout in ms */
 
 typedef struct
 {
