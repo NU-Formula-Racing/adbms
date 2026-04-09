@@ -511,6 +511,9 @@ void Update_Owc_Fault(adbms_ *adbms)
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDSVD, (adbms->ICs.scell + 3 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf);
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDSVE, (adbms->ICs.scell + 4 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); // probably don't need this
 
+
+    //THIS IS THE PART THAT NEEDS TO GO UP AN INTERFACE LEVEL
+
     if(pec){
         adbms->current_owc_failures += 1;
         if(adbms->current_owc_failures > PEC_FAILURE_THRESHOLD){

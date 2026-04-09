@@ -53,6 +53,7 @@ typedef struct
 {
     bool read_voltage_pec_failure;
     bool read_temp_pec_failure;
+    bool read_open_wire_pec_failure;
 
 } read_failures_;
 

@@ -68,7 +68,7 @@ void ADBMS_6830_Config(command_parameters_6830_* parameters,config_command_bits_
     }
 
     ADBMS_Set_Config_A_6830(&parameters->cfa6830,command_bits->cfg_a, NUM_6830); //sets for all 6830
-    ADBMS_Set_Config_B_6830(&parameters->cfb6830,command_bits->cfg_a, NUM_6830); // sets for all 6830
+    ADBMS_Set_Config_B_6830(&parameters->cfb6830,command_bits->cfg_b, NUM_6830); // sets for all 6830
     
 }
 
@@ -117,7 +117,6 @@ void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bi
     ADBMS_Set_ADV(parameters->adv,command_bits->adv); //set adv
 }
 
-
 //
 //moved all previous write data and command in initialize over
 //
@@ -136,6 +135,145 @@ void ADBMS_Initialize_Write_Data_Command(adbms_raw_* adbms){
     HAL_Delay(8);
     ADBMS_Write_CMD(adbms->SPI_data.hspi, adbms->command_bit.adv); //new 2950 command to start V1adc and V2adc
     HAL_Delay(8);
+}
+
+
+//
+// these are all configuration or reads for open-wire checks
+//
+
+void cell_Balance_Off(adbms_raw_* adbms)
+{
+
+    command_parameters_6830_ parameters = adbms->command_parameters.parameter_6830;
+    config_command_bits_ command_bits = adbms->command_bit;
+
+    // Turn off CB indication LED
+	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_RESET);
+
+    for (int cic = 0; cic < (NUM_6830); cic++)
+    {
+        parameters.cfb6830[cic].dcc = 0;
+    }
+
+    ADBMS_Set_Config_B_6830(&parameters.cfb6830,&command_bits.cfg_b, NUM_6830);
+    ADBMS_Write_Data(adbms->SPI_data.hspi, WRCFGB, adbms->command_bit.cfg_b, adbms->SPI_data.spi_dataBuf);
+    
+}
+
+void Owc_C_Channel_Off(adbms_raw_* adbms)
+{
+    ADBMS_WakeUP_ICs();
+
+    adbms->command_parameters.parameter_joint.adcv.cont = 1;
+    adbms->command_parameters.parameter_joint.adcv.ow = 0; //Disable OW
+
+    ADBMS_Set_ADCV(adbms->command_parameters.parameter_joint.adcv, &adbms->command_bit.adcv);
+    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
+
+    HAL_Delay(1);
+}
+
+void Owc_C_Channel_Even_On(adbms_raw_* adbms)
+{
+    ADBMS_WakeUP_ICs();
+
+    adbms->command_parameters.parameter_joint.adcv.cont = 1;
+    adbms->command_parameters.parameter_joint.adcv.ow = 1; //Enable Even Channel OW
+
+    ADBMS_Set_ADCV(adbms->command_parameters.parameter_joint.adcv, &adbms->command_bit.adcv);
+    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
+    HAL_Delay(8); 
+}
+
+void Owc_C_Channel_Odd_On(adbms_raw_* adbms)
+{
+    ADBMS_WakeUP_ICs();
+
+    adbms->command_parameters.parameter_joint.adcv.cont = 1;
+    adbms->command_parameters.parameter_joint.adcv.ow = 2; //Enable Odd Channel OW
+
+    ADBMS_Set_ADCV(adbms->command_parameters.parameter_joint.adcv, &adbms->command_bit.adcv);
+    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
+    HAL_Delay(8); 
+}
+
+void Owc_C_Channel_Read(adbms_raw_* adbms)
+{
+    bool pec = 0;
+    ADBMS_WakeUP_ICs();
+
+    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVA, (adbms->raw_value.scell + 0 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVB, (adbms->raw_value.scell + 1 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVC, (adbms->raw_value.scell + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVD, (adbms->raw_value.scell + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    //pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVE, (adbms->raw_value.scell + 4 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); // probably don't need this
+
+    adbms->read_failure.read_open_wire_pec_failure = pec;
+
+}
+
+
+void Owc_S_Channel_Off(adbms_raw_* adbms)
+{
+    ADBMS_WakeUP_ICs();
+
+    // not quite sure if we should turn it back on right now, or if i just turn it on in BMS
+    // cell_Balance_Off(adbms); 
+
+    adbms->command_parameters.parameter_joint.adsv.cont = 1;
+    adbms->command_parameters.parameter_joint.adsv.ow = 0; //Disable OW 
+
+    ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
+    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
+
+    HAL_Delay(1);
+}
+
+void Owc_S_Channel_Even_On(adbms_raw_* adbms)
+{
+    // check openwire fault
+    ADBMS_WakeUP_ICs();
+    cell_Balance_Off(adbms);  // need to turn off cell balancing to check for OWC
+
+    adbms->command_parameters.parameter_joint.adsv.cont = 1;
+    adbms->command_parameters.parameter_joint.adsv.ow = 1; // Enable OW on even-channel 
+
+    ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
+    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
+
+    HAL_Delay(8);
+}
+
+void Owc_S_Channel_Odd_On(adbms_raw_* adbms)
+{
+    // check openwire fault
+    ADBMS_WakeUP_ICs();
+    cell_Balance_Off(adbms);  // need to turn off cell balancing to check for OWC
+
+    /// OWC ODD Check
+    adbms->command_parameters.parameter_joint.adsv.cont = 1;
+    adbms->command_parameters.parameter_joint.adsv.ow = 2; // Enable OW on odd-channel 
+
+    ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
+    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
+
+    HAL_Delay(8);
+}
+
+void Owc_S_Channel_Read(adbms_raw_* adbms)
+{
+    bool pec = 0;
+    ADBMS_WakeUP_ICs();
+
+    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDSVA, (adbms->raw_value.scell + 0 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDSVB, (adbms->raw_value.scell + 1 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDSVC, (adbms->raw_value.scell + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDSVD, (adbms->raw_value.scell + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    //pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDSVE, (adbms->raw_value.scell + 4 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); // probably don't need this
+
+    adbms->read_failure.read_open_wire_pec_failure = pec;
+
 }
 
 
