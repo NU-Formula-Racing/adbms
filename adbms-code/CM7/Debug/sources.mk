@@ -30,6 +30,8 @@ FATFS/App \
 FATFS/Target \
 Middlewares/ST/STM32_USB_Device_Library \
 Middlewares/Third_Party/FatFs \
+Middlewares/Third_Party/FreeRTOS \
+Middlewares/Third_Party/OpenAMP \
 USB_DEVICE/App \
 USB_DEVICE/Target \
 
