@@ -44,6 +44,7 @@ typedef struct
 {
     bool pec_fault;
     bool openwire_temp_fault;
+    bool openwire_voltage_fault;
 
     bool overvoltage_fault;
     bool undervoltage_fault;

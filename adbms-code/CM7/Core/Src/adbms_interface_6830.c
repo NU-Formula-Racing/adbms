@@ -194,3 +194,56 @@ void Update_6830_InternalFault(adbms_6830_* adbms_6830)
     // TODO: check status regs for faults - need calcuate status reg values fn that handles status reg pec fualts
 }
 
+
+void Update_6830_Owc_Fault(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
+{
+    if (adbms_raw->read_failure.read_open_wire_pec_failure){
+        adbms_6830->failures.pec_failure_count += 1;
+        if (adbms_6830->failures.pec_failure_count > PEC_FAILURE_THRESHOLD){
+            adbms_6830->faults.pec_fault = 1;
+        }
+    }
+    else{
+        adbms_6830->failures.pec_failure_count = 0;
+    }
+
+    for (uint8_t cic = 0; cic < (NUM_6830); cic++)
+    {
+        if( cic % 2 == 0) //even chip
+        {
+            uint8_t num_reg_grps = NUM_VOLTAGES_EVEN_CHIP / VOLTAGES_REG_GRP + (NUM_VOLTAGES_EVEN_CHIP % VOLTAGES_REG_GRP != 0);//find how many register groups used to store voltages
+            for (uint8_t creg_grp = 0; creg_grp < num_reg_grps; creg_grp++)
+            {
+                for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
+                {
+                    if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_EVEN_CHIP) break;
+                    int16_t raw_val = (((uint16_t)adbms_raw->raw_value.scell[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms_raw->raw_value.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
+                    if (ADBMS_getVoltage(raw_val) < 0.5)
+                    {
+                        int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
+                        adbms_6830->faults.openwire_voltage_fault = 1;
+                        return;
+                    }
+                }
+            }
+        }
+        else //odd chip
+        {
+            uint8_t num_reg_grps = NUM_VOLTAGES_ODD_CHIP / VOLTAGES_REG_GRP + (NUM_VOLTAGES_ODD_CHIP % VOLTAGES_REG_GRP != 0);//find how many register groups used to store voltages
+            for (uint8_t creg_grp = 0; creg_grp < num_reg_grps; creg_grp++)
+            {
+                for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
+                {
+                    if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_ODD_CHIP) break;
+                    int16_t raw_val = (((uint16_t)adbms_raw->raw_value.scell[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms_raw->raw_value.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
+                    if (ADBMS_getVoltage(raw_val) < 0.5)
+                    {
+                        int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
+                        adbms_6830->faults.openwire_voltage_fault = 1;
+                        return;
+                    }
+                }
+            }
+        }
+    }
+}
