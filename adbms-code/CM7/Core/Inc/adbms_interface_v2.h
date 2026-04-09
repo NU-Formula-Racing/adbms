@@ -5,7 +5,7 @@
 #include "bms_system_prams.h"
 #include <float.h>
 
-typedef struct
+typedef struct 
 {
     //configs
     config_command_bits_                command_bit;
@@ -20,7 +20,7 @@ typedef struct
     //read failures
     read_failures_                      read_failure;
 
-}adbms_;
+}adbms_raw_;
 
 
 //for all command paramters
@@ -61,11 +61,11 @@ typedef struct
 
 
 //interface functions
-void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi);
+void ADBMS_Initialize(adbms_raw_ *adbms, SPI_HandleTypeDef *hspi);
 
 //read raw values
-void ADBMS_Read_Voltage(adbms_ *adbms);
-void ADBMS_Read_Temps(adbms_* adbms);
+void ADBMS_Read_Voltage(adbms_raw_ *adbms);
+void ADBMS_Read_Temps(adbms_raw_* adbms);
 
 
 //chip configurations
@@ -74,4 +74,4 @@ void ADBMS_2950_Config(command_parameters_2950_* parameters, config_command_bits
 void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bits_* command_bits);
 
 //Write Data Command
-void ADBMS_Initialize_Write_Data_Command(adbms_ * adbms);
+void ADBMS_Initialize_Write_Data_Command(adbms_raw_* adbms);

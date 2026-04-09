@@ -1,6 +1,6 @@
 #include "adbms_interface_v2.h"
 
-void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi)
+void ADBMS_Initialize(adbms_raw_ *adbms, SPI_HandleTypeDef *hspi)
 {
     adbms->SPI_data.hspi = hspi;
 
@@ -17,7 +17,7 @@ void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi)
     ADBMS_Write_Data_Command(adbms);
 }
 
-void ADBMS_Read_Voltage(adbms_ *adbms){
+void ADBMS_Read_Voltage(adbms_raw_ *adbms){
 
     //get voltages from ADBMS
     bool pec = 0;
@@ -30,10 +30,10 @@ void ADBMS_Read_Voltage(adbms_ *adbms){
     pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVD, (adbms->raw_value.cell + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); //read voltages 9-11 for each chip
     //pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVE, (adbms->raw_value.cell + 4 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); //DONT NEED VOLTAGES OVER 12 for nfr26
 
-    adbms->read_failure.read_voltage_pec_fault_ = pec;
+    adbms->read_failure.read_voltage_pec_failure = pec;
 }
 
-void ADBMS_Read_Temps(adbms_* adbms){
+void ADBMS_Read_Temps(adbms_raw_* adbms){
 
     //get temps from ADBMS
     bool pec = 0;
@@ -44,7 +44,7 @@ void ADBMS_Read_Temps(adbms_* adbms){
     pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDAUXC, (adbms->raw_value.aux + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
     pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDAUXD, (adbms->raw_value.aux + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
 
-    adbms->read_failure.read_temp_pec_fault_ = pec;
+    adbms->read_failure.read_temp_pec_failure = pec;
 
     //need to start new poll for conversion before next read (no continuous mode)
     ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adax);
@@ -121,7 +121,7 @@ void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bi
 //
 //moved all previous write data and command in initialize over
 //
-void ADBMS_Initialize_Write_Data_Command(adbms_* adbms){
+void ADBMS_Initialize_Write_Data_Command(adbms_raw_* adbms){
     
     //Write data and commands
     ADBMS_Write_Data(adbms->SPI_data.hspi, WRCFGA, adbms->command_bit.cfg_a, adbms->SPI_data.spi_dataBuf);

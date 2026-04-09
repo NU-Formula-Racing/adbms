@@ -1,15 +1,15 @@
 #include "adbms_interface_2950.h"
 
 
-void ADBMS_2950_Calculate_Values(adbms_* adbms,adbms_2950_* adbms_2950)
+void ADBMS_2950_Calculate_Values(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
 {
-    ADBMS_2950_Calculate_Vbat(adbms, adbms_2950);
-    ADBMS_2950_Calculate_Current(adbms, adbms_2950);
-    ADBMS_2950_Calculate_Post_Voltage(adbms, adbms_2950);
-    ADBMS_2950_Calculat_Shunt_Temp(adbms, adbms_2950);
+    ADBMS_2950_Calculate_Vbat(adbms_raw, adbms_2950);
+    ADBMS_2950_Calculate_Current(adbms_raw, adbms_2950);
+    ADBMS_2950_Calculate_Post_Voltage(adbms_raw, adbms_2950);
+    ADBMS_2950_Calculat_Shunt_Temp(adbms_raw, adbms_2950);
 }
 
-void ADBMS_2950_Calculate_Vbat(adbms_* adbms,adbms_2950_* adbms_2950)
+void ADBMS_2950_Calculate_Vbat(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
 {
     //initialize values
     adbms_2950->raw_data.vbat1_raw = 0;
@@ -21,8 +21,8 @@ void ADBMS_2950_Calculate_Vbat(adbms_* adbms,adbms_2950_* adbms_2950)
     int offset = (NUM_6830) * DATA_LEN;
 
     //take raw bit values from adbms and place into raw_data in adbms_2950
-    adbms_2950->raw_data.vbat1_raw = ((int16_t)(adbms->raw_value.cell[3 + command_offset + offset]) << 8) | (int16_t)(adbms->raw_value.cell[2 + command_offset + offset]);
-    adbms_2950->raw_data.vbat2_raw = ((int16_t)(adbms->raw_value.cell[5 + command_offset + offset]) << 8) | (int16_t)(adbms->raw_value.cell[4 + command_offset + offset]);
+    adbms_2950->raw_data.vbat1_raw = ((int16_t)(adbms_raw->raw_value.cell[3 + command_offset + offset]) << 8) | (int16_t)(adbms_raw->raw_value.cell[2 + command_offset + offset]);
+    adbms_2950->raw_data.vbat2_raw = ((int16_t)(adbms_raw->raw_value.cell[5 + command_offset + offset]) << 8) | (int16_t)(adbms_raw->raw_value.cell[4 + command_offset + offset]);
 
     adbms_2950->data.precontactor_voltage = ADBMS_2950_Transfer_Vbat(adbms_2950->raw_data.vbat1_raw,adbms_2950->raw_data.vbat2_raw);
 
@@ -40,7 +40,7 @@ float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw){
     return vbat_final;
 }
 
-void ADBMS_2950_Calculate_Current(adbms_* adbms, adbms_2950_* adbms_2950)
+void ADBMS_2950_Calculate_Current(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
 {
     //initialize values
     adbms_2950->raw_data.i1_raw = 0;
@@ -50,8 +50,8 @@ void ADBMS_2950_Calculate_Current(adbms_* adbms, adbms_2950_* adbms_2950)
     int offset =  (NUM_6830) * DATA_LEN;
 
     //getting raw data from cell readings and putting it in adbms_2950 
-    adbms_2950->raw_data.i1_raw = ((int32_t)(adbms->raw_value.cell[2 + offset]) << 16) | ((int32_t)(adbms->raw_value.cell[1 + offset]) << 8) | adbms->raw_value.cell[0 + offset];
-    adbms_2950->raw_data.i2_raw = ((int32_t)(adbms->raw_value.cell[5 + offset]) << 16) | ((int32_t)(adbms->raw_value.cell[4 + offset]) << 8) | adbms->raw_value.cell[3 + offset];
+    adbms_2950->raw_data.i1_raw = ((int32_t)(adbms_raw->raw_value.cell[2 + offset]) << 16) | ((int32_t)(adbms_raw->raw_value.cell[1 + offset]) << 8) | adbms_raw->raw_value.cell[0 + offset];
+    adbms_2950->raw_data.i2_raw = ((int32_t)(adbms_raw->raw_value.cell[5 + offset]) << 16) | ((int32_t)(adbms_raw->raw_value.cell[4 + offset]) << 8) | adbms_raw->raw_value.cell[3 + offset];
 
     //sign extend because it is a 24 bit number but stored int32
     if (adbms_2950->raw_data.i1_raw & 0x00800000) {     
@@ -75,7 +75,8 @@ float ADBMS_2950_Transfer_Current(int32_t data)
   return current;
 }
 
-void ADBMS_2950_Calculate_Post_Voltage(adbms_* adbms, adbms_2950_* adbms_2950){
+void ADBMS_2950_Calculate_Post_Voltage(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
+{
 
     //initialize values
     adbms_2950->raw_data.v1_raw = 0;
@@ -87,8 +88,8 @@ void ADBMS_2950_Calculate_Post_Voltage(adbms_* adbms, adbms_2950_* adbms_2950){
     int offset = (NUM_6830) * DATA_LEN;
 
     //getting raw data from cell readings
-    adbms_2950->raw_data.v1_raw = (int16_t)(adbms->raw_value.cell[3+offset+command_offset] << 8) | (int16_t)(adbms->raw_value.cell[2+offset+command_offset]);
-    adbms_2950->raw_data.v2_raw = (int16_t)(adbms->raw_value.cell[5+offset+command_offset] << 8) | (int16_t)(adbms->raw_value.cell[1+offset+command_offset]);
+    adbms_2950->raw_data.v1_raw = (int16_t)(adbms_raw->raw_value.cell[3+offset+command_offset] << 8) | (int16_t)(adbms_raw->raw_value.cell[2+offset+command_offset]);
+    adbms_2950->raw_data.v2_raw = (int16_t)(adbms_raw->raw_value.cell[5+offset+command_offset] << 8) | (int16_t)(adbms_raw->raw_value.cell[1+offset+command_offset]);
 
     adbms_2950->data.postcontactor_voltage = ADBMS_2950_Transfer_Post_Voltage(adbms_2950->raw_data.v1_raw, adbms_2950->raw_data.v2_raw);
 }
@@ -105,7 +106,8 @@ float ADBMS_2950_Transfer_Post_Voltage(int16_t v1_raw, int16_t v2_raw){
     return v_TS;
 }
 
-void ADBMS_2950_Calculate_Shunt_Temp(adbms_* adbms, adbms_2950_* adbms_2950){
+void ADBMS_2950_Calculate_Shunt_Temp(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
+{
 
     //initilaize values
     adbms_2950->raw_data.v7 = 0;
@@ -115,8 +117,8 @@ void ADBMS_2950_Calculate_Shunt_Temp(adbms_* adbms, adbms_2950_* adbms_2950){
     int offset = (NUM_6830) * DATA_LEN;
 
     //getting raw data 
-    adbms_2950->raw_data.v7 = (int16_t)(adbms->raw_value.shunt_temp[1+offset] << 8) | (int16_t)(adbms->raw_value.shunt_temp[0+offset]);
-    adbms_2950->raw_data.v9 = (int16_t)(adbms->raw_value.shunt_temp[5+offset] << 8) | (int16_t)(adbms->raw_value.shunt_temp[4+offset]);
+    adbms_2950->raw_data.v7 = (int16_t)(adbms_raw->raw_value.shunt_temp[1+offset] << 8) | (int16_t)(adbms_raw->raw_value.shunt_temp[0+offset]);
+    adbms_2950->raw_data.v9 = (int16_t)(adbms_raw->raw_value.shunt_temp[5+offset] << 8) | (int16_t)(adbms_raw->raw_value.shunt_temp[4+offset]);
 
     adbms_2950->data.pack_temperature_1 = ADBMS_2950_Transfer_Shunt_Temp(adbms_2950->raw_data.v7);
     adbms_2950->data.pack_temperature_2 = ADBMS_2950_Transfer_Shunt_Temp(adbms_2950->raw_data.v9);

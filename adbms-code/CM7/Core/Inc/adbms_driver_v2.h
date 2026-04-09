@@ -51,8 +51,8 @@ typedef struct
 
 typedef struct
 {
-    bool read_voltage_pec_fault_;
-    bool read_temp_pec_fault_;
+    bool read_voltage_pec_failure;
+    bool read_temp_pec_failure;
 
 } read_failures_;
 
