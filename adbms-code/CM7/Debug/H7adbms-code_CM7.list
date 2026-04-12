@@ -3073,7 +3073,7 @@ void ADBMS_CalculateValues_Voltages(adbms_ *adbms)
     }
     
     // adbms->total_v = even_total + odd_total;
-    adbms->total_v = 60;
+    adbms->total_v = 483;
  80019c2:	687b      	ldr	r3, [r7, #4]
  80019c4:	4a08      	ldr	r2, [pc, #32]	@ (80019e8 <ADBMS_CalculateValues_Voltages+0x358>)
  80019c6:	f8c3 21dc 	str.w	r2, [r3, #476]	@ 0x1dc
@@ -3090,7 +3090,7 @@ void ADBMS_CalculateValues_Voltages(adbms_ *adbms)
  80019e0:	46bd      	mov	sp, r7
  80019e2:	bd80      	pop	{r7, pc}
  80019e4:	7f7fffff 	.word	0x7f7fffff
- 80019e8:	42700000 	.word	0x42700000
+ 80019e8:	43f18000 	.word	0x43f18000
  80019ec:	00000000 	.word	0x00000000
 
 080019f0 <ADBMS_CalculateValues_Temps>:

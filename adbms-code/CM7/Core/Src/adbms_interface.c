@@ -149,7 +149,7 @@ void ADBMS_CalculateValues_Voltages(adbms_ *adbms)
     }
     
     // adbms->total_v = even_total + odd_total;
-    adbms->total_v = 60;
+    adbms->total_v = 483;
     // calculate the avg voltage
     adbms->avg_v = adbms->total_v / (NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2));
 }
