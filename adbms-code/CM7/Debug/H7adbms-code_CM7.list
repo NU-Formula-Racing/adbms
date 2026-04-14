@@ -37,15 +37,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  16 .debug_macro  00043e2e  00000000  00000000  000568b2  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   0002f809  00000000  00000000  0009a6e0  2**0
+ 17 .debug_line   0002f944  00000000  00000000  0009a6e0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    0019b405  00000000  00000000  000c9ee9  2**0
+ 18 .debug_str    0019b583  00000000  00000000  000ca024  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000043  00000000  00000000  002652ee  2**0
+ 19 .comment      00000043  00000000  00000000  002655a7  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  0000a4fc  00000000  00000000  00265334  2**2
+ 20 .debug_frame  0000a4fc  00000000  00000000  002655ec  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 0000005c  00000000  00000000  0026f830  2**0
+ 21 .debug_line_str 0000005c  00000000  00000000  0026fae8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -2272,7 +2272,7 @@ void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi)
 
         // Init config B
         adbms->cfb[cic].vuv = Set_UnderOver_Voltage_Threshold(UNDERVOLTAGE);
- 8001396:	eeb7 0a08 	vmov.f32	s0, #120	@ 0x3fc00000  1.5
+ 8001396:	eeb0 0a04 	vmov.f32	s0, #4	@ 0x40200000  2.5
  800139a:	f7ff fb75 	bl	8000a88 <Set_UnderOver_Voltage_Threshold>
  800139e:	4603      	mov	r3, r0
  80013a0:	461a      	mov	r2, r3
@@ -3417,7 +3417,7 @@ void UpdateADInternalFault(adbms_ *adbms)
  8001c7c:	d109      	bne.n	8001c92 <UpdateADInternalFault+0x5a>
  8001c7e:	687b      	ldr	r3, [r7, #4]
  8001c80:	edd3 7a79 	vldr	s15, [r3, #484]	@ 0x1e4
- 8001c84:	eeb7 7a08 	vmov.f32	s14, #120	@ 0x3fc00000  1.5
+ 8001c84:	eeb0 7a04 	vmov.f32	s14, #4	@ 0x40200000  2.5
  8001c88:	eef4 7ac7 	vcmpe.f32	s15, s14
  8001c8c:	eef1 fa10 	vmrs	APSR_nzcv, fpscr
  8001c90:	d501      	bpl.n	8001c96 <UpdateADInternalFault+0x5e>
@@ -10022,11 +10022,6 @@ __STATIC_FORCEINLINE void __disable_irq(void)
  8005166:	e7fd      	b.n	8005164 <Error_Handler+0x8>
 
 08005168 <populateRawMessage>:
-#include "nfr_can_driver.h"
-
-// Populates a RawCanSignal with data, given a start bit, lenght, factor, and offset
-void populateRawMessage(RawCanSignal *signal, float raw_data, int length, float factor, float offset)
-{
  8005168:	b580      	push	{r7, lr}
  800516a:	b088      	sub	sp, #32
  800516c:	af00      	add	r7, sp, #0
@@ -10035,8 +10030,6 @@ void populateRawMessage(RawCanSignal *signal, float raw_data, int length, float 
  8005174:	60f9      	str	r1, [r7, #12]
  8005176:	edc7 0a02 	vstr	s1, [r7, #8]
  800517a:	ed87 1a01 	vstr	s2, [r7, #4]
-    // offset and factor data
-    uint64_t raw_value = (uint64_t)((raw_data - offset) / factor);
  800517e:	ed97 7a04 	vldr	s14, [r7, #16]
  8005182:	edd7 7a01 	vldr	s15, [r7, #4]
  8005186:	ee37 7a67 	vsub.f32	s14, s14, s15
@@ -10047,37 +10040,24 @@ void populateRawMessage(RawCanSignal *signal, float raw_data, int length, float 
  800519a:	4602      	mov	r2, r0
  800519c:	460b      	mov	r3, r1
  800519e:	e9c7 2306 	strd	r2, r3, [r7, #24]
-
-    // copy data into RawCanSignal
-    memcpy(&(signal->raw_data), &raw_value, sizeof(raw_value));
  80051a2:	6979      	ldr	r1, [r7, #20]
  80051a4:	e9d7 2306 	ldrd	r2, r3, [r7, #24]
  80051a8:	600a      	str	r2, [r1, #0]
  80051aa:	604b      	str	r3, [r1, #4]
-    signal->length = length;
  80051ac:	697b      	ldr	r3, [r7, #20]
  80051ae:	68fa      	ldr	r2, [r7, #12]
  80051b0:	609a      	str	r2, [r3, #8]
-
-}
  80051b2:	bf00      	nop
  80051b4:	3720      	adds	r7, #32
  80051b6:	46bd      	mov	sp, r7
  80051b8:	bd80      	pop	{r7, pc}
 
 080051ba <generateMask>:
-    printf("\n");
-}
-
-// Generates a mask for given position and length
-uint64_t generateMask(int pos, int len)
-{
  80051ba:	b5f0      	push	{r4, r5, r6, r7, lr}
  80051bc:	b083      	sub	sp, #12
  80051be:	af00      	add	r7, sp, #0
  80051c0:	6078      	str	r0, [r7, #4]
  80051c2:	6039      	str	r1, [r7, #0]
-    return (0xFFFFFFFFFFFFFFFFull << (64 - len) >> (64 - len - pos));
  80051c4:	6839      	ldr	r1, [r7, #0]
  80051c6:	f1c1 0640 	rsb	r6, r1, #64	@ 0x40
  80051ca:	f04f 30ff 	mov.w	r0, #4294967295
@@ -10104,7 +10084,6 @@ uint64_t generateMask(int pos, int len)
  8005214:	fa23 f501 	lsr.w	r5, r3, r1
  8005218:	4622      	mov	r2, r4
  800521a:	462b      	mov	r3, r5
-}
  800521c:	4610      	mov	r0, r2
  800521e:	4619      	mov	r1, r3
  8005220:	370c      	adds	r7, #12
@@ -10112,33 +10091,21 @@ uint64_t generateMask(int pos, int len)
  8005224:	bdf0      	pop	{r4, r5, r6, r7, pc}
 
 08005226 <encodeSignals>:
-
-// Encodes a CAN msg with number of sub-messages
-void encodeSignals(uint8_t *data, int count, ...)
-{
  8005226:	b40e      	push	{r1, r2, r3}
  8005228:	e92d 4ff0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, lr}
  800522c:	b092      	sub	sp, #72	@ 0x48
  800522e:	af00      	add	r7, sp, #0
  8005230:	60f8      	str	r0, [r7, #12]
-    va_list args;
-    va_start(args, count);
  8005232:	f107 0370 	add.w	r3, r7, #112	@ 0x70
  8005236:	627b      	str	r3, [r7, #36]	@ 0x24
-    uint64_t buffer = 0;
  8005238:	f04f 0200 	mov.w	r2, #0
  800523c:	f04f 0300 	mov.w	r3, #0
  8005240:	e9c7 2310 	strd	r2, r3, [r7, #64]	@ 0x40
-
-    int len_ptr = 0;
  8005244:	2300      	movs	r3, #0
  8005246:	63fb      	str	r3, [r7, #60]	@ 0x3c
-    for (size_t i = 0; i < count; i++)
  8005248:	2300      	movs	r3, #0
  800524a:	63bb      	str	r3, [r7, #56]	@ 0x38
  800524c:	e03c      	b.n	80052c8 <encodeSignals+0xa2>
-    {
-        RawCanSignal temp = va_arg(args, RawCanSignal);
  800524e:	6a7b      	ldr	r3, [r7, #36]	@ 0x24
  8005250:	3307      	adds	r3, #7
  8005252:	f023 0307 	bic.w	r3, r3, #7
@@ -10147,15 +10114,11 @@ void encodeSignals(uint8_t *data, int count, ...)
  800525c:	f107 0610 	add.w	r6, r7, #16
  8005260:	cb0f      	ldmia	r3, {r0, r1, r2, r3}
  8005262:	e886 000f 	stmia.w	r6, {r0, r1, r2, r3}
-
-        // shift data over and apply mask then add to buffer
-        uint64_t mask = generateMask(len_ptr, temp.length);
  8005266:	69bb      	ldr	r3, [r7, #24]
  8005268:	4619      	mov	r1, r3
  800526a:	6bf8      	ldr	r0, [r7, #60]	@ 0x3c
  800526c:	f7ff ffa5 	bl	80051ba <generateMask>
  8005270:	e9c7 010a 	strd	r0, r1, [r7, #40]	@ 0x28
-        buffer |= (temp.raw_data.as_uint64 << len_ptr) & mask;
  8005274:	e9d7 2304 	ldrd	r2, r3, [r7, #16]
  8005278:	6bf9      	ldr	r1, [r7, #60]	@ 0x3c
  800527a:	f1a1 0620 	sub.w	r6, r1, #32
@@ -10176,14 +10139,10 @@ void encodeSignals(uint8_t *data, int count, ...)
  80052b0:	607b      	str	r3, [r7, #4]
  80052b2:	e9d7 2300 	ldrd	r2, r3, [r7]
  80052b6:	e9c7 2310 	strd	r2, r3, [r7, #64]	@ 0x40
-
-        // update length
-        len_ptr += temp.length;
  80052ba:	69bb      	ldr	r3, [r7, #24]
  80052bc:	6bfa      	ldr	r2, [r7, #60]	@ 0x3c
  80052be:	4413      	add	r3, r2
  80052c0:	63fb      	str	r3, [r7, #60]	@ 0x3c
-    for (size_t i = 0; i < count; i++)
  80052c2:	6bbb      	ldr	r3, [r7, #56]	@ 0x38
  80052c4:	3301      	adds	r3, #1
  80052c6:	63bb      	str	r3, [r7, #56]	@ 0x38
@@ -10191,15 +10150,9 @@ void encodeSignals(uint8_t *data, int count, ...)
  80052ca:	6bba      	ldr	r2, [r7, #56]	@ 0x38
  80052cc:	429a      	cmp	r2, r3
  80052ce:	d3be      	bcc.n	800524e <encodeSignals+0x28>
-    }
-
-    // fill in msg
-    for (size_t i = 0; i < 8; i++)
  80052d0:	2300      	movs	r3, #0
  80052d2:	637b      	str	r3, [r7, #52]	@ 0x34
  80052d4:	e01c      	b.n	8005310 <encodeSignals+0xea>
-    {
-        data[i] = (buffer >> (i * 8)) & 0xFF;
  80052d6:	6b7b      	ldr	r3, [r7, #52]	@ 0x34
  80052d8:	00d9      	lsls	r1, r3, #3
  80052da:	e9d7 2310 	ldrd	r2, r3, [r7, #64]	@ 0x40
@@ -10216,15 +10169,12 @@ void encodeSignals(uint8_t *data, int count, ...)
  8005302:	4413      	add	r3, r2
  8005304:	fa5f f288 	uxtb.w	r2, r8
  8005308:	701a      	strb	r2, [r3, #0]
-    for (size_t i = 0; i < 8; i++)
  800530a:	6b7b      	ldr	r3, [r7, #52]	@ 0x34
  800530c:	3301      	adds	r3, #1
  800530e:	637b      	str	r3, [r7, #52]	@ 0x34
  8005310:	6b7b      	ldr	r3, [r7, #52]	@ 0x34
  8005312:	2b07      	cmp	r3, #7
  8005314:	d9df      	bls.n	80052d6 <encodeSignals+0xb0>
-    }
-}
  8005316:	bf00      	nop
  8005318:	bf00      	nop
  800531a:	3748      	adds	r7, #72	@ 0x48
@@ -10235,21 +10185,9 @@ void encodeSignals(uint8_t *data, int count, ...)
 	...
 
 08005328 <HAL_MspInit>:
-/* USER CODE END 0 */
-/**
-  * Initializes the Global MSP.
-  */
-void HAL_MspInit(void)
-{
  8005328:	b480      	push	{r7}
  800532a:	b083      	sub	sp, #12
  800532c:	af00      	add	r7, sp, #0
-
-  /* USER CODE BEGIN MspInit 0 */
-
-  /* USER CODE END MspInit 0 */
-
-  __HAL_RCC_SYSCFG_CLK_ENABLE();
  800532e:	4b0a      	ldr	r3, [pc, #40]	@ (8005358 <HAL_MspInit+0x30>)
  8005330:	f8d3 30f4 	ldr.w	r3, [r3, #244]	@ 0xf4
  8005334:	4a08      	ldr	r2, [pc, #32]	@ (8005358 <HAL_MspInit+0x30>)
@@ -10260,12 +10198,6 @@ void HAL_MspInit(void)
  8005344:	f003 0302 	and.w	r3, r3, #2
  8005348:	607b      	str	r3, [r7, #4]
  800534a:	687b      	ldr	r3, [r7, #4]
-  /* System interrupt init*/
-
-  /* USER CODE BEGIN MspInit 1 */
-
-  /* USER CODE END MspInit 1 */
-}
  800534c:	bf00      	nop
  800534e:	370c      	adds	r7, #12
  8005350:	46bd      	mov	sp, r7
@@ -10274,17 +10206,10 @@ void HAL_MspInit(void)
  8005358:	58024400 	.word	0x58024400
 
 0800535c <HAL_FDCAN_MspInit>:
-  * This function configures the hardware resources used in this example
-  * @param hfdcan: FDCAN handle pointer
-  * @retval None
-  */
-void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef* hfdcan)
-{
  800535c:	b580      	push	{r7, lr}
  800535e:	b0ba      	sub	sp, #232	@ 0xe8
  8005360:	af00      	add	r7, sp, #0
  8005362:	6078      	str	r0, [r7, #4]
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
  8005364:	f107 03d4 	add.w	r3, r7, #212	@ 0xd4
  8005368:	2200      	movs	r2, #0
  800536a:	601a      	str	r2, [r3, #0]
@@ -10292,44 +10217,28 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef* hfdcan)
  800536e:	609a      	str	r2, [r3, #8]
  8005370:	60da      	str	r2, [r3, #12]
  8005372:	611a      	str	r2, [r3, #16]
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
  8005374:	f107 0310 	add.w	r3, r7, #16
  8005378:	22c0      	movs	r2, #192	@ 0xc0
  800537a:	2100      	movs	r1, #0
  800537c:	4618      	mov	r0, r3
  800537e:	f010 fd81 	bl	8015e84 <memset>
-  if(hfdcan->Instance==FDCAN1)
  8005382:	687b      	ldr	r3, [r7, #4]
  8005384:	681b      	ldr	r3, [r3, #0]
  8005386:	4a2b      	ldr	r2, [pc, #172]	@ (8005434 <HAL_FDCAN_MspInit+0xd8>)
  8005388:	4293      	cmp	r3, r2
  800538a:	d14e      	bne.n	800542a <HAL_FDCAN_MspInit+0xce>
-
-    /* USER CODE END FDCAN1_MspInit 0 */
-
-  /** Initializes the peripherals clock
-  */
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_FDCAN;
  800538c:	f44f 4200 	mov.w	r2, #32768	@ 0x8000
  8005390:	f04f 0300 	mov.w	r3, #0
  8005394:	e9c7 2304 	strd	r2, r3, [r7, #16]
-    PeriphClkInitStruct.FdcanClockSelection = RCC_FDCANCLKSOURCE_PLL;
  8005398:	f04f 5380 	mov.w	r3, #268435456	@ 0x10000000
  800539c:	f8c7 3080 	str.w	r3, [r7, #128]	@ 0x80
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
  80053a0:	f107 0310 	add.w	r3, r7, #16
  80053a4:	4618      	mov	r0, r3
  80053a6:	f004 fc57 	bl	8009c58 <HAL_RCCEx_PeriphCLKConfig>
  80053aa:	4603      	mov	r3, r0
  80053ac:	2b00      	cmp	r3, #0
  80053ae:	d001      	beq.n	80053b4 <HAL_FDCAN_MspInit+0x58>
-    {
-      Error_Handler();
  80053b0:	f7ff fed4 	bl	800515c <Error_Handler>
-    }
-
-    /* Peripheral clock enable */
-    __HAL_RCC_FDCAN_CLK_ENABLE();
  80053b4:	4b20      	ldr	r3, [pc, #128]	@ (8005438 <HAL_FDCAN_MspInit+0xdc>)
  80053b6:	f8d3 30ec 	ldr.w	r3, [r3, #236]	@ 0xec
  80053ba:	4a1f      	ldr	r2, [pc, #124]	@ (8005438 <HAL_FDCAN_MspInit+0xdc>)
@@ -10340,8 +10249,6 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef* hfdcan)
  80053ca:	f403 7380 	and.w	r3, r3, #256	@ 0x100
  80053ce:	60fb      	str	r3, [r7, #12]
  80053d0:	68fb      	ldr	r3, [r7, #12]
-
-    __HAL_RCC_GPIOD_CLK_ENABLE();
  80053d2:	4b19      	ldr	r3, [pc, #100]	@ (8005438 <HAL_FDCAN_MspInit+0xdc>)
  80053d4:	f8d3 30e0 	ldr.w	r3, [r3, #224]	@ 0xe0
  80053d8:	4a17      	ldr	r2, [pc, #92]	@ (8005438 <HAL_FDCAN_MspInit+0xdc>)
@@ -10352,46 +10259,26 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef* hfdcan)
  80053e8:	f003 0308 	and.w	r3, r3, #8
  80053ec:	60bb      	str	r3, [r7, #8]
  80053ee:	68bb      	ldr	r3, [r7, #8]
-    /**FDCAN1 GPIO Configuration
-    PD0     ------> FDCAN1_RX
-    PD1     ------> FDCAN1_TX
-    */
-    GPIO_InitStruct.Pin = CAN_RX_Pin|CAN_TX_Pin;
  80053f0:	2303      	movs	r3, #3
  80053f2:	f8c7 30d4 	str.w	r3, [r7, #212]	@ 0xd4
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
  80053f6:	2302      	movs	r3, #2
  80053f8:	f8c7 30d8 	str.w	r3, [r7, #216]	@ 0xd8
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
  80053fc:	2300      	movs	r3, #0
  80053fe:	f8c7 30dc 	str.w	r3, [r7, #220]	@ 0xdc
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
  8005402:	2300      	movs	r3, #0
  8005404:	f8c7 30e0 	str.w	r3, [r7, #224]	@ 0xe0
-    GPIO_InitStruct.Alternate = GPIO_AF9_FDCAN1;
  8005408:	2309      	movs	r3, #9
  800540a:	f8c7 30e4 	str.w	r3, [r7, #228]	@ 0xe4
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
  800540e:	f107 03d4 	add.w	r3, r7, #212	@ 0xd4
  8005412:	4619      	mov	r1, r3
  8005414:	4809      	ldr	r0, [pc, #36]	@ (800543c <HAL_FDCAN_MspInit+0xe0>)
  8005416:	f001 ff49 	bl	80072ac <HAL_GPIO_Init>
-
-    /* FDCAN1 interrupt Init */
-    HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 0, 0);
  800541a:	2200      	movs	r2, #0
  800541c:	2100      	movs	r1, #0
  800541e:	2013      	movs	r0, #19
  8005420:	f000 fd09 	bl	8005e36 <HAL_NVIC_SetPriority>
-    HAL_NVIC_EnableIRQ(FDCAN1_IT0_IRQn);
  8005424:	2013      	movs	r0, #19
  8005426:	f000 fd20 	bl	8005e6a <HAL_NVIC_EnableIRQ>
-
-    /* USER CODE END FDCAN1_MspInit 1 */
-
-  }
-
-}
  800542a:	bf00      	nop
  800542c:	37e8      	adds	r7, #232	@ 0xe8
  800542e:	46bd      	mov	sp, r7
@@ -10402,17 +10289,10 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef* hfdcan)
  800543c:	58020c00 	.word	0x58020c00
 
 08005440 <HAL_SD_MspInit>:
-  * This function configures the hardware resources used in this example
-  * @param hsd: SD handle pointer
-  * @retval None
-  */
-void HAL_SD_MspInit(SD_HandleTypeDef* hsd)
-{
  8005440:	b580      	push	{r7, lr}
  8005442:	b0bc      	sub	sp, #240	@ 0xf0
  8005444:	af00      	add	r7, sp, #0
  8005446:	6078      	str	r0, [r7, #4]
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
  8005448:	f107 03dc 	add.w	r3, r7, #220	@ 0xdc
  800544c:	2200      	movs	r2, #0
  800544e:	601a      	str	r2, [r3, #0]
@@ -10420,44 +10300,28 @@ void HAL_SD_MspInit(SD_HandleTypeDef* hsd)
  8005452:	609a      	str	r2, [r3, #8]
  8005454:	60da      	str	r2, [r3, #12]
  8005456:	611a      	str	r2, [r3, #16]
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
  8005458:	f107 0318 	add.w	r3, r7, #24
  800545c:	22c0      	movs	r2, #192	@ 0xc0
  800545e:	2100      	movs	r1, #0
  8005460:	4618      	mov	r0, r3
  8005462:	f010 fd0f 	bl	8015e84 <memset>
-  if(hsd->Instance==SDMMC1)
  8005466:	687b      	ldr	r3, [r7, #4]
  8005468:	681b      	ldr	r3, [r3, #0]
  800546a:	4a48      	ldr	r2, [pc, #288]	@ (800558c <HAL_SD_MspInit+0x14c>)
  800546c:	4293      	cmp	r3, r2
  800546e:	f040 8088 	bne.w	8005582 <HAL_SD_MspInit+0x142>
-
-    /* USER CODE END SDMMC1_MspInit 0 */
-
-  /** Initializes the peripherals clock
-  */
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_SDMMC;
  8005472:	f44f 3280 	mov.w	r2, #65536	@ 0x10000
  8005476:	f04f 0300 	mov.w	r3, #0
  800547a:	e9c7 2306 	strd	r2, r3, [r7, #24]
-    PeriphClkInitStruct.SdmmcClockSelection = RCC_SDMMCCLKSOURCE_PLL;
  800547e:	2300      	movs	r3, #0
  8005480:	66bb      	str	r3, [r7, #104]	@ 0x68
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
  8005482:	f107 0318 	add.w	r3, r7, #24
  8005486:	4618      	mov	r0, r3
  8005488:	f004 fbe6 	bl	8009c58 <HAL_RCCEx_PeriphCLKConfig>
  800548c:	4603      	mov	r3, r0
  800548e:	2b00      	cmp	r3, #0
  8005490:	d001      	beq.n	8005496 <HAL_SD_MspInit+0x56>
-    {
-      Error_Handler();
  8005492:	f7ff fe63 	bl	800515c <Error_Handler>
-    }
-
-    /* Peripheral clock enable */
-    __HAL_RCC_SDMMC1_CLK_ENABLE();
  8005496:	4b3e      	ldr	r3, [pc, #248]	@ (8005590 <HAL_SD_MspInit+0x150>)
  8005498:	f8d3 30d4 	ldr.w	r3, [r3, #212]	@ 0xd4
  800549c:	4a3c      	ldr	r2, [pc, #240]	@ (8005590 <HAL_SD_MspInit+0x150>)
@@ -10468,8 +10332,6 @@ void HAL_SD_MspInit(SD_HandleTypeDef* hsd)
  80054ac:	f403 3380 	and.w	r3, r3, #65536	@ 0x10000
  80054b0:	617b      	str	r3, [r7, #20]
  80054b2:	697b      	ldr	r3, [r7, #20]
-
-    __HAL_RCC_GPIOC_CLK_ENABLE();
  80054b4:	4b36      	ldr	r3, [pc, #216]	@ (8005590 <HAL_SD_MspInit+0x150>)
  80054b6:	f8d3 30e0 	ldr.w	r3, [r3, #224]	@ 0xe0
  80054ba:	4a35      	ldr	r2, [pc, #212]	@ (8005590 <HAL_SD_MspInit+0x150>)
@@ -10480,7 +10342,6 @@ void HAL_SD_MspInit(SD_HandleTypeDef* hsd)
  80054ca:	f003 0304 	and.w	r3, r3, #4
  80054ce:	613b      	str	r3, [r7, #16]
  80054d0:	693b      	ldr	r3, [r7, #16]
-    __HAL_RCC_GPIOD_CLK_ENABLE();
  80054d2:	4b2f      	ldr	r3, [pc, #188]	@ (8005590 <HAL_SD_MspInit+0x150>)
  80054d4:	f8d3 30e0 	ldr.w	r3, [r3, #224]	@ 0xe0
  80054d8:	4a2d      	ldr	r2, [pc, #180]	@ (8005590 <HAL_SD_MspInit+0x150>)
@@ -10491,89 +10352,54 @@ void HAL_SD_MspInit(SD_HandleTypeDef* hsd)
  80054e8:	f003 0308 	and.w	r3, r3, #8
  80054ec:	60fb      	str	r3, [r7, #12]
  80054ee:	68fb      	ldr	r3, [r7, #12]
-    PC10     ------> SDMMC1_D2
-    PC11     ------> SDMMC1_D3
-    PC12     ------> SDMMC1_CK
-    PD2     ------> SDMMC1_CMD
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11;
  80054f0:	f44f 6370 	mov.w	r3, #3840	@ 0xf00
  80054f4:	f8c7 30dc 	str.w	r3, [r7, #220]	@ 0xdc
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
  80054f8:	2302      	movs	r3, #2
  80054fa:	f8c7 30e0 	str.w	r3, [r7, #224]	@ 0xe0
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
  80054fe:	2301      	movs	r3, #1
  8005500:	f8c7 30e4 	str.w	r3, [r7, #228]	@ 0xe4
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
  8005504:	2300      	movs	r3, #0
  8005506:	f8c7 30e8 	str.w	r3, [r7, #232]	@ 0xe8
-    GPIO_InitStruct.Alternate = GPIO_AF12_SDIO1;
  800550a:	230c      	movs	r3, #12
  800550c:	f8c7 30ec 	str.w	r3, [r7, #236]	@ 0xec
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
  8005510:	f107 03dc 	add.w	r3, r7, #220	@ 0xdc
  8005514:	4619      	mov	r1, r3
  8005516:	481f      	ldr	r0, [pc, #124]	@ (8005594 <HAL_SD_MspInit+0x154>)
  8005518:	f001 fec8 	bl	80072ac <HAL_GPIO_Init>
-
-    GPIO_InitStruct.Pin = GPIO_PIN_12;
  800551c:	f44f 5380 	mov.w	r3, #4096	@ 0x1000
  8005520:	f8c7 30dc 	str.w	r3, [r7, #220]	@ 0xdc
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
  8005524:	2302      	movs	r3, #2
  8005526:	f8c7 30e0 	str.w	r3, [r7, #224]	@ 0xe0
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
  800552a:	2300      	movs	r3, #0
  800552c:	f8c7 30e4 	str.w	r3, [r7, #228]	@ 0xe4
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
  8005530:	2300      	movs	r3, #0
  8005532:	f8c7 30e8 	str.w	r3, [r7, #232]	@ 0xe8
-    GPIO_InitStruct.Alternate = GPIO_AF12_SDIO1;
  8005536:	230c      	movs	r3, #12
  8005538:	f8c7 30ec 	str.w	r3, [r7, #236]	@ 0xec
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
  800553c:	f107 03dc 	add.w	r3, r7, #220	@ 0xdc
  8005540:	4619      	mov	r1, r3
  8005542:	4814      	ldr	r0, [pc, #80]	@ (8005594 <HAL_SD_MspInit+0x154>)
  8005544:	f001 feb2 	bl	80072ac <HAL_GPIO_Init>
-
-    GPIO_InitStruct.Pin = GPIO_PIN_2;
  8005548:	2304      	movs	r3, #4
  800554a:	f8c7 30dc 	str.w	r3, [r7, #220]	@ 0xdc
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
  800554e:	2302      	movs	r3, #2
  8005550:	f8c7 30e0 	str.w	r3, [r7, #224]	@ 0xe0
-    GPIO_InitStruct.Pull = GPIO_PULLUP;
  8005554:	2301      	movs	r3, #1
  8005556:	f8c7 30e4 	str.w	r3, [r7, #228]	@ 0xe4
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
  800555a:	2300      	movs	r3, #0
  800555c:	f8c7 30e8 	str.w	r3, [r7, #232]	@ 0xe8
-    GPIO_InitStruct.Alternate = GPIO_AF12_SDIO1;
  8005560:	230c      	movs	r3, #12
  8005562:	f8c7 30ec 	str.w	r3, [r7, #236]	@ 0xec
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
  8005566:	f107 03dc 	add.w	r3, r7, #220	@ 0xdc
  800556a:	4619      	mov	r1, r3
  800556c:	480a      	ldr	r0, [pc, #40]	@ (8005598 <HAL_SD_MspInit+0x158>)
  800556e:	f001 fe9d 	bl	80072ac <HAL_GPIO_Init>
-
-    /* SDMMC1 interrupt Init */
-    HAL_NVIC_SetPriority(SDMMC1_IRQn, 0, 0);
  8005572:	2200      	movs	r2, #0
  8005574:	2100      	movs	r1, #0
  8005576:	2031      	movs	r0, #49	@ 0x31
  8005578:	f000 fc5d 	bl	8005e36 <HAL_NVIC_SetPriority>
-    HAL_NVIC_EnableIRQ(SDMMC1_IRQn);
  800557c:	2031      	movs	r0, #49	@ 0x31
  800557e:	f000 fc74 	bl	8005e6a <HAL_NVIC_EnableIRQ>
-
-    /* USER CODE END SDMMC1_MspInit 1 */
-
-  }
-
-}
  8005582:	bf00      	nop
  8005584:	37f0      	adds	r7, #240	@ 0xf0
  8005586:	46bd      	mov	sp, r7
@@ -10585,17 +10411,10 @@ void HAL_SD_MspInit(SD_HandleTypeDef* hsd)
  8005598:	58020c00 	.word	0x58020c00
 
 0800559c <HAL_SPI_MspInit>:
-  * This function configures the hardware resources used in this example
-  * @param hspi: SPI handle pointer
-  * @retval None
-  */
-void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
-{
  800559c:	b580      	push	{r7, lr}
  800559e:	b0ba      	sub	sp, #232	@ 0xe8
  80055a0:	af00      	add	r7, sp, #0
  80055a2:	6078      	str	r0, [r7, #4]
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
  80055a4:	f107 03d4 	add.w	r3, r7, #212	@ 0xd4
  80055a8:	2200      	movs	r2, #0
  80055aa:	601a      	str	r2, [r3, #0]
@@ -10603,44 +10422,28 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
  80055ae:	609a      	str	r2, [r3, #8]
  80055b0:	60da      	str	r2, [r3, #12]
  80055b2:	611a      	str	r2, [r3, #16]
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
  80055b4:	f107 0310 	add.w	r3, r7, #16
  80055b8:	22c0      	movs	r2, #192	@ 0xc0
  80055ba:	2100      	movs	r1, #0
  80055bc:	4618      	mov	r0, r3
  80055be:	f010 fc61 	bl	8015e84 <memset>
-  if(hspi->Instance==SPI1)
  80055c2:	687b      	ldr	r3, [r7, #4]
  80055c4:	681b      	ldr	r3, [r3, #0]
  80055c6:	4a26      	ldr	r2, [pc, #152]	@ (8005660 <HAL_SPI_MspInit+0xc4>)
  80055c8:	4293      	cmp	r3, r2
  80055ca:	d145      	bne.n	8005658 <HAL_SPI_MspInit+0xbc>
-
-    /* USER CODE END SPI1_MspInit 0 */
-
-  /** Initializes the peripherals clock
-  */
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_SPI1;
  80055cc:	f44f 5280 	mov.w	r2, #4096	@ 0x1000
  80055d0:	f04f 0300 	mov.w	r3, #0
  80055d4:	e9c7 2304 	strd	r2, r3, [r7, #16]
-    PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_CLKP;
  80055d8:	f44f 4380 	mov.w	r3, #16384	@ 0x4000
  80055dc:	673b      	str	r3, [r7, #112]	@ 0x70
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
  80055de:	f107 0310 	add.w	r3, r7, #16
  80055e2:	4618      	mov	r0, r3
  80055e4:	f004 fb38 	bl	8009c58 <HAL_RCCEx_PeriphCLKConfig>
  80055e8:	4603      	mov	r3, r0
  80055ea:	2b00      	cmp	r3, #0
  80055ec:	d001      	beq.n	80055f2 <HAL_SPI_MspInit+0x56>
-    {
-      Error_Handler();
  80055ee:	f7ff fdb5 	bl	800515c <Error_Handler>
-    }
-
-    /* Peripheral clock enable */
-    __HAL_RCC_SPI1_CLK_ENABLE();
  80055f2:	4b1c      	ldr	r3, [pc, #112]	@ (8005664 <HAL_SPI_MspInit+0xc8>)
  80055f4:	f8d3 30f0 	ldr.w	r3, [r3, #240]	@ 0xf0
  80055f8:	4a1a      	ldr	r2, [pc, #104]	@ (8005664 <HAL_SPI_MspInit+0xc8>)
@@ -10651,8 +10454,6 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
  8005608:	f403 5380 	and.w	r3, r3, #4096	@ 0x1000
  800560c:	60fb      	str	r3, [r7, #12]
  800560e:	68fb      	ldr	r3, [r7, #12]
-
-    __HAL_RCC_GPIOA_CLK_ENABLE();
  8005610:	4b14      	ldr	r3, [pc, #80]	@ (8005664 <HAL_SPI_MspInit+0xc8>)
  8005612:	f8d3 30e0 	ldr.w	r3, [r3, #224]	@ 0xe0
  8005616:	4a13      	ldr	r2, [pc, #76]	@ (8005664 <HAL_SPI_MspInit+0xc8>)
@@ -10663,37 +10464,20 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
  8005626:	f003 0301 	and.w	r3, r3, #1
  800562a:	60bb      	str	r3, [r7, #8]
  800562c:	68bb      	ldr	r3, [r7, #8]
-    /**SPI1 GPIO Configuration
-    PA5     ------> SPI1_SCK
-    PA6     ------> SPI1_MISO
-    PA7     ------> SPI1_MOSI
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
  800562e:	23e0      	movs	r3, #224	@ 0xe0
  8005630:	f8c7 30d4 	str.w	r3, [r7, #212]	@ 0xd4
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
  8005634:	2302      	movs	r3, #2
  8005636:	f8c7 30d8 	str.w	r3, [r7, #216]	@ 0xd8
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
  800563a:	2300      	movs	r3, #0
  800563c:	f8c7 30dc 	str.w	r3, [r7, #220]	@ 0xdc
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
  8005640:	2300      	movs	r3, #0
  8005642:	f8c7 30e0 	str.w	r3, [r7, #224]	@ 0xe0
-    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
  8005646:	2305      	movs	r3, #5
  8005648:	f8c7 30e4 	str.w	r3, [r7, #228]	@ 0xe4
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
  800564c:	f107 03d4 	add.w	r3, r7, #212	@ 0xd4
  8005650:	4619      	mov	r1, r3
  8005652:	4805      	ldr	r0, [pc, #20]	@ (8005668 <HAL_SPI_MspInit+0xcc>)
  8005654:	f001 fe2a 	bl	80072ac <HAL_GPIO_Init>
-
-    /* USER CODE END SPI1_MspInit 1 */
-
-  }
-
-}
  8005658:	bf00      	nop
  800565a:	37e8      	adds	r7, #232	@ 0xe8
  800565c:	46bd      	mov	sp, r7
@@ -10703,27 +10487,14 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
  8005668:	58020000 	.word	0x58020000
 
 0800566c <HAL_TIM_Base_MspInit>:
-  * This function configures the hardware resources used in this example
-  * @param htim_base: TIM_Base handle pointer
-  * @retval None
-  */
-void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
-{
  800566c:	b580      	push	{r7, lr}
  800566e:	b084      	sub	sp, #16
  8005670:	af00      	add	r7, sp, #0
  8005672:	6078      	str	r0, [r7, #4]
-  if(htim_base->Instance==TIM2)
  8005674:	687b      	ldr	r3, [r7, #4]
  8005676:	681b      	ldr	r3, [r3, #0]
  8005678:	f1b3 4f80 	cmp.w	r3, #1073741824	@ 0x40000000
  800567c:	d10f      	bne.n	800569e <HAL_TIM_Base_MspInit+0x32>
-  {
-    /* USER CODE BEGIN TIM2_MspInit 0 */
-
-    /* USER CODE END TIM2_MspInit 0 */
-    /* Peripheral clock enable */
-    __HAL_RCC_TIM2_CLK_ENABLE();
  800567e:	4b18      	ldr	r3, [pc, #96]	@ (80056e0 <HAL_TIM_Base_MspInit+0x74>)
  8005680:	f8d3 30e8 	ldr.w	r3, [r3, #232]	@ 0xe8
  8005684:	4a16      	ldr	r2, [pc, #88]	@ (80056e0 <HAL_TIM_Base_MspInit+0x74>)
@@ -10734,20 +10505,12 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
  8005694:	f003 0301 	and.w	r3, r3, #1
  8005698:	60fb      	str	r3, [r7, #12]
  800569a:	68fb      	ldr	r3, [r7, #12]
-    /* USER CODE BEGIN TIM4_MspInit 1 */
-
-    /* USER CODE END TIM4_MspInit 1 */
-  }
-
-}
  800569c:	e01b      	b.n	80056d6 <HAL_TIM_Base_MspInit+0x6a>
-  else if(htim_base->Instance==TIM4)
  800569e:	687b      	ldr	r3, [r7, #4]
  80056a0:	681b      	ldr	r3, [r3, #0]
  80056a2:	4a10      	ldr	r2, [pc, #64]	@ (80056e4 <HAL_TIM_Base_MspInit+0x78>)
  80056a4:	4293      	cmp	r3, r2
  80056a6:	d116      	bne.n	80056d6 <HAL_TIM_Base_MspInit+0x6a>
-    __HAL_RCC_TIM4_CLK_ENABLE();
  80056a8:	4b0d      	ldr	r3, [pc, #52]	@ (80056e0 <HAL_TIM_Base_MspInit+0x74>)
  80056aa:	f8d3 30e8 	ldr.w	r3, [r3, #232]	@ 0xe8
  80056ae:	4a0c      	ldr	r2, [pc, #48]	@ (80056e0 <HAL_TIM_Base_MspInit+0x74>)
@@ -10758,15 +10521,12 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
  80056be:	f003 0304 	and.w	r3, r3, #4
  80056c2:	60bb      	str	r3, [r7, #8]
  80056c4:	68bb      	ldr	r3, [r7, #8]
-    HAL_NVIC_SetPriority(TIM4_IRQn, 0, 0);
  80056c6:	2200      	movs	r2, #0
  80056c8:	2100      	movs	r1, #0
  80056ca:	201e      	movs	r0, #30
  80056cc:	f000 fbb3 	bl	8005e36 <HAL_NVIC_SetPriority>
-    HAL_NVIC_EnableIRQ(TIM4_IRQn);
  80056d0:	201e      	movs	r0, #30
  80056d2:	f000 fbca 	bl	8005e6a <HAL_NVIC_EnableIRQ>
-}
  80056d6:	bf00      	nop
  80056d8:	3710      	adds	r7, #16
  80056da:	46bd      	mov	sp, r7
@@ -10776,341 +10536,153 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
  80056e4:	40000800 	.word	0x40000800
 
 080056e8 <NMI_Handler>:
-/******************************************************************************/
-/**
-  * @brief This function handles Non maskable interrupt.
-  */
-void NMI_Handler(void)
-{
  80056e8:	b480      	push	{r7}
  80056ea:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
-
-  /* USER CODE END NonMaskableInt_IRQn 0 */
-  /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
-   while (1)
  80056ec:	bf00      	nop
  80056ee:	e7fd      	b.n	80056ec <NMI_Handler+0x4>
 
 080056f0 <HardFault_Handler>:
-
-/**
-  * @brief This function handles Hard fault interrupt.
-  */
-void HardFault_Handler(void)
-{
  80056f0:	b480      	push	{r7}
  80056f2:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN HardFault_IRQn 0 */
-
-  /* USER CODE END HardFault_IRQn 0 */
-  while (1)
  80056f4:	bf00      	nop
  80056f6:	e7fd      	b.n	80056f4 <HardFault_Handler+0x4>
 
 080056f8 <MemManage_Handler>:
-
-/**
-  * @brief This function handles Memory management fault.
-  */
-void MemManage_Handler(void)
-{
  80056f8:	b480      	push	{r7}
  80056fa:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN MemoryManagement_IRQn 0 */
-
-  /* USER CODE END MemoryManagement_IRQn 0 */
-  while (1)
  80056fc:	bf00      	nop
  80056fe:	e7fd      	b.n	80056fc <MemManage_Handler+0x4>
 
 08005700 <BusFault_Handler>:
-
-/**
-  * @brief This function handles Pre-fetch fault, memory access fault.
-  */
-void BusFault_Handler(void)
-{
  8005700:	b480      	push	{r7}
  8005702:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN BusFault_IRQn 0 */
-
-  /* USER CODE END BusFault_IRQn 0 */
-  while (1)
  8005704:	bf00      	nop
  8005706:	e7fd      	b.n	8005704 <BusFault_Handler+0x4>
 
 08005708 <UsageFault_Handler>:
-
-/**
-  * @brief This function handles Undefined instruction or illegal state.
-  */
-void UsageFault_Handler(void)
-{
  8005708:	b480      	push	{r7}
  800570a:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN UsageFault_IRQn 0 */
-
-  /* USER CODE END UsageFault_IRQn 0 */
-  while (1)
  800570c:	bf00      	nop
  800570e:	e7fd      	b.n	800570c <UsageFault_Handler+0x4>
 
 08005710 <SVC_Handler>:
-
-/**
-  * @brief This function handles System service call via SWI instruction.
-  */
-void SVC_Handler(void)
-{
  8005710:	b480      	push	{r7}
  8005712:	af00      	add	r7, sp, #0
-
-  /* USER CODE END SVCall_IRQn 0 */
-  /* USER CODE BEGIN SVCall_IRQn 1 */
-
-  /* USER CODE END SVCall_IRQn 1 */
-}
  8005714:	bf00      	nop
  8005716:	46bd      	mov	sp, r7
  8005718:	f85d 7b04 	ldr.w	r7, [sp], #4
  800571c:	4770      	bx	lr
 
 0800571e <DebugMon_Handler>:
-
-/**
-  * @brief This function handles Debug monitor.
-  */
-void DebugMon_Handler(void)
-{
  800571e:	b480      	push	{r7}
  8005720:	af00      	add	r7, sp, #0
-
-  /* USER CODE END DebugMonitor_IRQn 0 */
-  /* USER CODE BEGIN DebugMonitor_IRQn 1 */
-
-  /* USER CODE END DebugMonitor_IRQn 1 */
-}
  8005722:	bf00      	nop
  8005724:	46bd      	mov	sp, r7
  8005726:	f85d 7b04 	ldr.w	r7, [sp], #4
  800572a:	4770      	bx	lr
 
 0800572c <PendSV_Handler>:
-
-/**
-  * @brief This function handles Pendable request for system service.
-  */
-void PendSV_Handler(void)
-{
  800572c:	b480      	push	{r7}
  800572e:	af00      	add	r7, sp, #0
-
-  /* USER CODE END PendSV_IRQn 0 */
-  /* USER CODE BEGIN PendSV_IRQn 1 */
-
-  /* USER CODE END PendSV_IRQn 1 */
-}
  8005730:	bf00      	nop
  8005732:	46bd      	mov	sp, r7
  8005734:	f85d 7b04 	ldr.w	r7, [sp], #4
  8005738:	4770      	bx	lr
 
 0800573a <SysTick_Handler>:
-
-/**
-  * @brief This function handles System tick timer.
-  */
-void SysTick_Handler(void)
-{
  800573a:	b580      	push	{r7, lr}
  800573c:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN SysTick_IRQn 0 */
-
-  /* USER CODE END SysTick_IRQn 0 */
-  HAL_IncTick();
  800573e:	f000 fa4f 	bl	8005be0 <HAL_IncTick>
-  /* USER CODE BEGIN SysTick_IRQn 1 */
-
-  /* USER CODE END SysTick_IRQn 1 */
-}
  8005742:	bf00      	nop
  8005744:	bd80      	pop	{r7, pc}
 	...
 
 08005748 <FDCAN1_IT0_IRQHandler>:
-
-/**
-  * @brief This function handles FDCAN1 interrupt 0.
-  */
-void FDCAN1_IT0_IRQHandler(void)
-{
  8005748:	b580      	push	{r7, lr}
  800574a:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN FDCAN1_IT0_IRQn 0 */
-
-  /* USER CODE END FDCAN1_IT0_IRQn 0 */
-  HAL_FDCAN_IRQHandler(&hfdcan1);
  800574c:	4802      	ldr	r0, [pc, #8]	@ (8005758 <FDCAN1_IT0_IRQHandler+0x10>)
  800574e:	f001 f89f 	bl	8006890 <HAL_FDCAN_IRQHandler>
-  /* USER CODE BEGIN FDCAN1_IT0_IRQn 1 */
-
-  /* USER CODE END FDCAN1_IT0_IRQn 1 */
-}
  8005752:	bf00      	nop
  8005754:	bd80      	pop	{r7, pc}
  8005756:	bf00      	nop
  8005758:	240006bc 	.word	0x240006bc
 
 0800575c <TIM4_IRQHandler>:
-
-/**
-  * @brief This function handles TIM4 global interrupt.
-  */
-void TIM4_IRQHandler(void)
-{
  800575c:	b580      	push	{r7, lr}
  800575e:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN TIM4_IRQn 0 */
-
-  /* USER CODE END TIM4_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim4);
  8005760:	4802      	ldr	r0, [pc, #8]	@ (800576c <TIM4_IRQHandler+0x10>)
  8005762:	f009 fda7 	bl	800f2b4 <HAL_TIM_IRQHandler>
-  /* USER CODE BEGIN TIM4_IRQn 1 */
-
-  /* USER CODE END TIM4_IRQn 1 */
-}
  8005766:	bf00      	nop
  8005768:	bd80      	pop	{r7, pc}
  800576a:	bf00      	nop
  800576c:	240008ac 	.word	0x240008ac
 
 08005770 <SDMMC1_IRQHandler>:
-
-/**
-  * @brief This function handles SDMMC1 global interrupt.
-  */
-void SDMMC1_IRQHandler(void)
-{
  8005770:	b580      	push	{r7, lr}
  8005772:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN SDMMC1_IRQn 0 */
-
-  /* USER CODE END SDMMC1_IRQn 0 */
-  HAL_SD_IRQHandler(&hsd1);
  8005774:	4802      	ldr	r0, [pc, #8]	@ (8005780 <SDMMC1_IRQHandler+0x10>)
  8005776:	f007 fba5 	bl	800cec4 <HAL_SD_IRQHandler>
-  /* USER CODE BEGIN SDMMC1_IRQn 1 */
-
-  /* USER CODE END SDMMC1_IRQn 1 */
-}
  800577a:	bf00      	nop
  800577c:	bd80      	pop	{r7, pc}
  800577e:	bf00      	nop
  8005780:	2400075c 	.word	0x2400075c
 
 08005784 <OTG_FS_IRQHandler>:
-
-/**
-  * @brief This function handles USB On The Go FS global interrupt.
-  */
-void OTG_FS_IRQHandler(void)
-{
  8005784:	b580      	push	{r7, lr}
  8005786:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN OTG_FS_IRQn 0 */
-
-  /* USER CODE END OTG_FS_IRQn 0 */
-  HAL_PCD_IRQHandler(&hpcd_USB_OTG_FS);
  8005788:	4802      	ldr	r0, [pc, #8]	@ (8005794 <OTG_FS_IRQHandler+0x10>)
  800578a:	f002 f8cb 	bl	8007924 <HAL_PCD_IRQHandler>
-  /* USER CODE BEGIN OTG_FS_IRQn 1 */
-
-  /* USER CODE END OTG_FS_IRQn 1 */
-}
  800578e:	bf00      	nop
  8005790:	bd80      	pop	{r7, pc}
  8005792:	bf00      	nop
  8005794:	24001df4 	.word	0x24001df4
 
 08005798 <_getpid>:
-void initialise_monitor_handles()
-{
-}
-
-int _getpid(void)
-{
  8005798:	b480      	push	{r7}
  800579a:	af00      	add	r7, sp, #0
-  return 1;
  800579c:	2301      	movs	r3, #1
-}
  800579e:	4618      	mov	r0, r3
  80057a0:	46bd      	mov	sp, r7
  80057a2:	f85d 7b04 	ldr.w	r7, [sp], #4
  80057a6:	4770      	bx	lr
 
 080057a8 <_kill>:
-
-int _kill(int pid, int sig)
-{
  80057a8:	b580      	push	{r7, lr}
  80057aa:	b082      	sub	sp, #8
  80057ac:	af00      	add	r7, sp, #0
  80057ae:	6078      	str	r0, [r7, #4]
  80057b0:	6039      	str	r1, [r7, #0]
-  (void)pid;
-  (void)sig;
-  errno = EINVAL;
  80057b2:	f010 fbc9 	bl	8015f48 <__errno>
  80057b6:	4603      	mov	r3, r0
  80057b8:	2216      	movs	r2, #22
  80057ba:	601a      	str	r2, [r3, #0]
-  return -1;
  80057bc:	f04f 33ff 	mov.w	r3, #4294967295
-}
  80057c0:	4618      	mov	r0, r3
  80057c2:	3708      	adds	r7, #8
  80057c4:	46bd      	mov	sp, r7
  80057c6:	bd80      	pop	{r7, pc}
 
 080057c8 <_exit>:
-
-void _exit (int status)
-{
  80057c8:	b580      	push	{r7, lr}
  80057ca:	b082      	sub	sp, #8
  80057cc:	af00      	add	r7, sp, #0
  80057ce:	6078      	str	r0, [r7, #4]
-  _kill(status, -1);
  80057d0:	f04f 31ff 	mov.w	r1, #4294967295
  80057d4:	6878      	ldr	r0, [r7, #4]
  80057d6:	f7ff ffe7 	bl	80057a8 <_kill>
-  while (1) {}    /* Make sure we hang here */
  80057da:	bf00      	nop
  80057dc:	e7fd      	b.n	80057da <_exit+0x12>
 
 080057de <_read>:
-}
-
-__attribute__((weak)) int _read(int file, char *ptr, int len)
-{
  80057de:	b580      	push	{r7, lr}
  80057e0:	b086      	sub	sp, #24
  80057e2:	af00      	add	r7, sp, #0
  80057e4:	60f8      	str	r0, [r7, #12]
  80057e6:	60b9      	str	r1, [r7, #8]
  80057e8:	607a      	str	r2, [r7, #4]
-  (void)file;
-  int DataIdx;
-
-  for (DataIdx = 0; DataIdx < len; DataIdx++)
  80057ea:	2300      	movs	r3, #0
  80057ec:	617b      	str	r3, [r7, #20]
  80057ee:	e00a      	b.n	8005806 <_read+0x28>
-  {
-    *ptr++ = __io_getchar();
  80057f0:	f3af 8000 	nop.w
  80057f4:	4601      	mov	r1, r0
  80057f6:	68bb      	ldr	r3, [r7, #8]
@@ -11118,7 +10690,6 @@ __attribute__((weak)) int _read(int file, char *ptr, int len)
  80057fa:	60ba      	str	r2, [r7, #8]
  80057fc:	b2ca      	uxtb	r2, r1
  80057fe:	701a      	strb	r2, [r3, #0]
-  for (DataIdx = 0; DataIdx < len; DataIdx++)
  8005800:	697b      	ldr	r3, [r7, #20]
  8005802:	3301      	adds	r3, #1
  8005804:	617b      	str	r3, [r7, #20]
@@ -11126,31 +10697,18 @@ __attribute__((weak)) int _read(int file, char *ptr, int len)
  8005808:	687b      	ldr	r3, [r7, #4]
  800580a:	429a      	cmp	r2, r3
  800580c:	dbf0      	blt.n	80057f0 <_read+0x12>
-  }
-
-  return len;
  800580e:	687b      	ldr	r3, [r7, #4]
-}
  8005810:	4618      	mov	r0, r3
  8005812:	3718      	adds	r7, #24
  8005814:	46bd      	mov	sp, r7
  8005816:	bd80      	pop	{r7, pc}
 
 08005818 <_close>:
-  }
-  return len;
-}
-
-int _close(int file)
-{
  8005818:	b480      	push	{r7}
  800581a:	b083      	sub	sp, #12
  800581c:	af00      	add	r7, sp, #0
  800581e:	6078      	str	r0, [r7, #4]
-  (void)file;
-  return -1;
  8005820:	f04f 33ff 	mov.w	r3, #4294967295
-}
  8005824:	4618      	mov	r0, r3
  8005826:	370c      	adds	r7, #12
  8005828:	46bd      	mov	sp, r7
@@ -11158,23 +10716,15 @@ int _close(int file)
  800582e:	4770      	bx	lr
 
 08005830 <_fstat>:
-
-
-int _fstat(int file, struct stat *st)
-{
  8005830:	b480      	push	{r7}
  8005832:	b083      	sub	sp, #12
  8005834:	af00      	add	r7, sp, #0
  8005836:	6078      	str	r0, [r7, #4]
  8005838:	6039      	str	r1, [r7, #0]
-  (void)file;
-  st->st_mode = S_IFCHR;
  800583a:	683b      	ldr	r3, [r7, #0]
  800583c:	f44f 5200 	mov.w	r2, #8192	@ 0x2000
  8005840:	605a      	str	r2, [r3, #4]
-  return 0;
  8005842:	2300      	movs	r3, #0
-}
  8005844:	4618      	mov	r0, r3
  8005846:	370c      	adds	r7, #12
  8005848:	46bd      	mov	sp, r7
@@ -11182,17 +10732,11 @@ int _fstat(int file, struct stat *st)
  800584e:	4770      	bx	lr
 
 08005850 <_isatty>:
-
-int _isatty(int file)
-{
  8005850:	b480      	push	{r7}
  8005852:	b083      	sub	sp, #12
  8005854:	af00      	add	r7, sp, #0
  8005856:	6078      	str	r0, [r7, #4]
-  (void)file;
-  return 1;
  8005858:	2301      	movs	r3, #1
-}
  800585a:	4618      	mov	r0, r3
  800585c:	370c      	adds	r7, #12
  800585e:	46bd      	mov	sp, r7
@@ -11200,21 +10744,13 @@ int _isatty(int file)
  8005864:	4770      	bx	lr
 
 08005866 <_lseek>:
-
-int _lseek(int file, int ptr, int dir)
-{
  8005866:	b480      	push	{r7}
  8005868:	b085      	sub	sp, #20
  800586a:	af00      	add	r7, sp, #0
  800586c:	60f8      	str	r0, [r7, #12]
  800586e:	60b9      	str	r1, [r7, #8]
  8005870:	607a      	str	r2, [r7, #4]
-  (void)file;
-  (void)ptr;
-  (void)dir;
-  return 0;
  8005872:	2300      	movs	r3, #0
-}
  8005874:	4618      	mov	r0, r3
  8005876:	3714      	adds	r7, #20
  8005878:	46bd      	mov	sp, r7
@@ -11222,44 +10758,23 @@ int _lseek(int file, int ptr, int dir)
  800587e:	4770      	bx	lr
 
 08005880 <_sbrk>:
- *
- * @param incr Memory size
- * @return Pointer to allocated memory
- */
-void *_sbrk(ptrdiff_t incr)
-{
  8005880:	b580      	push	{r7, lr}
  8005882:	b086      	sub	sp, #24
  8005884:	af00      	add	r7, sp, #0
  8005886:	6078      	str	r0, [r7, #4]
-  extern uint8_t _end; /* Symbol defined in the linker script */
-  extern uint8_t _estack; /* Symbol defined in the linker script */
-  extern uint32_t _Min_Stack_Size; /* Symbol defined in the linker script */
-  const uint32_t stack_limit = (uint32_t)&_estack - (uint32_t)&_Min_Stack_Size;
  8005888:	4a14      	ldr	r2, [pc, #80]	@ (80058dc <_sbrk+0x5c>)
  800588a:	4b15      	ldr	r3, [pc, #84]	@ (80058e0 <_sbrk+0x60>)
  800588c:	1ad3      	subs	r3, r2, r3
  800588e:	617b      	str	r3, [r7, #20]
-  const uint8_t *max_heap = (uint8_t *)stack_limit;
  8005890:	697b      	ldr	r3, [r7, #20]
  8005892:	613b      	str	r3, [r7, #16]
-  uint8_t *prev_heap_end;
-
-  /* Initialize heap end at first call */
-  if (NULL == __sbrk_heap_end)
  8005894:	4b13      	ldr	r3, [pc, #76]	@ (80058e4 <_sbrk+0x64>)
  8005896:	681b      	ldr	r3, [r3, #0]
  8005898:	2b00      	cmp	r3, #0
  800589a:	d102      	bne.n	80058a2 <_sbrk+0x22>
-  {
-    __sbrk_heap_end = &_end;
  800589c:	4b11      	ldr	r3, [pc, #68]	@ (80058e4 <_sbrk+0x64>)
  800589e:	4a12      	ldr	r2, [pc, #72]	@ (80058e8 <_sbrk+0x68>)
  80058a0:	601a      	str	r2, [r3, #0]
-  }
-
-  /* Protect heap from growing into the reserved MSP stack */
-  if (__sbrk_heap_end + incr > max_heap)
  80058a2:	4b10      	ldr	r3, [pc, #64]	@ (80058e4 <_sbrk+0x64>)
  80058a4:	681a      	ldr	r2, [r3, #0]
  80058a6:	687b      	ldr	r3, [r7, #4]
@@ -11267,32 +10782,22 @@ void *_sbrk(ptrdiff_t incr)
  80058aa:	693a      	ldr	r2, [r7, #16]
  80058ac:	429a      	cmp	r2, r3
  80058ae:	d207      	bcs.n	80058c0 <_sbrk+0x40>
-  {
-    errno = ENOMEM;
  80058b0:	f010 fb4a 	bl	8015f48 <__errno>
  80058b4:	4603      	mov	r3, r0
  80058b6:	220c      	movs	r2, #12
  80058b8:	601a      	str	r2, [r3, #0]
-    return (void *)-1;
  80058ba:	f04f 33ff 	mov.w	r3, #4294967295
  80058be:	e009      	b.n	80058d4 <_sbrk+0x54>
-  }
-
-  prev_heap_end = __sbrk_heap_end;
  80058c0:	4b08      	ldr	r3, [pc, #32]	@ (80058e4 <_sbrk+0x64>)
  80058c2:	681b      	ldr	r3, [r3, #0]
  80058c4:	60fb      	str	r3, [r7, #12]
-  __sbrk_heap_end += incr;
  80058c6:	4b07      	ldr	r3, [pc, #28]	@ (80058e4 <_sbrk+0x64>)
  80058c8:	681a      	ldr	r2, [r3, #0]
  80058ca:	687b      	ldr	r3, [r7, #4]
  80058cc:	4413      	add	r3, r2
  80058ce:	4a05      	ldr	r2, [pc, #20]	@ (80058e4 <_sbrk+0x64>)
  80058d0:	6013      	str	r3, [r2, #0]
-
-  return (void *)prev_heap_end;
  80058d2:	68fb      	ldr	r3, [r7, #12]
-}
  80058d4:	4618      	mov	r0, r3
  80058d6:	3718      	adds	r7, #24
  80058d8:	46bd      	mov	sp, r7
@@ -11304,20 +10809,12 @@ void *_sbrk(ptrdiff_t incr)
  80058ec:	00000000 	.word	0x00000000
 
 080058f0 <getTemp>:
-float R25 = 10000.0;
-float B = 3435;
-float T25 = 298.15;
-
-float getTemp(float raw_temp_voltage, float Vref)
-{
  80058f0:	b580      	push	{r7, lr}
  80058f2:	ed2d 8b06 	vpush	{d8-d10}
  80058f6:	b084      	sub	sp, #16
  80058f8:	af00      	add	r7, sp, #0
  80058fa:	ed87 0a01 	vstr	s0, [r7, #4]
  80058fe:	edc7 0a00 	vstr	s1, [r7]
-	// calc thermistor resistance
-	float therm_resistance = (raw_temp_voltage * SeriesResistance) / (Vref - raw_temp_voltage);
  8005902:	4b2b      	ldr	r3, [pc, #172]	@ (80059b0 <getTemp+0xc0>)
  8005904:	ed93 7a00 	vldr	s14, [r3]
  8005908:	edd7 7a01 	vldr	s15, [r7, #4]
@@ -11327,9 +10824,6 @@ float getTemp(float raw_temp_voltage, float Vref)
  8005918:	ee37 7a67 	vsub.f32	s14, s14, s15
  800591c:	eec6 7a87 	vdiv.f32	s15, s13, s14
  8005920:	edc7 7a03 	vstr	s15, [r7, #12]
-
-	// calc temp from resistance
-	float temp_kelvin = B / log(therm_resistance / (R25 * exp(-B / T25)));
  8005924:	4b23      	ldr	r3, [pc, #140]	@ (80059b4 <getTemp+0xc4>)
  8005926:	edd3 7a00 	vldr	s15, [r3]
  800592a:	eeb7 8ae7 	vcvt.f64.f32	d8, s15
@@ -11356,13 +10850,11 @@ float getTemp(float raw_temp_voltage, float Vref)
  8005978:	ee88 7b06 	vdiv.f64	d7, d8, d6
  800597c:	eef7 7bc7 	vcvt.f32.f64	s15, d7
  8005980:	edc7 7a02 	vstr	s15, [r7, #8]
-	return temp_kelvin - 273.15; // Kelvin to Celsius
  8005984:	edd7 7a02 	vldr	s15, [r7, #8]
  8005988:	eeb7 7ae7 	vcvt.f64.f32	d7, s15
  800598c:	ed9f 6b06 	vldr	d6, [pc, #24]	@ 80059a8 <getTemp+0xb8>
  8005990:	ee37 7b46 	vsub.f64	d7, d7, d6
  8005994:	eef7 7bc7 	vcvt.f32.f64	s15, d7
-}
  8005998:	eeb0 0a67 	vmov.f32	s0, s15
  800599c:	3710      	adds	r7, #16
  800599e:	46bd      	mov	sp, r7
@@ -11527,106 +11019,47 @@ void Tick_Timer_Group(timer_group_ *tg)
 	...
 
 08005aa4 <Reset_Handler>:
-
-    .section  .text.Reset_Handler
-  .weak  Reset_Handler
-  .type  Reset_Handler, %function
-Reset_Handler:
-  ldr   sp, =_estack      /* set stack pointer */
  8005aa4:	f8df d038 	ldr.w	sp, [pc, #56]	@ 8005ae0 <LoopFillZerobss+0xe>
-
-/* Call the ExitRun0Mode function to configure the power supply */
-  bl  ExitRun0Mode
  8005aa8:	f7fa ff34 	bl	8000914 <ExitRun0Mode>
-/* Call the clock system initialization function.*/
-  bl  SystemInit
  8005aac:	f7fa fe84 	bl	80007b8 <SystemInit>
-
-/* Copy the data segment initializers from flash to SRAM */
-  ldr r0, =_sdata
  8005ab0:	480c      	ldr	r0, [pc, #48]	@ (8005ae4 <LoopFillZerobss+0x12>)
-  ldr r1, =_edata
  8005ab2:	490d      	ldr	r1, [pc, #52]	@ (8005ae8 <LoopFillZerobss+0x16>)
-  ldr r2, =_sidata
  8005ab4:	4a0d      	ldr	r2, [pc, #52]	@ (8005aec <LoopFillZerobss+0x1a>)
-  movs r3, #0
  8005ab6:	2300      	movs	r3, #0
-  b LoopCopyDataInit
  8005ab8:	e002      	b.n	8005ac0 <LoopCopyDataInit>
 
 08005aba <CopyDataInit>:
-
-CopyDataInit:
-  ldr r4, [r2, r3]
  8005aba:	58d4      	ldr	r4, [r2, r3]
-  str r4, [r0, r3]
  8005abc:	50c4      	str	r4, [r0, r3]
-  adds r3, r3, #4
  8005abe:	3304      	adds	r3, #4
 
 08005ac0 <LoopCopyDataInit>:
-
-LoopCopyDataInit:
-  adds r4, r0, r3
  8005ac0:	18c4      	adds	r4, r0, r3
-  cmp r4, r1
  8005ac2:	428c      	cmp	r4, r1
-  bcc CopyDataInit
  8005ac4:	d3f9      	bcc.n	8005aba <CopyDataInit>
-/* Zero fill the bss segment. */
-  ldr r2, =_sbss
  8005ac6:	4a0a      	ldr	r2, [pc, #40]	@ (8005af0 <LoopFillZerobss+0x1e>)
-  ldr r4, =_ebss
  8005ac8:	4c0a      	ldr	r4, [pc, #40]	@ (8005af4 <LoopFillZerobss+0x22>)
-  movs r3, #0
  8005aca:	2300      	movs	r3, #0
-  b LoopFillZerobss
  8005acc:	e001      	b.n	8005ad2 <LoopFillZerobss>
 
 08005ace <FillZerobss>:
-
-FillZerobss:
-  str  r3, [r2]
  8005ace:	6013      	str	r3, [r2, #0]
-  adds r2, r2, #4
  8005ad0:	3204      	adds	r2, #4
 
 08005ad2 <LoopFillZerobss>:
-
-LoopFillZerobss:
-  cmp r2, r4
  8005ad2:	42a2      	cmp	r2, r4
-  bcc FillZerobss
  8005ad4:	d3fb      	bcc.n	8005ace <FillZerobss>
-
-/* Call static constructors */
-    bl __libc_init_array
  8005ad6:	f010 fa3d 	bl	8015f54 <__libc_init_array>
-/* Call the application's entry point.*/
-  bl  main
  8005ada:	f7ff f829 	bl	8004b30 <main>
-  bx  lr
  8005ade:	4770      	bx	lr
-  ldr   sp, =_estack      /* set stack pointer */
  8005ae0:	24080000 	.word	0x24080000
-  ldr r0, =_sdata
  8005ae4:	24000000 	.word	0x24000000
-  ldr r1, =_edata
  8005ae8:	240002fc 	.word	0x240002fc
-  ldr r2, =_sidata
  8005aec:	0801b178 	.word	0x0801b178
-  ldr r2, =_sbss
  8005af0:	240002fc 	.word	0x240002fc
-  ldr r4, =_ebss
  8005af4:	24002644 	.word	0x24002644
 
 08005af8 <ADC3_IRQHandler>:
- * @retval None
-*/
-    .section  .text.Default_Handler,"ax",%progbits
-Default_Handler:
-Infinite_Loop:
-  b  Infinite_Loop
  8005af8:	e7fe      	b.n	8005af8 <ADC3_IRQHandler>
 	...
 
@@ -43948,16 +43381,8 @@ static HAL_StatusTypeDef USB_CoreReset(USB_OTG_GlobalTypeDef *USBx)
 	...
 
 08011d1c <MX_FATFS_Init>:
-/* USER CODE BEGIN Variables */
-
-/* USER CODE END Variables */
-
-void MX_FATFS_Init(void)
-{
  8011d1c:	b580      	push	{r7, lr}
  8011d1e:	af00      	add	r7, sp, #0
-  /*## FatFS: Link the SD driver ###########################*/
-  retSD = FATFS_LinkDriver(&SD_Driver, SDPath);
  8011d20:	4904      	ldr	r1, [pc, #16]	@ (8011d34 <MX_FATFS_Init+0x18>)
  8011d22:	4805      	ldr	r0, [pc, #20]	@ (8011d38 <MX_FATFS_Init+0x1c>)
  8011d24:	f002 fa02 	bl	801412c <FATFS_LinkDriver>
@@ -43965,11 +43390,6 @@ void MX_FATFS_Init(void)
  8011d2a:	461a      	mov	r2, r3
  8011d2c:	4b03      	ldr	r3, [pc, #12]	@ (8011d3c <MX_FATFS_Init+0x20>)
  8011d2e:	701a      	strb	r2, [r3, #0]
-
-  /* USER CODE BEGIN Init */
-  /* additional user code for init */
-  /* USER CODE END Init */
-}
  8011d30:	bf00      	nop
  8011d32:	bd80      	pop	{r7, pc}
  8011d34:	24000904 	.word	0x24000904
@@ -43977,59 +43397,33 @@ void MX_FATFS_Init(void)
  8011d3c:	24000900 	.word	0x24000900
 
 08011d40 <BSP_SD_Init>:
-/**
-  * @brief  Initializes the SD card device.
-  * @retval SD status
-  */
-__weak uint8_t BSP_SD_Init(void)
-{
  8011d40:	b580      	push	{r7, lr}
  8011d42:	b082      	sub	sp, #8
  8011d44:	af00      	add	r7, sp, #0
-  uint8_t sd_state = MSD_OK;
  8011d46:	2300      	movs	r3, #0
  8011d48:	71fb      	strb	r3, [r7, #7]
-  /* Check if the SD card is plugged in the slot */
-  if (BSP_SD_IsDetected() != SD_PRESENT)
  8011d4a:	f000 f89b 	bl	8011e84 <BSP_SD_IsDetected>
  8011d4e:	4603      	mov	r3, r0
  8011d50:	2b01      	cmp	r3, #1
  8011d52:	d001      	beq.n	8011d58 <BSP_SD_Init+0x18>
-  {
-    return MSD_ERROR_SD_NOT_PRESENT;
  8011d54:	2302      	movs	r3, #2
  8011d56:	e012      	b.n	8011d7e <BSP_SD_Init+0x3e>
-  }
-  /* HAL SD initialization */
-  sd_state = HAL_SD_Init(&hsd1);
  8011d58:	480b      	ldr	r0, [pc, #44]	@ (8011d88 <BSP_SD_Init+0x48>)
  8011d5a:	f7fa fc7b 	bl	800c654 <HAL_SD_Init>
  8011d5e:	4603      	mov	r3, r0
  8011d60:	71fb      	strb	r3, [r7, #7]
-  /* Configure SD Bus width (4 bits mode selected) */
-  if (sd_state == MSD_OK)
  8011d62:	79fb      	ldrb	r3, [r7, #7]
  8011d64:	2b00      	cmp	r3, #0
  8011d66:	d109      	bne.n	8011d7c <BSP_SD_Init+0x3c>
-  {
-    /* Enable wide operation */
-    if (HAL_SD_ConfigWideBusOperation(&hsd1, SDMMC_BUS_WIDE_4B) != HAL_OK)
  8011d68:	f44f 4180 	mov.w	r1, #16384	@ 0x4000
  8011d6c:	4806      	ldr	r0, [pc, #24]	@ (8011d88 <BSP_SD_Init+0x48>)
  8011d6e:	f7fb fcf9 	bl	800d764 <HAL_SD_ConfigWideBusOperation>
  8011d72:	4603      	mov	r3, r0
  8011d74:	2b00      	cmp	r3, #0
  8011d76:	d001      	beq.n	8011d7c <BSP_SD_Init+0x3c>
-    {
-      sd_state = MSD_ERROR;
  8011d78:	2301      	movs	r3, #1
  8011d7a:	71fb      	strb	r3, [r7, #7]
-    }
-  }
-
-  return sd_state;
  8011d7c:	79fb      	ldrb	r3, [r7, #7]
-}
  8011d7e:	4618      	mov	r0, r3
  8011d80:	3708      	adds	r7, #8
  8011d82:	46bd      	mov	sp, r7
@@ -44038,12 +43432,6 @@ __weak uint8_t BSP_SD_Init(void)
  8011d88:	2400075c 	.word	0x2400075c
 
 08011d8c <BSP_SD_ReadBlocks>:
-  * @param  NumOfBlocks: Number of SD blocks to read
-  * @param  Timeout: Timeout for read operation
-  * @retval SD status
-  */
-__weak uint8_t BSP_SD_ReadBlocks(uint32_t *pData, uint32_t ReadAddr, uint32_t NumOfBlocks, uint32_t Timeout)
-{
  8011d8c:	b580      	push	{r7, lr}
  8011d8e:	b088      	sub	sp, #32
  8011d90:	af02      	add	r7, sp, #8
@@ -44051,11 +43439,8 @@ __weak uint8_t BSP_SD_ReadBlocks(uint32_t *pData, uint32_t ReadAddr, uint32_t Nu
  8011d94:	60b9      	str	r1, [r7, #8]
  8011d96:	607a      	str	r2, [r7, #4]
  8011d98:	603b      	str	r3, [r7, #0]
-  uint8_t sd_state = MSD_OK;
  8011d9a:	2300      	movs	r3, #0
  8011d9c:	75fb      	strb	r3, [r7, #23]
-
-  if (HAL_SD_ReadBlocks(&hsd1, (uint8_t *)pData, ReadAddr, NumOfBlocks, Timeout) != HAL_OK)
  8011d9e:	683b      	ldr	r3, [r7, #0]
  8011da0:	9300      	str	r3, [sp, #0]
  8011da2:	687b      	ldr	r3, [r7, #4]
@@ -44066,15 +43451,9 @@ __weak uint8_t BSP_SD_ReadBlocks(uint32_t *pData, uint32_t ReadAddr, uint32_t Nu
  8011dae:	4603      	mov	r3, r0
  8011db0:	2b00      	cmp	r3, #0
  8011db2:	d001      	beq.n	8011db8 <BSP_SD_ReadBlocks+0x2c>
-  {
-    sd_state = MSD_ERROR;
  8011db4:	2301      	movs	r3, #1
  8011db6:	75fb      	strb	r3, [r7, #23]
-  }
-
-  return sd_state;
  8011db8:	7dfb      	ldrb	r3, [r7, #23]
-}
  8011dba:	4618      	mov	r0, r3
  8011dbc:	3718      	adds	r7, #24
  8011dbe:	46bd      	mov	sp, r7
@@ -44083,12 +43462,6 @@ __weak uint8_t BSP_SD_ReadBlocks(uint32_t *pData, uint32_t ReadAddr, uint32_t Nu
  8011dc4:	2400075c 	.word	0x2400075c
 
 08011dc8 <BSP_SD_WriteBlocks>:
-  * @param  NumOfBlocks: Number of SD blocks to write
-  * @param  Timeout: Timeout for write operation
-  * @retval SD status
-  */
-__weak uint8_t BSP_SD_WriteBlocks(uint32_t *pData, uint32_t WriteAddr, uint32_t NumOfBlocks, uint32_t Timeout)
-{
  8011dc8:	b580      	push	{r7, lr}
  8011dca:	b088      	sub	sp, #32
  8011dcc:	af02      	add	r7, sp, #8
@@ -44096,11 +43469,8 @@ __weak uint8_t BSP_SD_WriteBlocks(uint32_t *pData, uint32_t WriteAddr, uint32_t 
  8011dd0:	60b9      	str	r1, [r7, #8]
  8011dd2:	607a      	str	r2, [r7, #4]
  8011dd4:	603b      	str	r3, [r7, #0]
-  uint8_t sd_state = MSD_OK;
  8011dd6:	2300      	movs	r3, #0
  8011dd8:	75fb      	strb	r3, [r7, #23]
-
-  if (HAL_SD_WriteBlocks(&hsd1, (uint8_t *)pData, WriteAddr, NumOfBlocks, Timeout) != HAL_OK)
  8011dda:	683b      	ldr	r3, [r7, #0]
  8011ddc:	9300      	str	r3, [sp, #0]
  8011dde:	687b      	ldr	r3, [r7, #4]
@@ -44111,15 +43481,9 @@ __weak uint8_t BSP_SD_WriteBlocks(uint32_t *pData, uint32_t WriteAddr, uint32_t 
  8011dea:	4603      	mov	r3, r0
  8011dec:	2b00      	cmp	r3, #0
  8011dee:	d001      	beq.n	8011df4 <BSP_SD_WriteBlocks+0x2c>
-  {
-    sd_state = MSD_ERROR;
  8011df0:	2301      	movs	r3, #1
  8011df2:	75fb      	strb	r3, [r7, #23]
-  }
-
-  return sd_state;
  8011df4:	7dfb      	ldrb	r3, [r7, #23]
-}
  8011df6:	4618      	mov	r0, r3
  8011df8:	3718      	adds	r7, #24
  8011dfa:	46bd      	mov	sp, r7
@@ -44128,15 +43492,8 @@ __weak uint8_t BSP_SD_WriteBlocks(uint32_t *pData, uint32_t WriteAddr, uint32_t 
  8011e00:	2400075c 	.word	0x2400075c
 
 08011e04 <BSP_SD_GetCardState>:
-  *          This value can be one of the following values:
-  *            @arg  SD_TRANSFER_OK: No data transfer is acting
-  *            @arg  SD_TRANSFER_BUSY: Data transfer is acting
-  */
-__weak uint8_t BSP_SD_GetCardState(void)
-{
  8011e04:	b580      	push	{r7, lr}
  8011e06:	af00      	add	r7, sp, #0
-  return ((HAL_SD_GetCardState(&hsd1) == HAL_SD_CARD_TRANSFER ) ? SD_TRANSFER_OK : SD_TRANSFER_BUSY);
  8011e08:	4805      	ldr	r0, [pc, #20]	@ (8011e20 <BSP_SD_GetCardState+0x1c>)
  8011e0a:	f7fb fdbd 	bl	800d988 <HAL_SD_GetCardState>
  8011e0e:	4603      	mov	r3, r0
@@ -44145,29 +43502,19 @@ __weak uint8_t BSP_SD_GetCardState(void)
  8011e14:	2301      	movne	r3, #1
  8011e16:	2300      	moveq	r3, #0
  8011e18:	b2db      	uxtb	r3, r3
-}
  8011e1a:	4618      	mov	r0, r3
  8011e1c:	bd80      	pop	{r7, pc}
  8011e1e:	bf00      	nop
  8011e20:	2400075c 	.word	0x2400075c
 
 08011e24 <BSP_SD_GetCardInfo>:
-  * @brief  Get SD information about specific SD card.
-  * @param  CardInfo: Pointer to HAL_SD_CardInfoTypedef structure
-  * @retval None
-  */
-__weak void BSP_SD_GetCardInfo(HAL_SD_CardInfoTypeDef *CardInfo)
-{
  8011e24:	b580      	push	{r7, lr}
  8011e26:	b082      	sub	sp, #8
  8011e28:	af00      	add	r7, sp, #0
  8011e2a:	6078      	str	r0, [r7, #4]
-  /* Get SD card Information */
-  HAL_SD_GetCardInfo(&hsd1, CardInfo);
  8011e2c:	6879      	ldr	r1, [r7, #4]
  8011e2e:	4803      	ldr	r0, [pc, #12]	@ (8011e3c <BSP_SD_GetCardInfo+0x18>)
  8011e30:	f7fb fc6c 	bl	800d70c <HAL_SD_GetCardInfo>
-}
  8011e34:	bf00      	nop
  8011e36:	3708      	adds	r7, #8
  8011e38:	46bd      	mov	sp, r7
@@ -44175,141 +43522,77 @@ __weak void BSP_SD_GetCardInfo(HAL_SD_CardInfoTypeDef *CardInfo)
  8011e3c:	2400075c 	.word	0x2400075c
 
 08011e40 <HAL_SD_TxCpltCallback>:
-  * @brief Tx Transfer completed callback
-  * @param hsd: SD handle
-  * @retval None
-  */
-void HAL_SD_TxCpltCallback(SD_HandleTypeDef *hsd)
-{
  8011e40:	b580      	push	{r7, lr}
  8011e42:	b082      	sub	sp, #8
  8011e44:	af00      	add	r7, sp, #0
  8011e46:	6078      	str	r0, [r7, #4]
-  BSP_SD_WriteCpltCallback();
  8011e48:	f000 f80e 	bl	8011e68 <BSP_SD_WriteCpltCallback>
-}
  8011e4c:	bf00      	nop
  8011e4e:	3708      	adds	r7, #8
  8011e50:	46bd      	mov	sp, r7
  8011e52:	bd80      	pop	{r7, pc}
 
 08011e54 <HAL_SD_RxCpltCallback>:
-  * @brief Rx Transfer completed callback
-  * @param hsd: SD handle
-  * @retval None
-  */
-void HAL_SD_RxCpltCallback(SD_HandleTypeDef *hsd)
-{
  8011e54:	b580      	push	{r7, lr}
  8011e56:	b082      	sub	sp, #8
  8011e58:	af00      	add	r7, sp, #0
  8011e5a:	6078      	str	r0, [r7, #4]
-  BSP_SD_ReadCpltCallback();
  8011e5c:	f000 f80b 	bl	8011e76 <BSP_SD_ReadCpltCallback>
-}
  8011e60:	bf00      	nop
  8011e62:	3708      	adds	r7, #8
  8011e64:	46bd      	mov	sp, r7
  8011e66:	bd80      	pop	{r7, pc}
 
 08011e68 <BSP_SD_WriteCpltCallback>:
-  * @brief BSP Tx Transfer completed callback
-  * @retval None
-  * @note empty (up to the user to fill it in or to remove it if useless)
-  */
-__weak void BSP_SD_WriteCpltCallback(void)
-{
  8011e68:	b480      	push	{r7}
  8011e6a:	af00      	add	r7, sp, #0
-
-}
  8011e6c:	bf00      	nop
  8011e6e:	46bd      	mov	sp, r7
  8011e70:	f85d 7b04 	ldr.w	r7, [sp], #4
  8011e74:	4770      	bx	lr
 
 08011e76 <BSP_SD_ReadCpltCallback>:
-  * @brief BSP Rx Transfer completed callback
-  * @retval None
-  * @note empty (up to the user to fill it in or to remove it if useless)
-  */
-__weak void BSP_SD_ReadCpltCallback(void)
-{
  8011e76:	b480      	push	{r7}
  8011e78:	af00      	add	r7, sp, #0
-
-}
  8011e7a:	bf00      	nop
  8011e7c:	46bd      	mov	sp, r7
  8011e7e:	f85d 7b04 	ldr.w	r7, [sp], #4
  8011e82:	4770      	bx	lr
 
 08011e84 <BSP_SD_IsDetected>:
- * @brief  Detects if SD card is correctly plugged in the memory slot or not.
- * @param  None
- * @retval Returns if SD is detected or not
- */
-__weak uint8_t BSP_SD_IsDetected(void)
-{
  8011e84:	b580      	push	{r7, lr}
  8011e86:	b082      	sub	sp, #8
  8011e88:	af00      	add	r7, sp, #0
-  __IO uint8_t status = SD_PRESENT;
  8011e8a:	2301      	movs	r3, #1
  8011e8c:	71fb      	strb	r3, [r7, #7]
-
-  if (BSP_PlatformIsDetected() == 0x0)
  8011e8e:	f000 f80b 	bl	8011ea8 <BSP_PlatformIsDetected>
  8011e92:	4603      	mov	r3, r0
  8011e94:	2b00      	cmp	r3, #0
  8011e96:	d101      	bne.n	8011e9c <BSP_SD_IsDetected+0x18>
-  {
-    status = SD_NOT_PRESENT;
  8011e98:	2300      	movs	r3, #0
  8011e9a:	71fb      	strb	r3, [r7, #7]
-  }
-
-  return status;
  8011e9c:	79fb      	ldrb	r3, [r7, #7]
  8011e9e:	b2db      	uxtb	r3, r3
-}
  8011ea0:	4618      	mov	r0, r3
  8011ea2:	3708      	adds	r7, #8
  8011ea4:	46bd      	mov	sp, r7
  8011ea6:	bd80      	pop	{r7, pc}
 
 08011ea8 <BSP_PlatformIsDetected>:
-  ******************************************************************************
-*/
-/* USER CODE END Header */
-#include "fatfs_platform.h"
-
-uint8_t	BSP_PlatformIsDetected(void) {
  8011ea8:	b580      	push	{r7, lr}
  8011eaa:	b082      	sub	sp, #8
  8011eac:	af00      	add	r7, sp, #0
-    uint8_t status = SD_PRESENT;
  8011eae:	2301      	movs	r3, #1
  8011eb0:	71fb      	strb	r3, [r7, #7]
-    /* Check SD card detect pin */
-    if(HAL_GPIO_ReadPin(SD_DETECT_GPIO_PORT, SD_DETECT_PIN) != GPIO_PIN_RESET)
  8011eb2:	f44f 5100 	mov.w	r1, #8192	@ 0x2000
  8011eb6:	4806      	ldr	r0, [pc, #24]	@ (8011ed0 <BSP_PlatformIsDetected+0x28>)
  8011eb8:	f7f5 fba8 	bl	800760c <HAL_GPIO_ReadPin>
  8011ebc:	4603      	mov	r3, r0
  8011ebe:	2b00      	cmp	r3, #0
  8011ec0:	d001      	beq.n	8011ec6 <BSP_PlatformIsDetected+0x1e>
-    {
-        status = SD_NOT_PRESENT;
  8011ec2:	2300      	movs	r3, #0
  8011ec4:	71fb      	strb	r3, [r7, #7]
-    }
-    /* USER CODE BEGIN 1 */
-    /* user code can be inserted here */
-    /* USER CODE END 1 */
-    return status;
  8011ec6:	79fb      	ldrb	r3, [r7, #7]
-}
  8011ec8:	4618      	mov	r0, r3
  8011eca:	3708      	adds	r7, #8
  8011ecc:	46bd      	mov	sp, r7
@@ -44317,29 +43600,18 @@ uint8_t	BSP_PlatformIsDetected(void) {
  8011ed0:	58020800 	.word	0x58020800
 
 08011ed4 <SD_CheckStatus>:
-/* USER CODE END beforeFunctionSection */
-
-/* Private functions ---------------------------------------------------------*/
-
-static DSTATUS SD_CheckStatus(BYTE lun)
-{
  8011ed4:	b580      	push	{r7, lr}
  8011ed6:	b082      	sub	sp, #8
  8011ed8:	af00      	add	r7, sp, #0
  8011eda:	4603      	mov	r3, r0
  8011edc:	71fb      	strb	r3, [r7, #7]
-  Stat = STA_NOINIT;
  8011ede:	4b0b      	ldr	r3, [pc, #44]	@ (8011f0c <SD_CheckStatus+0x38>)
  8011ee0:	2201      	movs	r2, #1
  8011ee2:	701a      	strb	r2, [r3, #0]
-
-  if(BSP_SD_GetCardState() == MSD_OK)
  8011ee4:	f7ff ff8e 	bl	8011e04 <BSP_SD_GetCardState>
  8011ee8:	4603      	mov	r3, r0
  8011eea:	2b00      	cmp	r3, #0
  8011eec:	d107      	bne.n	8011efe <SD_CheckStatus+0x2a>
-  {
-    Stat &= ~STA_NOINIT;
  8011eee:	4b07      	ldr	r3, [pc, #28]	@ (8011f0c <SD_CheckStatus+0x38>)
  8011ef0:	781b      	ldrb	r3, [r3, #0]
  8011ef2:	b2db      	uxtb	r3, r3
@@ -44347,13 +43619,9 @@ static DSTATUS SD_CheckStatus(BYTE lun)
  8011ef8:	b2da      	uxtb	r2, r3
  8011efa:	4b04      	ldr	r3, [pc, #16]	@ (8011f0c <SD_CheckStatus+0x38>)
  8011efc:	701a      	strb	r2, [r3, #0]
-  }
-
-  return Stat;
  8011efe:	4b03      	ldr	r3, [pc, #12]	@ (8011f0c <SD_CheckStatus+0x38>)
  8011f00:	781b      	ldrb	r3, [r3, #0]
  8011f02:	b2db      	uxtb	r3, r3
-}
  8011f04:	4618      	mov	r0, r3
  8011f06:	3708      	adds	r7, #8
  8011f08:	46bd      	mov	sp, r7
@@ -44361,31 +43629,18 @@ static DSTATUS SD_CheckStatus(BYTE lun)
  8011f0c:	2400003d 	.word	0x2400003d
 
 08011f10 <SD_initialize>:
-  * @brief  Initializes a Drive
-  * @param  lun : not used
-  * @retval DSTATUS: Operation status
-  */
-DSTATUS SD_initialize(BYTE lun)
-{
  8011f10:	b580      	push	{r7, lr}
  8011f12:	b082      	sub	sp, #8
  8011f14:	af00      	add	r7, sp, #0
  8011f16:	4603      	mov	r3, r0
  8011f18:	71fb      	strb	r3, [r7, #7]
-Stat = STA_NOINIT;
  8011f1a:	4b0b      	ldr	r3, [pc, #44]	@ (8011f48 <SD_initialize+0x38>)
  8011f1c:	2201      	movs	r2, #1
  8011f1e:	701a      	strb	r2, [r3, #0]
-
-#if !defined(DISABLE_SD_INIT)
-
-  if(BSP_SD_Init() == MSD_OK)
  8011f20:	f7ff ff0e 	bl	8011d40 <BSP_SD_Init>
  8011f24:	4603      	mov	r3, r0
  8011f26:	2b00      	cmp	r3, #0
  8011f28:	d107      	bne.n	8011f3a <SD_initialize+0x2a>
-  {
-    Stat = SD_CheckStatus(lun);
  8011f2a:	79fb      	ldrb	r3, [r7, #7]
  8011f2c:	4618      	mov	r0, r3
  8011f2e:	f7ff ffd1 	bl	8011ed4 <SD_CheckStatus>
@@ -44393,16 +43648,9 @@ Stat = STA_NOINIT;
  8011f34:	461a      	mov	r2, r3
  8011f36:	4b04      	ldr	r3, [pc, #16]	@ (8011f48 <SD_initialize+0x38>)
  8011f38:	701a      	strb	r2, [r3, #0]
-
-#else
-  Stat = SD_CheckStatus(lun);
-#endif
-
-  return Stat;
  8011f3a:	4b03      	ldr	r3, [pc, #12]	@ (8011f48 <SD_initialize+0x38>)
  8011f3c:	781b      	ldrb	r3, [r3, #0]
  8011f3e:	b2db      	uxtb	r3, r3
-}
  8011f40:	4618      	mov	r0, r3
  8011f42:	3708      	adds	r7, #8
  8011f44:	46bd      	mov	sp, r7
@@ -44410,35 +43658,21 @@ Stat = STA_NOINIT;
  8011f48:	2400003d 	.word	0x2400003d
 
 08011f4c <SD_status>:
-  * @brief  Gets Disk Status
-  * @param  lun : not used
-  * @retval DSTATUS: Operation status
-  */
-DSTATUS SD_status(BYTE lun)
-{
  8011f4c:	b580      	push	{r7, lr}
  8011f4e:	b082      	sub	sp, #8
  8011f50:	af00      	add	r7, sp, #0
  8011f52:	4603      	mov	r3, r0
  8011f54:	71fb      	strb	r3, [r7, #7]
-  return SD_CheckStatus(lun);
  8011f56:	79fb      	ldrb	r3, [r7, #7]
  8011f58:	4618      	mov	r0, r3
  8011f5a:	f7ff ffbb 	bl	8011ed4 <SD_CheckStatus>
  8011f5e:	4603      	mov	r3, r0
-}
  8011f60:	4618      	mov	r0, r3
  8011f62:	3708      	adds	r7, #8
  8011f64:	46bd      	mov	sp, r7
  8011f66:	bd80      	pop	{r7, pc}
 
 08011f68 <SD_read>:
-  * @param  count: Number of sectors to read (1..128)
-  * @retval DRESULT: Operation result
-  */
-
-DRESULT SD_read(BYTE lun, BYTE *buff, DWORD sector, UINT count)
-{
  8011f68:	b580      	push	{r7, lr}
  8011f6a:	b086      	sub	sp, #24
  8011f6c:	af00      	add	r7, sp, #0
@@ -44447,11 +43681,8 @@ DRESULT SD_read(BYTE lun, BYTE *buff, DWORD sector, UINT count)
  8011f72:	603b      	str	r3, [r7, #0]
  8011f74:	4603      	mov	r3, r0
  8011f76:	73fb      	strb	r3, [r7, #15]
-  DRESULT res = RES_ERROR;
  8011f78:	2301      	movs	r3, #1
  8011f7a:	75fb      	strb	r3, [r7, #23]
-
-  if(BSP_SD_ReadBlocks((uint32_t*)buff,
  8011f7c:	f04f 33ff 	mov.w	r3, #4294967295
  8011f80:	683a      	ldr	r2, [r7, #0]
  8011f82:	6879      	ldr	r1, [r7, #4]
@@ -44460,38 +43691,20 @@ DRESULT SD_read(BYTE lun, BYTE *buff, DWORD sector, UINT count)
  8011f8a:	4603      	mov	r3, r0
  8011f8c:	2b00      	cmp	r3, #0
  8011f8e:	d107      	bne.n	8011fa0 <SD_read+0x38>
-                       (uint32_t) (sector),
-                       count, SD_TIMEOUT) == MSD_OK)
-  {
-    /* wait until the read operation is finished */
-    while(BSP_SD_GetCardState()!= MSD_OK)
  8011f90:	bf00      	nop
  8011f92:	f7ff ff37 	bl	8011e04 <BSP_SD_GetCardState>
  8011f96:	4603      	mov	r3, r0
  8011f98:	2b00      	cmp	r3, #0
  8011f9a:	d1fa      	bne.n	8011f92 <SD_read+0x2a>
-    {
-    }
-    res = RES_OK;
  8011f9c:	2300      	movs	r3, #0
  8011f9e:	75fb      	strb	r3, [r7, #23]
-  }
-
-  return res;
  8011fa0:	7dfb      	ldrb	r3, [r7, #23]
-}
  8011fa2:	4618      	mov	r0, r3
  8011fa4:	3718      	adds	r7, #24
  8011fa6:	46bd      	mov	sp, r7
  8011fa8:	bd80      	pop	{r7, pc}
 
 08011faa <SD_write>:
-  * @retval DRESULT: Operation result
-  */
-#if _USE_WRITE == 1
-
-DRESULT SD_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count)
-{
  8011faa:	b580      	push	{r7, lr}
  8011fac:	b086      	sub	sp, #24
  8011fae:	af00      	add	r7, sp, #0
@@ -44500,11 +43713,8 @@ DRESULT SD_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count)
  8011fb4:	603b      	str	r3, [r7, #0]
  8011fb6:	4603      	mov	r3, r0
  8011fb8:	73fb      	strb	r3, [r7, #15]
-  DRESULT res = RES_ERROR;
  8011fba:	2301      	movs	r3, #1
  8011fbc:	75fb      	strb	r3, [r7, #23]
-
-  if(BSP_SD_WriteBlocks((uint32_t*)buff,
  8011fbe:	f04f 33ff 	mov.w	r3, #4294967295
  8011fc2:	683a      	ldr	r2, [r7, #0]
  8011fc4:	6879      	ldr	r1, [r7, #4]
@@ -44513,38 +43723,20 @@ DRESULT SD_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count)
  8011fcc:	4603      	mov	r3, r0
  8011fce:	2b00      	cmp	r3, #0
  8011fd0:	d107      	bne.n	8011fe2 <SD_write+0x38>
-                        (uint32_t)(sector),
-                        count, SD_TIMEOUT) == MSD_OK)
-  {
-	/* wait until the Write operation is finished */
-    while(BSP_SD_GetCardState() != MSD_OK)
  8011fd2:	bf00      	nop
  8011fd4:	f7ff ff16 	bl	8011e04 <BSP_SD_GetCardState>
  8011fd8:	4603      	mov	r3, r0
  8011fda:	2b00      	cmp	r3, #0
  8011fdc:	d1fa      	bne.n	8011fd4 <SD_write+0x2a>
-    {
-    }
-    res = RES_OK;
  8011fde:	2300      	movs	r3, #0
  8011fe0:	75fb      	strb	r3, [r7, #23]
-  }
-
-  return res;
  8011fe2:	7dfb      	ldrb	r3, [r7, #23]
-}
  8011fe4:	4618      	mov	r0, r3
  8011fe6:	3718      	adds	r7, #24
  8011fe8:	46bd      	mov	sp, r7
  8011fea:	bd80      	pop	{r7, pc}
 
 08011fec <SD_ioctl>:
-  * @param  *buff: Buffer to send/receive control data
-  * @retval DRESULT: Operation result
-  */
-#if _USE_IOCTL == 1
-DRESULT SD_ioctl(BYTE lun, BYTE cmd, void *buff)
-{
  8011fec:	b580      	push	{r7, lr}
  8011fee:	b08c      	sub	sp, #48	@ 0x30
  8011ff0:	af00      	add	r7, sp, #0
@@ -44553,12 +43745,8 @@ DRESULT SD_ioctl(BYTE lun, BYTE cmd, void *buff)
  8011ff6:	71fb      	strb	r3, [r7, #7]
  8011ff8:	460b      	mov	r3, r1
  8011ffa:	71bb      	strb	r3, [r7, #6]
-  DRESULT res = RES_ERROR;
  8011ffc:	2301      	movs	r3, #1
  8011ffe:	f887 302f 	strb.w	r3, [r7, #47]	@ 0x2f
-  BSP_SD_CardInfo CardInfo;
-
-  if (Stat & STA_NOINIT) return RES_NOTRDY;
  8012002:	4b25      	ldr	r3, [pc, #148]	@ (8012098 <SD_ioctl+0xac>)
  8012004:	781b      	ldrb	r3, [r3, #0]
  8012006:	b2db      	uxtb	r3, r3
@@ -44567,8 +43755,6 @@ DRESULT SD_ioctl(BYTE lun, BYTE cmd, void *buff)
  801200e:	d001      	beq.n	8012014 <SD_ioctl+0x28>
  8012010:	2303      	movs	r3, #3
  8012012:	e03c      	b.n	801208e <SD_ioctl+0xa2>
-
-  switch (cmd)
  8012014:	79bb      	ldrb	r3, [r7, #6]
  8012016:	2b03      	cmp	r3, #3
  8012018:	d834      	bhi.n	8012084 <SD_ioctl+0x98>
@@ -44578,74 +43764,41 @@ DRESULT SD_ioctl(BYTE lun, BYTE cmd, void *buff)
  8012024:	08012039 	.word	0x08012039
  8012028:	08012051 	.word	0x08012051
  801202c:	0801206b 	.word	0x0801206b
-  {
-  /* Make sure that no pending write process */
-  case CTRL_SYNC :
-    res = RES_OK;
  8012030:	2300      	movs	r3, #0
  8012032:	f887 302f 	strb.w	r3, [r7, #47]	@ 0x2f
-    break;
  8012036:	e028      	b.n	801208a <SD_ioctl+0x9e>
-
-  /* Get number of sectors on the disk (DWORD) */
-  case GET_SECTOR_COUNT :
-    BSP_SD_GetCardInfo(&CardInfo);
  8012038:	f107 0308 	add.w	r3, r7, #8
  801203c:	4618      	mov	r0, r3
  801203e:	f7ff fef1 	bl	8011e24 <BSP_SD_GetCardInfo>
-    *(DWORD*)buff = CardInfo.LogBlockNbr;
  8012042:	6a3a      	ldr	r2, [r7, #32]
  8012044:	683b      	ldr	r3, [r7, #0]
  8012046:	601a      	str	r2, [r3, #0]
-    res = RES_OK;
  8012048:	2300      	movs	r3, #0
  801204a:	f887 302f 	strb.w	r3, [r7, #47]	@ 0x2f
-    break;
  801204e:	e01c      	b.n	801208a <SD_ioctl+0x9e>
-
-  /* Get R/W sector size (WORD) */
-  case GET_SECTOR_SIZE :
-    BSP_SD_GetCardInfo(&CardInfo);
  8012050:	f107 0308 	add.w	r3, r7, #8
  8012054:	4618      	mov	r0, r3
  8012056:	f7ff fee5 	bl	8011e24 <BSP_SD_GetCardInfo>
-    *(WORD*)buff = CardInfo.LogBlockSize;
  801205a:	6a7b      	ldr	r3, [r7, #36]	@ 0x24
  801205c:	b29a      	uxth	r2, r3
  801205e:	683b      	ldr	r3, [r7, #0]
  8012060:	801a      	strh	r2, [r3, #0]
-    res = RES_OK;
  8012062:	2300      	movs	r3, #0
  8012064:	f887 302f 	strb.w	r3, [r7, #47]	@ 0x2f
-    break;
  8012068:	e00f      	b.n	801208a <SD_ioctl+0x9e>
-
-  /* Get erase block size in unit of sector (DWORD) */
-  case GET_BLOCK_SIZE :
-    BSP_SD_GetCardInfo(&CardInfo);
  801206a:	f107 0308 	add.w	r3, r7, #8
  801206e:	4618      	mov	r0, r3
  8012070:	f7ff fed8 	bl	8011e24 <BSP_SD_GetCardInfo>
-    *(DWORD*)buff = CardInfo.LogBlockSize / SD_DEFAULT_BLOCK_SIZE;
  8012074:	6a7b      	ldr	r3, [r7, #36]	@ 0x24
  8012076:	0a5a      	lsrs	r2, r3, #9
  8012078:	683b      	ldr	r3, [r7, #0]
  801207a:	601a      	str	r2, [r3, #0]
-    res = RES_OK;
  801207c:	2300      	movs	r3, #0
  801207e:	f887 302f 	strb.w	r3, [r7, #47]	@ 0x2f
-    break;
  8012082:	e002      	b.n	801208a <SD_ioctl+0x9e>
-
-  default:
-    res = RES_PARERR;
  8012084:	2304      	movs	r3, #4
  8012086:	f887 302f 	strb.w	r3, [r7, #47]	@ 0x2f
-  }
-
-  return res;
  801208a:	f897 302f 	ldrb.w	r3, [r7, #47]	@ 0x2f
-}
  801208e:	4618      	mov	r0, r3
  8012090:	3730      	adds	r7, #48	@ 0x30
  8012092:	46bd      	mov	sp, r7
@@ -50556,20 +49709,8 @@ uint8_t FATFS_LinkDriver(const Diskio_drvTypeDef *drv, char *path)
 	...
 
 0801414c <MX_USB_DEVICE_Init>:
-/**
-  * Init USB device Library, add supported class and start the library
-  * @retval None
-  */
-void MX_USB_DEVICE_Init(void)
-{
  801414c:	b580      	push	{r7, lr}
  801414e:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN USB_DEVICE_Init_PreTreatment */
-
-  /* USER CODE END USB_DEVICE_Init_PreTreatment */
-
-  /* Init Device Library, add supported class and start the library. */
-  if (USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS) != USBD_OK)
  8014150:	2200      	movs	r2, #0
  8014152:	4913      	ldr	r1, [pc, #76]	@ (80141a0 <MX_USB_DEVICE_Init+0x54>)
  8014154:	4813      	ldr	r0, [pc, #76]	@ (80141a4 <MX_USB_DEVICE_Init+0x58>)
@@ -50577,49 +49718,28 @@ void MX_USB_DEVICE_Init(void)
  801415a:	4603      	mov	r3, r0
  801415c:	2b00      	cmp	r3, #0
  801415e:	d001      	beq.n	8014164 <MX_USB_DEVICE_Init+0x18>
-  {
-    Error_Handler();
  8014160:	f7f0 fffc 	bl	800515c <Error_Handler>
-  }
-  if (USBD_RegisterClass(&hUsbDeviceFS, &USBD_CDC) != USBD_OK)
  8014164:	4910      	ldr	r1, [pc, #64]	@ (80141a8 <MX_USB_DEVICE_Init+0x5c>)
  8014166:	480f      	ldr	r0, [pc, #60]	@ (80141a4 <MX_USB_DEVICE_Init+0x58>)
  8014168:	f7fe fc98 	bl	8012a9c <USBD_RegisterClass>
  801416c:	4603      	mov	r3, r0
  801416e:	2b00      	cmp	r3, #0
  8014170:	d001      	beq.n	8014176 <MX_USB_DEVICE_Init+0x2a>
-  {
-    Error_Handler();
  8014172:	f7f0 fff3 	bl	800515c <Error_Handler>
-  }
-  if (USBD_CDC_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops_FS) != USBD_OK)
  8014176:	490d      	ldr	r1, [pc, #52]	@ (80141ac <MX_USB_DEVICE_Init+0x60>)
  8014178:	480a      	ldr	r0, [pc, #40]	@ (80141a4 <MX_USB_DEVICE_Init+0x58>)
  801417a:	f7fe fb8f 	bl	801289c <USBD_CDC_RegisterInterface>
  801417e:	4603      	mov	r3, r0
  8014180:	2b00      	cmp	r3, #0
  8014182:	d001      	beq.n	8014188 <MX_USB_DEVICE_Init+0x3c>
-  {
-    Error_Handler();
  8014184:	f7f0 ffea 	bl	800515c <Error_Handler>
-  }
-  if (USBD_Start(&hUsbDeviceFS) != USBD_OK)
  8014188:	4806      	ldr	r0, [pc, #24]	@ (80141a4 <MX_USB_DEVICE_Init+0x58>)
  801418a:	f7fe fcbd 	bl	8012b08 <USBD_Start>
  801418e:	4603      	mov	r3, r0
  8014190:	2b00      	cmp	r3, #0
  8014192:	d001      	beq.n	8014198 <MX_USB_DEVICE_Init+0x4c>
-  {
-    Error_Handler();
  8014194:	f7f0 ffe2 	bl	800515c <Error_Handler>
-  }
-
-  /* USER CODE BEGIN USB_DEVICE_Init_PostTreatment */
-  HAL_PWREx_EnableUSBVoltageDetector();
  8014198:	f7f4 fd7e 	bl	8008c98 <HAL_PWREx_EnableUSBVoltageDetector>
-
-  /* USER CODE END USB_DEVICE_Init_PostTreatment */
-}
  801419c:	bf00      	nop
  801419e:	bd80      	pop	{r7, pc}
  80141a0:	240000e0 	.word	0x240000e0
@@ -50628,29 +49748,16 @@ void MX_USB_DEVICE_Init(void)
  80141ac:	240000cc 	.word	0x240000cc
 
 080141b0 <CDC_Init_FS>:
-/**
-  * @brief  Initializes the CDC media low layer over the FS USB IP
-  * @retval USBD_OK if all operations are OK else USBD_FAIL
-  */
-static int8_t CDC_Init_FS(void)
-{
  80141b0:	b580      	push	{r7, lr}
  80141b2:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN 3 */
-  /* Set Application Buffers */
-  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
  80141b4:	2200      	movs	r2, #0
  80141b6:	4905      	ldr	r1, [pc, #20]	@ (80141cc <CDC_Init_FS+0x1c>)
  80141b8:	4805      	ldr	r0, [pc, #20]	@ (80141d0 <CDC_Init_FS+0x20>)
  80141ba:	f7fe fb89 	bl	80128d0 <USBD_CDC_SetTxBuffer>
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
  80141be:	4905      	ldr	r1, [pc, #20]	@ (80141d4 <CDC_Init_FS+0x24>)
  80141c0:	4803      	ldr	r0, [pc, #12]	@ (80141d0 <CDC_Init_FS+0x20>)
  80141c2:	f7fe fba7 	bl	8012914 <USBD_CDC_SetRxBuffer>
-  return (USBD_OK);
  80141c6:	2300      	movs	r3, #0
-  /* USER CODE END 3 */
-}
  80141c8:	4618      	mov	r0, r3
  80141ca:	bd80      	pop	{r7, pc}
  80141cc:	240013f4 	.word	0x240013f4
@@ -50658,31 +49765,15 @@ static int8_t CDC_Init_FS(void)
  80141d4:	24000bf4 	.word	0x24000bf4
 
 080141d8 <CDC_DeInit_FS>:
-/**
-  * @brief  DeInitializes the CDC media low layer
-  * @retval USBD_OK if all operations are OK else USBD_FAIL
-  */
-static int8_t CDC_DeInit_FS(void)
-{
  80141d8:	b480      	push	{r7}
  80141da:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN 4 */
-  return (USBD_OK);
  80141dc:	2300      	movs	r3, #0
-  /* USER CODE END 4 */
-}
  80141de:	4618      	mov	r0, r3
  80141e0:	46bd      	mov	sp, r7
  80141e2:	f85d 7b04 	ldr.w	r7, [sp], #4
  80141e6:	4770      	bx	lr
 
 080141e8 <CDC_Control_FS>:
-  * @param  pbuf: Buffer containing command data (request parameters)
-  * @param  length: Number of data to be sent (in bytes)
-  * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
-  */
-static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
-{
  80141e8:	b480      	push	{r7}
  80141ea:	b083      	sub	sp, #12
  80141ec:	af00      	add	r7, sp, #0
@@ -50691,8 +49782,6 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
  80141f2:	71fb      	strb	r3, [r7, #7]
  80141f4:	4613      	mov	r3, r2
  80141f6:	80bb      	strh	r3, [r7, #4]
-  /* USER CODE BEGIN 5 */
-  switch(cmd)
  80141f8:	79fb      	ldrb	r3, [r7, #7]
  80141fa:	2b23      	cmp	r3, #35	@ 0x23
  80141fc:	d84a      	bhi.n	8014294 <CDC_Control_FS+0xac>
@@ -50734,19 +49823,8 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
  8014288:	08014295 	.word	0x08014295
  801428c:	08014295 	.word	0x08014295
  8014290:	08014295 	.word	0x08014295
-    case CDC_SEND_BREAK:
-
-    break;
-
-  default:
-    break;
  8014294:	bf00      	nop
-  }
-
-  return (USBD_OK);
  8014296:	2300      	movs	r3, #0
-  /* USER CODE END 5 */
-}
  8014298:	4618      	mov	r0, r3
  801429a:	370c      	adds	r7, #12
  801429c:	46bd      	mov	sp, r7
@@ -50754,29 +49832,17 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
  80142a2:	4770      	bx	lr
 
 080142a4 <CDC_Receive_FS>:
-  * @param  Buf: Buffer of data to be received
-  * @param  Len: Number of data received (in bytes)
-  * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
-  */
-static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
-{
  80142a4:	b580      	push	{r7, lr}
  80142a6:	b082      	sub	sp, #8
  80142a8:	af00      	add	r7, sp, #0
  80142aa:	6078      	str	r0, [r7, #4]
  80142ac:	6039      	str	r1, [r7, #0]
-  /* USER CODE BEGIN 6 */
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
  80142ae:	6879      	ldr	r1, [r7, #4]
  80142b0:	4805      	ldr	r0, [pc, #20]	@ (80142c8 <CDC_Receive_FS+0x24>)
  80142b2:	f7fe fb2f 	bl	8012914 <USBD_CDC_SetRxBuffer>
-  USBD_CDC_ReceivePacket(&hUsbDeviceFS);
  80142b6:	4804      	ldr	r0, [pc, #16]	@ (80142c8 <CDC_Receive_FS+0x24>)
  80142b8:	f7fe fb8a 	bl	80129d0 <USBD_CDC_ReceivePacket>
-  return (USBD_OK);
  80142bc:	2300      	movs	r3, #0
-  /* USER CODE END 6 */
-}
  80142be:	4618      	mov	r0, r3
  80142c0:	3708      	adds	r7, #8
  80142c2:	46bd      	mov	sp, r7
@@ -50785,50 +49851,33 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
  80142c8:	24000918 	.word	0x24000918
 
 080142cc <CDC_Transmit_FS>:
-  * @param  Buf: Buffer of data to be sent
-  * @param  Len: Number of data to be sent (in bytes)
-  * @retval USBD_OK if all operations are OK else USBD_FAIL or USBD_BUSY
-  */
-uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
-{
  80142cc:	b580      	push	{r7, lr}
  80142ce:	b084      	sub	sp, #16
  80142d0:	af00      	add	r7, sp, #0
  80142d2:	6078      	str	r0, [r7, #4]
  80142d4:	460b      	mov	r3, r1
  80142d6:	807b      	strh	r3, [r7, #2]
-  uint8_t result = USBD_OK;
  80142d8:	2300      	movs	r3, #0
  80142da:	73fb      	strb	r3, [r7, #15]
-  /* USER CODE BEGIN 7 */
-  USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
  80142dc:	4b0d      	ldr	r3, [pc, #52]	@ (8014314 <CDC_Transmit_FS+0x48>)
  80142de:	f8d3 32bc 	ldr.w	r3, [r3, #700]	@ 0x2bc
  80142e2:	60bb      	str	r3, [r7, #8]
-  if (hcdc->TxState != 0){
  80142e4:	68bb      	ldr	r3, [r7, #8]
  80142e6:	f8d3 3214 	ldr.w	r3, [r3, #532]	@ 0x214
  80142ea:	2b00      	cmp	r3, #0
  80142ec:	d001      	beq.n	80142f2 <CDC_Transmit_FS+0x26>
-    return USBD_BUSY;
  80142ee:	2301      	movs	r3, #1
  80142f0:	e00b      	b.n	801430a <CDC_Transmit_FS+0x3e>
-  }
-  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, Buf, Len);
  80142f2:	887b      	ldrh	r3, [r7, #2]
  80142f4:	461a      	mov	r2, r3
  80142f6:	6879      	ldr	r1, [r7, #4]
  80142f8:	4806      	ldr	r0, [pc, #24]	@ (8014314 <CDC_Transmit_FS+0x48>)
  80142fa:	f7fe fae9 	bl	80128d0 <USBD_CDC_SetTxBuffer>
-  result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
  80142fe:	4805      	ldr	r0, [pc, #20]	@ (8014314 <CDC_Transmit_FS+0x48>)
  8014300:	f7fe fb26 	bl	8012950 <USBD_CDC_TransmitPacket>
  8014304:	4603      	mov	r3, r0
  8014306:	73fb      	strb	r3, [r7, #15]
-  /* USER CODE END 7 */
-  return result;
  8014308:	7bfb      	ldrb	r3, [r7, #15]
-}
  801430a:	4618      	mov	r0, r3
  801430c:	3710      	adds	r7, #16
  801430e:	46bd      	mov	sp, r7
@@ -50837,12 +49886,6 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
  8014314:	24000918 	.word	0x24000918
 
 08014318 <CDC_TransmitCplt_FS>:
-  * @param  Buf: Buffer of data to be received
-  * @param  Len: Number of data received (in bytes)
-  * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
-  */
-static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
-{
  8014318:	b480      	push	{r7}
  801431a:	b087      	sub	sp, #28
  801431c:	af00      	add	r7, sp, #0
@@ -50850,17 +49893,9 @@ static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
  8014320:	60b9      	str	r1, [r7, #8]
  8014322:	4613      	mov	r3, r2
  8014324:	71fb      	strb	r3, [r7, #7]
-  uint8_t result = USBD_OK;
  8014326:	2300      	movs	r3, #0
  8014328:	75fb      	strb	r3, [r7, #23]
-  /* USER CODE BEGIN 13 */
-  UNUSED(Buf);
-  UNUSED(Len);
-  UNUSED(epnum);
-  /* USER CODE END 13 */
-  return result;
  801432a:	f997 3017 	ldrsb.w	r3, [r7, #23]
-}
  801432e:	4618      	mov	r0, r3
  8014330:	371c      	adds	r7, #28
  8014332:	46bd      	mov	sp, r7
@@ -50869,26 +49904,16 @@ static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
 	...
 
 0801433c <USBD_FS_DeviceDescriptor>:
-  * @param  speed : Current device speed
-  * @param  length : Pointer to data length variable
-  * @retval Pointer to descriptor buffer
-  */
-uint8_t * USBD_FS_DeviceDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
-{
  801433c:	b480      	push	{r7}
  801433e:	b083      	sub	sp, #12
  8014340:	af00      	add	r7, sp, #0
  8014342:	4603      	mov	r3, r0
  8014344:	6039      	str	r1, [r7, #0]
  8014346:	71fb      	strb	r3, [r7, #7]
-  UNUSED(speed);
-  *length = sizeof(USBD_FS_DeviceDesc);
  8014348:	683b      	ldr	r3, [r7, #0]
  801434a:	2212      	movs	r2, #18
  801434c:	801a      	strh	r2, [r3, #0]
-  return USBD_FS_DeviceDesc;
  801434e:	4b03      	ldr	r3, [pc, #12]	@ (801435c <USBD_FS_DeviceDescriptor+0x20>)
-}
  8014350:	4618      	mov	r0, r3
  8014352:	370c      	adds	r7, #12
  8014354:	46bd      	mov	sp, r7
@@ -50897,26 +49922,16 @@ uint8_t * USBD_FS_DeviceDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
  801435c:	24000100 	.word	0x24000100
 
 08014360 <USBD_FS_LangIDStrDescriptor>:
-  * @param  speed : Current device speed
-  * @param  length : Pointer to data length variable
-  * @retval Pointer to descriptor buffer
-  */
-uint8_t * USBD_FS_LangIDStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
-{
  8014360:	b480      	push	{r7}
  8014362:	b083      	sub	sp, #12
  8014364:	af00      	add	r7, sp, #0
  8014366:	4603      	mov	r3, r0
  8014368:	6039      	str	r1, [r7, #0]
  801436a:	71fb      	strb	r3, [r7, #7]
-  UNUSED(speed);
-  *length = sizeof(USBD_LangIDDesc);
  801436c:	683b      	ldr	r3, [r7, #0]
  801436e:	2204      	movs	r2, #4
  8014370:	801a      	strh	r2, [r3, #0]
-  return USBD_LangIDDesc;
  8014372:	4b03      	ldr	r3, [pc, #12]	@ (8014380 <USBD_FS_LangIDStrDescriptor+0x20>)
-}
  8014374:	4618      	mov	r0, r3
  8014376:	370c      	adds	r7, #12
  8014378:	46bd      	mov	sp, r7
@@ -50925,41 +49940,25 @@ uint8_t * USBD_FS_LangIDStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
  8014380:	24000114 	.word	0x24000114
 
 08014384 <USBD_FS_ProductStrDescriptor>:
-  * @param  speed : Current device speed
-  * @param  length : Pointer to data length variable
-  * @retval Pointer to descriptor buffer
-  */
-uint8_t * USBD_FS_ProductStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
-{
  8014384:	b580      	push	{r7, lr}
  8014386:	b082      	sub	sp, #8
  8014388:	af00      	add	r7, sp, #0
  801438a:	4603      	mov	r3, r0
  801438c:	6039      	str	r1, [r7, #0]
  801438e:	71fb      	strb	r3, [r7, #7]
-  if(speed == 0)
  8014390:	79fb      	ldrb	r3, [r7, #7]
  8014392:	2b00      	cmp	r3, #0
  8014394:	d105      	bne.n	80143a2 <USBD_FS_ProductStrDescriptor+0x1e>
-  {
-    USBD_GetString((uint8_t *)USBD_PRODUCT_STRING_FS, USBD_StrDesc, length);
  8014396:	683a      	ldr	r2, [r7, #0]
  8014398:	4907      	ldr	r1, [pc, #28]	@ (80143b8 <USBD_FS_ProductStrDescriptor+0x34>)
  801439a:	4808      	ldr	r0, [pc, #32]	@ (80143bc <USBD_FS_ProductStrDescriptor+0x38>)
  801439c:	f7ff fd8e 	bl	8013ebc <USBD_GetString>
  80143a0:	e004      	b.n	80143ac <USBD_FS_ProductStrDescriptor+0x28>
-  }
-  else
-  {
-    USBD_GetString((uint8_t *)USBD_PRODUCT_STRING_FS, USBD_StrDesc, length);
  80143a2:	683a      	ldr	r2, [r7, #0]
  80143a4:	4904      	ldr	r1, [pc, #16]	@ (80143b8 <USBD_FS_ProductStrDescriptor+0x34>)
  80143a6:	4805      	ldr	r0, [pc, #20]	@ (80143bc <USBD_FS_ProductStrDescriptor+0x38>)
  80143a8:	f7ff fd88 	bl	8013ebc <USBD_GetString>
-  }
-  return USBD_StrDesc;
  80143ac:	4b02      	ldr	r3, [pc, #8]	@ (80143b8 <USBD_FS_ProductStrDescriptor+0x34>)
-}
  80143ae:	4618      	mov	r0, r3
  80143b0:	3708      	adds	r7, #8
  80143b2:	46bd      	mov	sp, r7
@@ -50969,27 +49968,17 @@ uint8_t * USBD_FS_ProductStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length
  80143bc:	080199bc 	.word	0x080199bc
 
 080143c0 <USBD_FS_ManufacturerStrDescriptor>:
-  * @param  speed : Current device speed
-  * @param  length : Pointer to data length variable
-  * @retval Pointer to descriptor buffer
-  */
-uint8_t * USBD_FS_ManufacturerStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
-{
  80143c0:	b580      	push	{r7, lr}
  80143c2:	b082      	sub	sp, #8
  80143c4:	af00      	add	r7, sp, #0
  80143c6:	4603      	mov	r3, r0
  80143c8:	6039      	str	r1, [r7, #0]
  80143ca:	71fb      	strb	r3, [r7, #7]
-  UNUSED(speed);
-  USBD_GetString((uint8_t *)USBD_MANUFACTURER_STRING, USBD_StrDesc, length);
  80143cc:	683a      	ldr	r2, [r7, #0]
  80143ce:	4904      	ldr	r1, [pc, #16]	@ (80143e0 <USBD_FS_ManufacturerStrDescriptor+0x20>)
  80143d0:	4804      	ldr	r0, [pc, #16]	@ (80143e4 <USBD_FS_ManufacturerStrDescriptor+0x24>)
  80143d2:	f7ff fd73 	bl	8013ebc <USBD_GetString>
-  return USBD_StrDesc;
  80143d6:	4b02      	ldr	r3, [pc, #8]	@ (80143e0 <USBD_FS_ManufacturerStrDescriptor+0x20>)
-}
  80143d8:	4618      	mov	r0, r3
  80143da:	3708      	adds	r7, #8
  80143dc:	46bd      	mov	sp, r7
@@ -50998,34 +49987,17 @@ uint8_t * USBD_FS_ManufacturerStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *l
  80143e4:	080199d4 	.word	0x080199d4
 
 080143e8 <USBD_FS_SerialStrDescriptor>:
-  * @param  speed : Current device speed
-  * @param  length : Pointer to data length variable
-  * @retval Pointer to descriptor buffer
-  */
-uint8_t * USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
-{
  80143e8:	b580      	push	{r7, lr}
  80143ea:	b082      	sub	sp, #8
  80143ec:	af00      	add	r7, sp, #0
  80143ee:	4603      	mov	r3, r0
  80143f0:	6039      	str	r1, [r7, #0]
  80143f2:	71fb      	strb	r3, [r7, #7]
-  UNUSED(speed);
-  *length = USB_SIZ_STRING_SERIAL;
  80143f4:	683b      	ldr	r3, [r7, #0]
  80143f6:	221a      	movs	r2, #26
  80143f8:	801a      	strh	r2, [r3, #0]
-
-  /* Update the serial number string descriptor with the data from the unique
-   * ID */
-  Get_SerialNum();
  80143fa:	f000 f843 	bl	8014484 <Get_SerialNum>
-  /* USER CODE BEGIN USBD_FS_SerialStrDescriptor */
-
-  /* USER CODE END USBD_FS_SerialStrDescriptor */
-  return (uint8_t *) USBD_StringSerial;
  80143fe:	4b02      	ldr	r3, [pc, #8]	@ (8014408 <USBD_FS_SerialStrDescriptor+0x20>)
-}
  8014400:	4618      	mov	r0, r3
  8014402:	3708      	adds	r7, #8
  8014404:	46bd      	mov	sp, r7
@@ -51033,41 +50005,25 @@ uint8_t * USBD_FS_SerialStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
  8014408:	24000118 	.word	0x24000118
 
 0801440c <USBD_FS_ConfigStrDescriptor>:
-  * @param  speed : Current device speed
-  * @param  length : Pointer to data length variable
-  * @retval Pointer to descriptor buffer
-  */
-uint8_t * USBD_FS_ConfigStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
-{
  801440c:	b580      	push	{r7, lr}
  801440e:	b082      	sub	sp, #8
  8014410:	af00      	add	r7, sp, #0
  8014412:	4603      	mov	r3, r0
  8014414:	6039      	str	r1, [r7, #0]
  8014416:	71fb      	strb	r3, [r7, #7]
-  if(speed == USBD_SPEED_HIGH)
  8014418:	79fb      	ldrb	r3, [r7, #7]
  801441a:	2b00      	cmp	r3, #0
  801441c:	d105      	bne.n	801442a <USBD_FS_ConfigStrDescriptor+0x1e>
-  {
-    USBD_GetString((uint8_t *)USBD_CONFIGURATION_STRING_FS, USBD_StrDesc, length);
  801441e:	683a      	ldr	r2, [r7, #0]
  8014420:	4907      	ldr	r1, [pc, #28]	@ (8014440 <USBD_FS_ConfigStrDescriptor+0x34>)
  8014422:	4808      	ldr	r0, [pc, #32]	@ (8014444 <USBD_FS_ConfigStrDescriptor+0x38>)
  8014424:	f7ff fd4a 	bl	8013ebc <USBD_GetString>
  8014428:	e004      	b.n	8014434 <USBD_FS_ConfigStrDescriptor+0x28>
-  }
-  else
-  {
-    USBD_GetString((uint8_t *)USBD_CONFIGURATION_STRING_FS, USBD_StrDesc, length);
  801442a:	683a      	ldr	r2, [r7, #0]
  801442c:	4904      	ldr	r1, [pc, #16]	@ (8014440 <USBD_FS_ConfigStrDescriptor+0x34>)
  801442e:	4805      	ldr	r0, [pc, #20]	@ (8014444 <USBD_FS_ConfigStrDescriptor+0x38>)
  8014430:	f7ff fd44 	bl	8013ebc <USBD_GetString>
-  }
-  return USBD_StrDesc;
  8014434:	4b02      	ldr	r3, [pc, #8]	@ (8014440 <USBD_FS_ConfigStrDescriptor+0x34>)
-}
  8014436:	4618      	mov	r0, r3
  8014438:	3708      	adds	r7, #8
  801443a:	46bd      	mov	sp, r7
@@ -51077,41 +50033,25 @@ uint8_t * USBD_FS_ConfigStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
  8014444:	080199e8 	.word	0x080199e8
 
 08014448 <USBD_FS_InterfaceStrDescriptor>:
-  * @param  speed : Current device speed
-  * @param  length : Pointer to data length variable
-  * @retval Pointer to descriptor buffer
-  */
-uint8_t * USBD_FS_InterfaceStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *length)
-{
  8014448:	b580      	push	{r7, lr}
  801444a:	b082      	sub	sp, #8
  801444c:	af00      	add	r7, sp, #0
  801444e:	4603      	mov	r3, r0
  8014450:	6039      	str	r1, [r7, #0]
  8014452:	71fb      	strb	r3, [r7, #7]
-  if(speed == 0)
  8014454:	79fb      	ldrb	r3, [r7, #7]
  8014456:	2b00      	cmp	r3, #0
  8014458:	d105      	bne.n	8014466 <USBD_FS_InterfaceStrDescriptor+0x1e>
-  {
-    USBD_GetString((uint8_t *)USBD_INTERFACE_STRING_FS, USBD_StrDesc, length);
  801445a:	683a      	ldr	r2, [r7, #0]
  801445c:	4907      	ldr	r1, [pc, #28]	@ (801447c <USBD_FS_InterfaceStrDescriptor+0x34>)
  801445e:	4808      	ldr	r0, [pc, #32]	@ (8014480 <USBD_FS_InterfaceStrDescriptor+0x38>)
  8014460:	f7ff fd2c 	bl	8013ebc <USBD_GetString>
  8014464:	e004      	b.n	8014470 <USBD_FS_InterfaceStrDescriptor+0x28>
-  }
-  else
-  {
-    USBD_GetString((uint8_t *)USBD_INTERFACE_STRING_FS, USBD_StrDesc, length);
  8014466:	683a      	ldr	r2, [r7, #0]
  8014468:	4904      	ldr	r1, [pc, #16]	@ (801447c <USBD_FS_InterfaceStrDescriptor+0x34>)
  801446a:	4805      	ldr	r0, [pc, #20]	@ (8014480 <USBD_FS_InterfaceStrDescriptor+0x38>)
  801446c:	f7ff fd26 	bl	8013ebc <USBD_GetString>
-  }
-  return USBD_StrDesc;
  8014470:	4b02      	ldr	r3, [pc, #8]	@ (801447c <USBD_FS_InterfaceStrDescriptor+0x34>)
-}
  8014472:	4618      	mov	r0, r3
  8014474:	3708      	adds	r7, #8
  8014476:	46bd      	mov	sp, r7
@@ -51121,55 +50061,33 @@ uint8_t * USBD_FS_InterfaceStrDescriptor(USBD_SpeedTypeDef speed, uint16_t *leng
  8014480:	080199f4 	.word	0x080199f4
 
 08014484 <Get_SerialNum>:
-  * @brief  Create the serial number string descriptor
-  * @param  None
-  * @retval None
-  */
-static void Get_SerialNum(void)
-{
  8014484:	b580      	push	{r7, lr}
  8014486:	b084      	sub	sp, #16
  8014488:	af00      	add	r7, sp, #0
-  uint32_t deviceserial0;
-  uint32_t deviceserial1;
-  uint32_t deviceserial2;
-
-  deviceserial0 = *(uint32_t *) DEVICE_ID1;
  801448a:	4b0f      	ldr	r3, [pc, #60]	@ (80144c8 <Get_SerialNum+0x44>)
  801448c:	681b      	ldr	r3, [r3, #0]
  801448e:	60fb      	str	r3, [r7, #12]
-  deviceserial1 = *(uint32_t *) DEVICE_ID2;
  8014490:	4b0e      	ldr	r3, [pc, #56]	@ (80144cc <Get_SerialNum+0x48>)
  8014492:	681b      	ldr	r3, [r3, #0]
  8014494:	60bb      	str	r3, [r7, #8]
-  deviceserial2 = *(uint32_t *) DEVICE_ID3;
  8014496:	4b0e      	ldr	r3, [pc, #56]	@ (80144d0 <Get_SerialNum+0x4c>)
  8014498:	681b      	ldr	r3, [r3, #0]
  801449a:	607b      	str	r3, [r7, #4]
-
-  deviceserial0 += deviceserial2;
  801449c:	68fa      	ldr	r2, [r7, #12]
  801449e:	687b      	ldr	r3, [r7, #4]
  80144a0:	4413      	add	r3, r2
  80144a2:	60fb      	str	r3, [r7, #12]
-
-  if (deviceserial0 != 0)
  80144a4:	68fb      	ldr	r3, [r7, #12]
  80144a6:	2b00      	cmp	r3, #0
  80144a8:	d009      	beq.n	80144be <Get_SerialNum+0x3a>
-  {
-    IntToUnicode(deviceserial0, &USBD_StringSerial[2], 8);
  80144aa:	2208      	movs	r2, #8
  80144ac:	4909      	ldr	r1, [pc, #36]	@ (80144d4 <Get_SerialNum+0x50>)
  80144ae:	68f8      	ldr	r0, [r7, #12]
  80144b0:	f000 f814 	bl	80144dc <IntToUnicode>
-    IntToUnicode(deviceserial1, &USBD_StringSerial[18], 4);
  80144b4:	2204      	movs	r2, #4
  80144b6:	4908      	ldr	r1, [pc, #32]	@ (80144d8 <Get_SerialNum+0x54>)
  80144b8:	68b8      	ldr	r0, [r7, #8]
  80144ba:	f000 f80f 	bl	80144dc <IntToUnicode>
-  }
-}
  80144be:	bf00      	nop
  80144c0:	3710      	adds	r7, #16
  80144c2:	46bd      	mov	sp, r7
@@ -51182,12 +50100,6 @@ static void Get_SerialNum(void)
  80144d8:	2400012a 	.word	0x2400012a
 
 080144dc <IntToUnicode>:
-  * @param  pbuf: pointer to the buffer
-  * @param  len: buffer length
-  * @retval None
-  */
-static void IntToUnicode(uint32_t value, uint8_t * pbuf, uint8_t len)
-{
  80144dc:	b480      	push	{r7}
  80144de:	b087      	sub	sp, #28
  80144e0:	af00      	add	r7, sp, #0
@@ -51195,22 +50107,15 @@ static void IntToUnicode(uint32_t value, uint8_t * pbuf, uint8_t len)
  80144e4:	60b9      	str	r1, [r7, #8]
  80144e6:	4613      	mov	r3, r2
  80144e8:	71fb      	strb	r3, [r7, #7]
-  uint8_t idx = 0;
  80144ea:	2300      	movs	r3, #0
  80144ec:	75fb      	strb	r3, [r7, #23]
-
-  for (idx = 0; idx < len; idx++)
  80144ee:	2300      	movs	r3, #0
  80144f0:	75fb      	strb	r3, [r7, #23]
  80144f2:	e027      	b.n	8014544 <IntToUnicode+0x68>
-  {
-    if (((value >> 28)) < 0xA)
  80144f4:	68fb      	ldr	r3, [r7, #12]
  80144f6:	0f1b      	lsrs	r3, r3, #28
  80144f8:	2b09      	cmp	r3, #9
  80144fa:	d80b      	bhi.n	8014514 <IntToUnicode+0x38>
-    {
-      pbuf[2 * idx] = (value >> 28) + '0';
  80144fc:	68fb      	ldr	r3, [r7, #12]
  80144fe:	0f1b      	lsrs	r3, r3, #28
  8014500:	b2da      	uxtb	r2, r3
@@ -51223,10 +50128,6 @@ static void IntToUnicode(uint32_t value, uint8_t * pbuf, uint8_t len)
  801450e:	b2d2      	uxtb	r2, r2
  8014510:	701a      	strb	r2, [r3, #0]
  8014512:	e00a      	b.n	801452a <IntToUnicode+0x4e>
-    }
-    else
-    {
-      pbuf[2 * idx] = (value >> 28) + 'A' - 10;
  8014514:	68fb      	ldr	r3, [r7, #12]
  8014516:	0f1b      	lsrs	r3, r3, #28
  8014518:	b2da      	uxtb	r2, r3
@@ -51238,14 +50139,9 @@ static void IntToUnicode(uint32_t value, uint8_t * pbuf, uint8_t len)
  8014524:	3237      	adds	r2, #55	@ 0x37
  8014526:	b2d2      	uxtb	r2, r2
  8014528:	701a      	strb	r2, [r3, #0]
-    }
-
-    value = value << 4;
  801452a:	68fb      	ldr	r3, [r7, #12]
  801452c:	011b      	lsls	r3, r3, #4
  801452e:	60fb      	str	r3, [r7, #12]
-
-    pbuf[2 * idx + 1] = 0;
  8014530:	7dfb      	ldrb	r3, [r7, #23]
  8014532:	005b      	lsls	r3, r3, #1
  8014534:	3301      	adds	r3, #1
@@ -51253,7 +50149,6 @@ static void IntToUnicode(uint32_t value, uint8_t * pbuf, uint8_t len)
  8014538:	4413      	add	r3, r2
  801453a:	2200      	movs	r2, #0
  801453c:	701a      	strb	r2, [r3, #0]
-  for (idx = 0; idx < len; idx++)
  801453e:	7dfb      	ldrb	r3, [r7, #23]
  8014540:	3301      	adds	r3, #1
  8014542:	75fb      	strb	r3, [r7, #23]
@@ -51261,8 +50156,6 @@ static void IntToUnicode(uint32_t value, uint8_t * pbuf, uint8_t len)
  8014546:	79fb      	ldrb	r3, [r7, #7]
  8014548:	429a      	cmp	r2, r3
  801454a:	d3d3      	bcc.n	80144f4 <IntToUnicode+0x18>
-  }
-}
  801454c:	bf00      	nop
  801454e:	bf00      	nop
  8014550:	371c      	adds	r7, #28
@@ -51272,17 +50165,10 @@ static void IntToUnicode(uint32_t value, uint8_t * pbuf, uint8_t len)
 	...
 
 0801455c <HAL_PCD_MspInit>:
-                       LL Driver Callbacks (PCD -> USB Device Library)
-*******************************************************************************/
-/* MSP Init */
-
-void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
-{
  801455c:	b580      	push	{r7, lr}
  801455e:	b0ba      	sub	sp, #232	@ 0xe8
  8014560:	af00      	add	r7, sp, #0
  8014562:	6078      	str	r0, [r7, #4]
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
  8014564:	f107 03d4 	add.w	r3, r7, #212	@ 0xd4
  8014568:	2200      	movs	r2, #0
  801456a:	601a      	str	r2, [r3, #0]
@@ -51290,48 +50176,29 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
  801456e:	609a      	str	r2, [r3, #8]
  8014570:	60da      	str	r2, [r3, #12]
  8014572:	611a      	str	r2, [r3, #16]
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
  8014574:	f107 0310 	add.w	r3, r7, #16
  8014578:	22c0      	movs	r2, #192	@ 0xc0
  801457a:	2100      	movs	r1, #0
  801457c:	4618      	mov	r0, r3
  801457e:	f001 fc81 	bl	8015e84 <memset>
-  if(pcdHandle->Instance==USB_OTG_FS)
  8014582:	687b      	ldr	r3, [r7, #4]
  8014584:	681b      	ldr	r3, [r3, #0]
  8014586:	4a2c      	ldr	r2, [pc, #176]	@ (8014638 <HAL_PCD_MspInit+0xdc>)
  8014588:	4293      	cmp	r3, r2
  801458a:	d151      	bne.n	8014630 <HAL_PCD_MspInit+0xd4>
-
-  /* USER CODE END USB_OTG_FS_MspInit 0 */
-
-  /** Initializes the peripherals clock
-  */
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USB;
  801458c:	f44f 2280 	mov.w	r2, #262144	@ 0x40000
  8014590:	f04f 0300 	mov.w	r3, #0
  8014594:	e9c7 2304 	strd	r2, r3, [r7, #16]
-    PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
  8014598:	f44f 1340 	mov.w	r3, #3145728	@ 0x300000
  801459c:	f8c7 3098 	str.w	r3, [r7, #152]	@ 0x98
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
  80145a0:	f107 0310 	add.w	r3, r7, #16
  80145a4:	4618      	mov	r0, r3
  80145a6:	f7f5 fb57 	bl	8009c58 <HAL_RCCEx_PeriphCLKConfig>
  80145aa:	4603      	mov	r3, r0
  80145ac:	2b00      	cmp	r3, #0
  80145ae:	d001      	beq.n	80145b4 <HAL_PCD_MspInit+0x58>
-    {
-      Error_Handler();
  80145b0:	f7f0 fdd4 	bl	800515c <Error_Handler>
-    }
-
-  /** Enable USB Voltage detector
-  */
-    HAL_PWREx_EnableUSBVoltageDetector();
  80145b4:	f7f4 fb70 	bl	8008c98 <HAL_PWREx_EnableUSBVoltageDetector>
-
-    __HAL_RCC_GPIOA_CLK_ENABLE();
  80145b8:	4b20      	ldr	r3, [pc, #128]	@ (801463c <HAL_PCD_MspInit+0xe0>)
  80145ba:	f8d3 30e0 	ldr.w	r3, [r3, #224]	@ 0xe0
  80145be:	4a1f      	ldr	r2, [pc, #124]	@ (801463c <HAL_PCD_MspInit+0xe0>)
@@ -51342,33 +50209,20 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
  80145ce:	f003 0301 	and.w	r3, r3, #1
  80145d2:	60fb      	str	r3, [r7, #12]
  80145d4:	68fb      	ldr	r3, [r7, #12]
-    /**USB_OTG_FS GPIO Configuration
-    PA11     ------> USB_OTG_FS_DM
-    PA12     ------> USB_OTG_FS_DP
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12;
  80145d6:	f44f 53c0 	mov.w	r3, #6144	@ 0x1800
  80145da:	f8c7 30d4 	str.w	r3, [r7, #212]	@ 0xd4
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
  80145de:	2302      	movs	r3, #2
  80145e0:	f8c7 30d8 	str.w	r3, [r7, #216]	@ 0xd8
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
  80145e4:	2300      	movs	r3, #0
  80145e6:	f8c7 30dc 	str.w	r3, [r7, #220]	@ 0xdc
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
  80145ea:	2300      	movs	r3, #0
  80145ec:	f8c7 30e0 	str.w	r3, [r7, #224]	@ 0xe0
-    GPIO_InitStruct.Alternate = GPIO_AF10_OTG1_FS;
  80145f0:	230a      	movs	r3, #10
  80145f2:	f8c7 30e4 	str.w	r3, [r7, #228]	@ 0xe4
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
  80145f6:	f107 03d4 	add.w	r3, r7, #212	@ 0xd4
  80145fa:	4619      	mov	r1, r3
  80145fc:	4810      	ldr	r0, [pc, #64]	@ (8014640 <HAL_PCD_MspInit+0xe4>)
  80145fe:	f7f2 fe55 	bl	80072ac <HAL_GPIO_Init>
-
-    /* Peripheral clock enable */
-    __HAL_RCC_USB_OTG_FS_CLK_ENABLE();
  8014602:	4b0e      	ldr	r3, [pc, #56]	@ (801463c <HAL_PCD_MspInit+0xe0>)
  8014604:	f8d3 30d8 	ldr.w	r3, [r3, #216]	@ 0xd8
  8014608:	4a0c      	ldr	r2, [pc, #48]	@ (801463c <HAL_PCD_MspInit+0xe0>)
@@ -51379,21 +50233,12 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
  8014618:	f003 6300 	and.w	r3, r3, #134217728	@ 0x8000000
  801461c:	60bb      	str	r3, [r7, #8]
  801461e:	68bb      	ldr	r3, [r7, #8]
-
-    /* Peripheral interrupt init */
-    HAL_NVIC_SetPriority(OTG_FS_IRQn, 0, 0);
  8014620:	2200      	movs	r2, #0
  8014622:	2100      	movs	r1, #0
  8014624:	2065      	movs	r0, #101	@ 0x65
  8014626:	f7f1 fc06 	bl	8005e36 <HAL_NVIC_SetPriority>
-    HAL_NVIC_EnableIRQ(OTG_FS_IRQn);
  801462a:	2065      	movs	r0, #101	@ 0x65
  801462c:	f7f1 fc1d 	bl	8005e6a <HAL_NVIC_EnableIRQ>
-  /* USER CODE BEGIN USB_OTG_FS_MspInit 1 */
-
-  /* USER CODE END USB_OTG_FS_MspInit 1 */
-  }
-}
  8014630:	bf00      	nop
  8014632:	37e8      	adds	r7, #232	@ 0xe8
  8014634:	46bd      	mov	sp, r7
@@ -51403,17 +50248,10 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
  8014640:	58020000 	.word	0x58020000
 
 08014644 <HAL_PCD_SetupStageCallback>:
-#if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)
-static void PCD_SetupStageCallback(PCD_HandleTypeDef *hpcd)
-#else
-void HAL_PCD_SetupStageCallback(PCD_HandleTypeDef *hpcd)
-#endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
-{
  8014644:	b580      	push	{r7, lr}
  8014646:	b082      	sub	sp, #8
  8014648:	af00      	add	r7, sp, #0
  801464a:	6078      	str	r0, [r7, #4]
-  USBD_LL_SetupStage((USBD_HandleTypeDef*)hpcd->pData, (uint8_t *)hpcd->Setup);
  801464c:	687b      	ldr	r3, [r7, #4]
  801464e:	f8d3 24e0 	ldr.w	r2, [r3, #1248]	@ 0x4e0
  8014652:	687b      	ldr	r3, [r7, #4]
@@ -51421,26 +50259,18 @@ void HAL_PCD_SetupStageCallback(PCD_HandleTypeDef *hpcd)
  8014658:	4619      	mov	r1, r3
  801465a:	4610      	mov	r0, r2
  801465c:	f7fe faa1 	bl	8012ba2 <USBD_LL_SetupStage>
-}
  8014660:	bf00      	nop
  8014662:	3708      	adds	r7, #8
  8014664:	46bd      	mov	sp, r7
  8014666:	bd80      	pop	{r7, pc}
 
 08014668 <HAL_PCD_DataOutStageCallback>:
-#if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)
-static void PCD_DataOutStageCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum)
-#else
-void HAL_PCD_DataOutStageCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum)
-#endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
-{
  8014668:	b580      	push	{r7, lr}
  801466a:	b082      	sub	sp, #8
  801466c:	af00      	add	r7, sp, #0
  801466e:	6078      	str	r0, [r7, #4]
  8014670:	460b      	mov	r3, r1
  8014672:	70fb      	strb	r3, [r7, #3]
-  USBD_LL_DataOutStage((USBD_HandleTypeDef*)hpcd->pData, epnum, hpcd->OUT_ep[epnum].xfer_buff);
  8014674:	687b      	ldr	r3, [r7, #4]
  8014676:	f8d3 04e0 	ldr.w	r0, [r3, #1248]	@ 0x4e0
  801467a:	78fa      	ldrb	r2, [r7, #3]
@@ -51455,26 +50285,18 @@ void HAL_PCD_DataOutStageCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum)
  801468e:	78fb      	ldrb	r3, [r7, #3]
  8014690:	4619      	mov	r1, r3
  8014692:	f7fe fadb 	bl	8012c4c <USBD_LL_DataOutStage>
-}
  8014696:	bf00      	nop
  8014698:	3708      	adds	r7, #8
  801469a:	46bd      	mov	sp, r7
  801469c:	bd80      	pop	{r7, pc}
 
 0801469e <HAL_PCD_DataInStageCallback>:
-#if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)
-static void PCD_DataInStageCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum)
-#else
-void HAL_PCD_DataInStageCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum)
-#endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
-{
  801469e:	b580      	push	{r7, lr}
  80146a0:	b082      	sub	sp, #8
  80146a2:	af00      	add	r7, sp, #0
  80146a4:	6078      	str	r0, [r7, #4]
  80146a6:	460b      	mov	r3, r1
  80146a8:	70fb      	strb	r3, [r7, #3]
-  USBD_LL_DataInStage((USBD_HandleTypeDef*)hpcd->pData, epnum, hpcd->IN_ep[epnum].xfer_buff);
  80146aa:	687b      	ldr	r3, [r7, #4]
  80146ac:	f8d3 04e0 	ldr.w	r0, [r3, #1248]	@ 0x4e0
  80146b0:	78fa      	ldrb	r2, [r7, #3]
@@ -51489,92 +50311,57 @@ void HAL_PCD_DataInStageCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum)
  80146c2:	78fb      	ldrb	r3, [r7, #3]
  80146c4:	4619      	mov	r1, r3
  80146c6:	f7fe fb74 	bl	8012db2 <USBD_LL_DataInStage>
-}
  80146ca:	bf00      	nop
  80146cc:	3708      	adds	r7, #8
  80146ce:	46bd      	mov	sp, r7
  80146d0:	bd80      	pop	{r7, pc}
 
 080146d2 <HAL_PCD_SOFCallback>:
-#if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)
-static void PCD_SOFCallback(PCD_HandleTypeDef *hpcd)
-#else
-void HAL_PCD_SOFCallback(PCD_HandleTypeDef *hpcd)
-#endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
-{
  80146d2:	b580      	push	{r7, lr}
  80146d4:	b082      	sub	sp, #8
  80146d6:	af00      	add	r7, sp, #0
  80146d8:	6078      	str	r0, [r7, #4]
-  USBD_LL_SOF((USBD_HandleTypeDef*)hpcd->pData);
  80146da:	687b      	ldr	r3, [r7, #4]
  80146dc:	f8d3 34e0 	ldr.w	r3, [r3, #1248]	@ 0x4e0
  80146e0:	4618      	mov	r0, r3
  80146e2:	f7fe fcae 	bl	8013042 <USBD_LL_SOF>
-}
  80146e6:	bf00      	nop
  80146e8:	3708      	adds	r7, #8
  80146ea:	46bd      	mov	sp, r7
  80146ec:	bd80      	pop	{r7, pc}
 
 080146ee <HAL_PCD_ResetCallback>:
-#if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)
-static void PCD_ResetCallback(PCD_HandleTypeDef *hpcd)
-#else
-void HAL_PCD_ResetCallback(PCD_HandleTypeDef *hpcd)
-#endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
-{
  80146ee:	b580      	push	{r7, lr}
  80146f0:	b084      	sub	sp, #16
  80146f2:	af00      	add	r7, sp, #0
  80146f4:	6078      	str	r0, [r7, #4]
-  USBD_SpeedTypeDef speed = USBD_SPEED_FULL;
  80146f6:	2301      	movs	r3, #1
  80146f8:	73fb      	strb	r3, [r7, #15]
-
-  if ( hpcd->Init.speed == PCD_SPEED_HIGH)
  80146fa:	687b      	ldr	r3, [r7, #4]
  80146fc:	79db      	ldrb	r3, [r3, #7]
  80146fe:	2b00      	cmp	r3, #0
  8014700:	d102      	bne.n	8014708 <HAL_PCD_ResetCallback+0x1a>
-  {
-    speed = USBD_SPEED_HIGH;
  8014702:	2300      	movs	r3, #0
  8014704:	73fb      	strb	r3, [r7, #15]
  8014706:	e008      	b.n	801471a <HAL_PCD_ResetCallback+0x2c>
-  }
-  else if ( hpcd->Init.speed == PCD_SPEED_FULL)
  8014708:	687b      	ldr	r3, [r7, #4]
  801470a:	79db      	ldrb	r3, [r3, #7]
  801470c:	2b02      	cmp	r3, #2
  801470e:	d102      	bne.n	8014716 <HAL_PCD_ResetCallback+0x28>
-  {
-    speed = USBD_SPEED_FULL;
  8014710:	2301      	movs	r3, #1
  8014712:	73fb      	strb	r3, [r7, #15]
  8014714:	e001      	b.n	801471a <HAL_PCD_ResetCallback+0x2c>
-  }
-  else
-  {
-    Error_Handler();
  8014716:	f7f0 fd21 	bl	800515c <Error_Handler>
-  }
-    /* Set Speed. */
-  USBD_LL_SetSpeed((USBD_HandleTypeDef*)hpcd->pData, speed);
  801471a:	687b      	ldr	r3, [r7, #4]
  801471c:	f8d3 34e0 	ldr.w	r3, [r3, #1248]	@ 0x4e0
  8014720:	7bfa      	ldrb	r2, [r7, #15]
  8014722:	4611      	mov	r1, r2
  8014724:	4618      	mov	r0, r3
  8014726:	f7fe fc48 	bl	8012fba <USBD_LL_SetSpeed>
-
-  /* Reset Device. */
-  USBD_LL_Reset((USBD_HandleTypeDef*)hpcd->pData);
  801472a:	687b      	ldr	r3, [r7, #4]
  801472c:	f8d3 34e0 	ldr.w	r3, [r3, #1248]	@ 0x4e0
  8014730:	4618      	mov	r0, r3
  8014732:	f7fe fbf0 	bl	8012f16 <USBD_LL_Reset>
-}
  8014736:	bf00      	nop
  8014738:	3710      	adds	r7, #16
  801473a:	46bd      	mov	sp, r7
@@ -51582,23 +50369,14 @@ void HAL_PCD_ResetCallback(PCD_HandleTypeDef *hpcd)
 	...
 
 08014740 <HAL_PCD_SuspendCallback>:
-#if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)
-static void PCD_SuspendCallback(PCD_HandleTypeDef *hpcd)
-#else
-void HAL_PCD_SuspendCallback(PCD_HandleTypeDef *hpcd)
-#endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
-{
  8014740:	b580      	push	{r7, lr}
  8014742:	b082      	sub	sp, #8
  8014744:	af00      	add	r7, sp, #0
  8014746:	6078      	str	r0, [r7, #4]
-  /* Inform USB library that core enters in suspend Mode. */
-  USBD_LL_Suspend((USBD_HandleTypeDef*)hpcd->pData);
  8014748:	687b      	ldr	r3, [r7, #4]
  801474a:	f8d3 34e0 	ldr.w	r3, [r3, #1248]	@ 0x4e0
  801474e:	4618      	mov	r0, r3
  8014750:	f7fe fc43 	bl	8012fda <USBD_LL_Suspend>
-  __HAL_PCD_GATE_PHYCLOCK(hpcd);
  8014754:	687b      	ldr	r3, [r7, #4]
  8014756:	681b      	ldr	r3, [r3, #0]
  8014758:	f503 6360 	add.w	r3, r3, #3584	@ 0xe00
@@ -51608,24 +50386,15 @@ void HAL_PCD_SuspendCallback(PCD_HandleTypeDef *hpcd)
  8014762:	f502 6260 	add.w	r2, r2, #3584	@ 0xe00
  8014766:	f043 0301 	orr.w	r3, r3, #1
  801476a:	6013      	str	r3, [r2, #0]
-  /* Enter in STOP mode. */
-  /* USER CODE BEGIN 2 */
-  if (hpcd->Init.low_power_enable)
  801476c:	687b      	ldr	r3, [r7, #4]
  801476e:	7adb      	ldrb	r3, [r3, #11]
  8014770:	2b00      	cmp	r3, #0
  8014772:	d005      	beq.n	8014780 <HAL_PCD_SuspendCallback+0x40>
-  {
-    /* Set SLEEPDEEP bit and SleepOnExit of Cortex System Control Register. */
-    SCB->SCR |= (uint32_t)((uint32_t)(SCB_SCR_SLEEPDEEP_Msk | SCB_SCR_SLEEPONEXIT_Msk));
  8014774:	4b04      	ldr	r3, [pc, #16]	@ (8014788 <HAL_PCD_SuspendCallback+0x48>)
  8014776:	691b      	ldr	r3, [r3, #16]
  8014778:	4a03      	ldr	r2, [pc, #12]	@ (8014788 <HAL_PCD_SuspendCallback+0x48>)
  801477a:	f043 0306 	orr.w	r3, r3, #6
  801477e:	6113      	str	r3, [r2, #16]
-  }
-  /* USER CODE END 2 */
-}
  8014780:	bf00      	nop
  8014782:	3708      	adds	r7, #8
  8014784:	46bd      	mov	sp, r7
@@ -51633,230 +50402,149 @@ void HAL_PCD_SuspendCallback(PCD_HandleTypeDef *hpcd)
  8014788:	e000ed00 	.word	0xe000ed00
 
 0801478c <HAL_PCD_ResumeCallback>:
-#if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)
-static void PCD_ResumeCallback(PCD_HandleTypeDef *hpcd)
-#else
-void HAL_PCD_ResumeCallback(PCD_HandleTypeDef *hpcd)
-#endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
-{
  801478c:	b580      	push	{r7, lr}
  801478e:	b082      	sub	sp, #8
  8014790:	af00      	add	r7, sp, #0
  8014792:	6078      	str	r0, [r7, #4]
-  /* USER CODE BEGIN 3 */
-
-  /* USER CODE END 3 */
-  USBD_LL_Resume((USBD_HandleTypeDef*)hpcd->pData);
  8014794:	687b      	ldr	r3, [r7, #4]
  8014796:	f8d3 34e0 	ldr.w	r3, [r3, #1248]	@ 0x4e0
  801479a:	4618      	mov	r0, r3
  801479c:	f7fe fc39 	bl	8013012 <USBD_LL_Resume>
-}
  80147a0:	bf00      	nop
  80147a2:	3708      	adds	r7, #8
  80147a4:	46bd      	mov	sp, r7
  80147a6:	bd80      	pop	{r7, pc}
 
 080147a8 <HAL_PCD_ISOOUTIncompleteCallback>:
-#if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)
-static void PCD_ISOOUTIncompleteCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum)
-#else
-void HAL_PCD_ISOOUTIncompleteCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum)
-#endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
-{
  80147a8:	b580      	push	{r7, lr}
  80147aa:	b082      	sub	sp, #8
  80147ac:	af00      	add	r7, sp, #0
  80147ae:	6078      	str	r0, [r7, #4]
  80147b0:	460b      	mov	r3, r1
  80147b2:	70fb      	strb	r3, [r7, #3]
-  USBD_LL_IsoOUTIncomplete((USBD_HandleTypeDef*)hpcd->pData, epnum);
  80147b4:	687b      	ldr	r3, [r7, #4]
  80147b6:	f8d3 34e0 	ldr.w	r3, [r3, #1248]	@ 0x4e0
  80147ba:	78fa      	ldrb	r2, [r7, #3]
  80147bc:	4611      	mov	r1, r2
  80147be:	4618      	mov	r0, r3
  80147c0:	f7fe fc91 	bl	80130e6 <USBD_LL_IsoOUTIncomplete>
-}
  80147c4:	bf00      	nop
  80147c6:	3708      	adds	r7, #8
  80147c8:	46bd      	mov	sp, r7
  80147ca:	bd80      	pop	{r7, pc}
 
 080147cc <HAL_PCD_ISOINIncompleteCallback>:
-#if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)
-static void PCD_ISOINIncompleteCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum)
-#else
-void HAL_PCD_ISOINIncompleteCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum)
-#endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
-{
  80147cc:	b580      	push	{r7, lr}
  80147ce:	b082      	sub	sp, #8
  80147d0:	af00      	add	r7, sp, #0
  80147d2:	6078      	str	r0, [r7, #4]
  80147d4:	460b      	mov	r3, r1
  80147d6:	70fb      	strb	r3, [r7, #3]
-  USBD_LL_IsoINIncomplete((USBD_HandleTypeDef*)hpcd->pData, epnum);
  80147d8:	687b      	ldr	r3, [r7, #4]
  80147da:	f8d3 34e0 	ldr.w	r3, [r3, #1248]	@ 0x4e0
  80147de:	78fa      	ldrb	r2, [r7, #3]
  80147e0:	4611      	mov	r1, r2
  80147e2:	4618      	mov	r0, r3
  80147e4:	f7fe fc4d 	bl	8013082 <USBD_LL_IsoINIncomplete>
-}
  80147e8:	bf00      	nop
  80147ea:	3708      	adds	r7, #8
  80147ec:	46bd      	mov	sp, r7
  80147ee:	bd80      	pop	{r7, pc}
 
 080147f0 <HAL_PCD_ConnectCallback>:
-#if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)
-static void PCD_ConnectCallback(PCD_HandleTypeDef *hpcd)
-#else
-void HAL_PCD_ConnectCallback(PCD_HandleTypeDef *hpcd)
-#endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
-{
  80147f0:	b580      	push	{r7, lr}
  80147f2:	b082      	sub	sp, #8
  80147f4:	af00      	add	r7, sp, #0
  80147f6:	6078      	str	r0, [r7, #4]
-  USBD_LL_DevConnected((USBD_HandleTypeDef*)hpcd->pData);
  80147f8:	687b      	ldr	r3, [r7, #4]
  80147fa:	f8d3 34e0 	ldr.w	r3, [r3, #1248]	@ 0x4e0
  80147fe:	4618      	mov	r0, r3
  8014800:	f7fe fca3 	bl	801314a <USBD_LL_DevConnected>
-}
  8014804:	bf00      	nop
  8014806:	3708      	adds	r7, #8
  8014808:	46bd      	mov	sp, r7
  801480a:	bd80      	pop	{r7, pc}
 
 0801480c <HAL_PCD_DisconnectCallback>:
-#if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)
-static void PCD_DisconnectCallback(PCD_HandleTypeDef *hpcd)
-#else
-void HAL_PCD_DisconnectCallback(PCD_HandleTypeDef *hpcd)
-#endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
-{
  801480c:	b580      	push	{r7, lr}
  801480e:	b082      	sub	sp, #8
  8014810:	af00      	add	r7, sp, #0
  8014812:	6078      	str	r0, [r7, #4]
-  USBD_LL_DevDisconnected((USBD_HandleTypeDef*)hpcd->pData);
  8014814:	687b      	ldr	r3, [r7, #4]
  8014816:	f8d3 34e0 	ldr.w	r3, [r3, #1248]	@ 0x4e0
  801481a:	4618      	mov	r0, r3
  801481c:	f7fe fca0 	bl	8013160 <USBD_LL_DevDisconnected>
-}
  8014820:	bf00      	nop
  8014822:	3708      	adds	r7, #8
  8014824:	46bd      	mov	sp, r7
  8014826:	bd80      	pop	{r7, pc}
 
 08014828 <USBD_LL_Init>:
-  * @brief  Initializes the low level portion of the device driver.
-  * @param  pdev: Device handle
-  * @retval USBD status
-  */
-USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
-{
  8014828:	b580      	push	{r7, lr}
  801482a:	b082      	sub	sp, #8
  801482c:	af00      	add	r7, sp, #0
  801482e:	6078      	str	r0, [r7, #4]
-  /* Init USB Ip. */
-  if (pdev->id == DEVICE_FS) {
  8014830:	687b      	ldr	r3, [r7, #4]
  8014832:	781b      	ldrb	r3, [r3, #0]
  8014834:	2b00      	cmp	r3, #0
  8014836:	d13e      	bne.n	80148b6 <USBD_LL_Init+0x8e>
-  /* Link the driver to the stack. */
-  hpcd_USB_OTG_FS.pData = pdev;
  8014838:	4a21      	ldr	r2, [pc, #132]	@ (80148c0 <USBD_LL_Init+0x98>)
  801483a:	687b      	ldr	r3, [r7, #4]
  801483c:	f8c2 34e0 	str.w	r3, [r2, #1248]	@ 0x4e0
-  pdev->pData = &hpcd_USB_OTG_FS;
  8014840:	687b      	ldr	r3, [r7, #4]
  8014842:	4a1f      	ldr	r2, [pc, #124]	@ (80148c0 <USBD_LL_Init+0x98>)
  8014844:	f8c3 22c8 	str.w	r2, [r3, #712]	@ 0x2c8
-
-  hpcd_USB_OTG_FS.Instance = USB_OTG_FS;
  8014848:	4b1d      	ldr	r3, [pc, #116]	@ (80148c0 <USBD_LL_Init+0x98>)
  801484a:	4a1e      	ldr	r2, [pc, #120]	@ (80148c4 <USBD_LL_Init+0x9c>)
  801484c:	601a      	str	r2, [r3, #0]
-  hpcd_USB_OTG_FS.Init.dev_endpoints = 9;
  801484e:	4b1c      	ldr	r3, [pc, #112]	@ (80148c0 <USBD_LL_Init+0x98>)
  8014850:	2209      	movs	r2, #9
  8014852:	711a      	strb	r2, [r3, #4]
-  hpcd_USB_OTG_FS.Init.speed = PCD_SPEED_FULL;
  8014854:	4b1a      	ldr	r3, [pc, #104]	@ (80148c0 <USBD_LL_Init+0x98>)
  8014856:	2202      	movs	r2, #2
  8014858:	71da      	strb	r2, [r3, #7]
-  hpcd_USB_OTG_FS.Init.dma_enable = DISABLE;
  801485a:	4b19      	ldr	r3, [pc, #100]	@ (80148c0 <USBD_LL_Init+0x98>)
  801485c:	2200      	movs	r2, #0
  801485e:	719a      	strb	r2, [r3, #6]
-  hpcd_USB_OTG_FS.Init.phy_itface = PCD_PHY_EMBEDDED;
  8014860:	4b17      	ldr	r3, [pc, #92]	@ (80148c0 <USBD_LL_Init+0x98>)
  8014862:	2202      	movs	r2, #2
  8014864:	725a      	strb	r2, [r3, #9]
-  hpcd_USB_OTG_FS.Init.Sof_enable = DISABLE;
  8014866:	4b16      	ldr	r3, [pc, #88]	@ (80148c0 <USBD_LL_Init+0x98>)
  8014868:	2200      	movs	r2, #0
  801486a:	729a      	strb	r2, [r3, #10]
-  hpcd_USB_OTG_FS.Init.low_power_enable = DISABLE;
  801486c:	4b14      	ldr	r3, [pc, #80]	@ (80148c0 <USBD_LL_Init+0x98>)
  801486e:	2200      	movs	r2, #0
  8014870:	72da      	strb	r2, [r3, #11]
-  hpcd_USB_OTG_FS.Init.lpm_enable = DISABLE;
  8014872:	4b13      	ldr	r3, [pc, #76]	@ (80148c0 <USBD_LL_Init+0x98>)
  8014874:	2200      	movs	r2, #0
  8014876:	731a      	strb	r2, [r3, #12]
-  hpcd_USB_OTG_FS.Init.battery_charging_enable = DISABLE;
  8014878:	4b11      	ldr	r3, [pc, #68]	@ (80148c0 <USBD_LL_Init+0x98>)
  801487a:	2200      	movs	r2, #0
  801487c:	735a      	strb	r2, [r3, #13]
-  hpcd_USB_OTG_FS.Init.vbus_sensing_enable = DISABLE;
  801487e:	4b10      	ldr	r3, [pc, #64]	@ (80148c0 <USBD_LL_Init+0x98>)
  8014880:	2200      	movs	r2, #0
  8014882:	739a      	strb	r2, [r3, #14]
-  hpcd_USB_OTG_FS.Init.use_dedicated_ep1 = DISABLE;
  8014884:	4b0e      	ldr	r3, [pc, #56]	@ (80148c0 <USBD_LL_Init+0x98>)
  8014886:	2200      	movs	r2, #0
  8014888:	73da      	strb	r2, [r3, #15]
-  if (HAL_PCD_Init(&hpcd_USB_OTG_FS) != HAL_OK)
  801488a:	480d      	ldr	r0, [pc, #52]	@ (80148c0 <USBD_LL_Init+0x98>)
  801488c:	f7f2 ff09 	bl	80076a2 <HAL_PCD_Init>
  8014890:	4603      	mov	r3, r0
  8014892:	2b00      	cmp	r3, #0
  8014894:	d001      	beq.n	801489a <USBD_LL_Init+0x72>
-  {
-    Error_Handler( );
  8014896:	f7f0 fc61 	bl	800515c <Error_Handler>
-  HAL_PCD_RegisterDataInStageCallback(&hpcd_USB_OTG_FS, PCD_DataInStageCallback);
-  HAL_PCD_RegisterIsoOutIncpltCallback(&hpcd_USB_OTG_FS, PCD_ISOOUTIncompleteCallback);
-  HAL_PCD_RegisterIsoInIncpltCallback(&hpcd_USB_OTG_FS, PCD_ISOINIncompleteCallback);
-#endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
-  /* USER CODE BEGIN TxRx_Configuration */
-  HAL_PCDEx_SetRxFiFo(&hpcd_USB_OTG_FS, 0x80);
  801489a:	2180      	movs	r1, #128	@ 0x80
  801489c:	4808      	ldr	r0, [pc, #32]	@ (80148c0 <USBD_LL_Init+0x98>)
  801489e:	f7f4 f960 	bl	8008b62 <HAL_PCDEx_SetRxFiFo>
-  HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, 0, 0x40);
  80148a2:	2240      	movs	r2, #64	@ 0x40
  80148a4:	2100      	movs	r1, #0
  80148a6:	4806      	ldr	r0, [pc, #24]	@ (80148c0 <USBD_LL_Init+0x98>)
  80148a8:	f7f4 f914 	bl	8008ad4 <HAL_PCDEx_SetTxFiFo>
-  HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, 1, 0x80);
  80148ac:	2280      	movs	r2, #128	@ 0x80
  80148ae:	2101      	movs	r1, #1
  80148b0:	4803      	ldr	r0, [pc, #12]	@ (80148c0 <USBD_LL_Init+0x98>)
  80148b2:	f7f4 f90f 	bl	8008ad4 <HAL_PCDEx_SetTxFiFo>
-  /* USER CODE END TxRx_Configuration */
-  }
-  return USBD_OK;
  80148b6:	2300      	movs	r3, #0
-}
  80148b8:	4618      	mov	r0, r3
  80148ba:	3708      	adds	r7, #8
  80148bc:	46bd      	mov	sp, r7
@@ -51865,53 +50553,32 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
  80148c4:	40080000 	.word	0x40080000
 
 080148c8 <USBD_LL_Start>:
-  * @brief  Starts the low level portion of the device driver.
-  * @param  pdev: Device handle
-  * @retval USBD status
-  */
-USBD_StatusTypeDef USBD_LL_Start(USBD_HandleTypeDef *pdev)
-{
  80148c8:	b580      	push	{r7, lr}
  80148ca:	b084      	sub	sp, #16
  80148cc:	af00      	add	r7, sp, #0
  80148ce:	6078      	str	r0, [r7, #4]
-  HAL_StatusTypeDef hal_status = HAL_OK;
  80148d0:	2300      	movs	r3, #0
  80148d2:	73fb      	strb	r3, [r7, #15]
-  USBD_StatusTypeDef usb_status = USBD_OK;
  80148d4:	2300      	movs	r3, #0
  80148d6:	73bb      	strb	r3, [r7, #14]
-
-  hal_status = HAL_PCD_Start(pdev->pData);
  80148d8:	687b      	ldr	r3, [r7, #4]
  80148da:	f8d3 32c8 	ldr.w	r3, [r3, #712]	@ 0x2c8
  80148de:	4618      	mov	r0, r3
  80148e0:	f7f2 ffeb 	bl	80078ba <HAL_PCD_Start>
  80148e4:	4603      	mov	r3, r0
  80148e6:	73fb      	strb	r3, [r7, #15]
-
-  usb_status =  USBD_Get_USB_Status(hal_status);
  80148e8:	7bfb      	ldrb	r3, [r7, #15]
  80148ea:	4618      	mov	r0, r3
  80148ec:	f000 f942 	bl	8014b74 <USBD_Get_USB_Status>
  80148f0:	4603      	mov	r3, r0
  80148f2:	73bb      	strb	r3, [r7, #14]
-
-  return usb_status;
  80148f4:	7bbb      	ldrb	r3, [r7, #14]
-}
  80148f6:	4618      	mov	r0, r3
  80148f8:	3710      	adds	r7, #16
  80148fa:	46bd      	mov	sp, r7
  80148fc:	bd80      	pop	{r7, pc}
 
 080148fe <USBD_LL_OpenEP>:
-  * @param  ep_type: Endpoint type
-  * @param  ep_mps: Endpoint max packet size
-  * @retval USBD status
-  */
-USBD_StatusTypeDef USBD_LL_OpenEP(USBD_HandleTypeDef *pdev, uint8_t ep_addr, uint8_t ep_type, uint16_t ep_mps)
-{
  80148fe:	b580      	push	{r7, lr}
  8014900:	b084      	sub	sp, #16
  8014902:	af00      	add	r7, sp, #0
@@ -51925,14 +50592,10 @@ USBD_StatusTypeDef USBD_LL_OpenEP(USBD_HandleTypeDef *pdev, uint8_t ep_addr, uin
  8014912:	70bb      	strb	r3, [r7, #2]
  8014914:	4613      	mov	r3, r2
  8014916:	803b      	strh	r3, [r7, #0]
-  HAL_StatusTypeDef hal_status = HAL_OK;
  8014918:	2300      	movs	r3, #0
  801491a:	73fb      	strb	r3, [r7, #15]
-  USBD_StatusTypeDef usb_status = USBD_OK;
  801491c:	2300      	movs	r3, #0
  801491e:	73bb      	strb	r3, [r7, #14]
-
-  hal_status = HAL_PCD_EP_Open(pdev->pData, ep_addr, ep_mps, ep_type);
  8014920:	687b      	ldr	r3, [r7, #4]
  8014922:	f8d3 02c8 	ldr.w	r0, [r3, #712]	@ 0x2c8
  8014926:	78bb      	ldrb	r3, [r7, #2]
@@ -51941,43 +50604,28 @@ USBD_StatusTypeDef USBD_LL_OpenEP(USBD_HandleTypeDef *pdev, uint8_t ep_addr, uin
  801492c:	f7f3 fcec 	bl	8008308 <HAL_PCD_EP_Open>
  8014930:	4603      	mov	r3, r0
  8014932:	73fb      	strb	r3, [r7, #15]
-
-  usb_status =  USBD_Get_USB_Status(hal_status);
  8014934:	7bfb      	ldrb	r3, [r7, #15]
  8014936:	4618      	mov	r0, r3
  8014938:	f000 f91c 	bl	8014b74 <USBD_Get_USB_Status>
  801493c:	4603      	mov	r3, r0
  801493e:	73bb      	strb	r3, [r7, #14]
-
-  return usb_status;
  8014940:	7bbb      	ldrb	r3, [r7, #14]
-}
  8014942:	4618      	mov	r0, r3
  8014944:	3710      	adds	r7, #16
  8014946:	46bd      	mov	sp, r7
  8014948:	bd80      	pop	{r7, pc}
 
 0801494a <USBD_LL_CloseEP>:
-  * @param  pdev: Device handle
-  * @param  ep_addr: Endpoint number
-  * @retval USBD status
-  */
-USBD_StatusTypeDef USBD_LL_CloseEP(USBD_HandleTypeDef *pdev, uint8_t ep_addr)
-{
  801494a:	b580      	push	{r7, lr}
  801494c:	b084      	sub	sp, #16
  801494e:	af00      	add	r7, sp, #0
  8014950:	6078      	str	r0, [r7, #4]
  8014952:	460b      	mov	r3, r1
  8014954:	70fb      	strb	r3, [r7, #3]
-  HAL_StatusTypeDef hal_status = HAL_OK;
  8014956:	2300      	movs	r3, #0
  8014958:	73fb      	strb	r3, [r7, #15]
-  USBD_StatusTypeDef usb_status = USBD_OK;
  801495a:	2300      	movs	r3, #0
  801495c:	73bb      	strb	r3, [r7, #14]
-
-  hal_status = HAL_PCD_EP_Close(pdev->pData, ep_addr);
  801495e:	687b      	ldr	r3, [r7, #4]
  8014960:	f8d3 32c8 	ldr.w	r3, [r3, #712]	@ 0x2c8
  8014964:	78fa      	ldrb	r2, [r7, #3]
@@ -51986,43 +50634,28 @@ USBD_StatusTypeDef USBD_LL_CloseEP(USBD_HandleTypeDef *pdev, uint8_t ep_addr)
  801496a:	f7f3 fd37 	bl	80083dc <HAL_PCD_EP_Close>
  801496e:	4603      	mov	r3, r0
  8014970:	73fb      	strb	r3, [r7, #15]
-
-  usb_status =  USBD_Get_USB_Status(hal_status);
  8014972:	7bfb      	ldrb	r3, [r7, #15]
  8014974:	4618      	mov	r0, r3
  8014976:	f000 f8fd 	bl	8014b74 <USBD_Get_USB_Status>
  801497a:	4603      	mov	r3, r0
  801497c:	73bb      	strb	r3, [r7, #14]
-
-  return usb_status;
  801497e:	7bbb      	ldrb	r3, [r7, #14]
-}
  8014980:	4618      	mov	r0, r3
  8014982:	3710      	adds	r7, #16
  8014984:	46bd      	mov	sp, r7
  8014986:	bd80      	pop	{r7, pc}
 
 08014988 <USBD_LL_StallEP>:
-  * @param  pdev: Device handle
-  * @param  ep_addr: Endpoint number
-  * @retval USBD status
-  */
-USBD_StatusTypeDef USBD_LL_StallEP(USBD_HandleTypeDef *pdev, uint8_t ep_addr)
-{
  8014988:	b580      	push	{r7, lr}
  801498a:	b084      	sub	sp, #16
  801498c:	af00      	add	r7, sp, #0
  801498e:	6078      	str	r0, [r7, #4]
  8014990:	460b      	mov	r3, r1
  8014992:	70fb      	strb	r3, [r7, #3]
-  HAL_StatusTypeDef hal_status = HAL_OK;
  8014994:	2300      	movs	r3, #0
  8014996:	73fb      	strb	r3, [r7, #15]
-  USBD_StatusTypeDef usb_status = USBD_OK;
  8014998:	2300      	movs	r3, #0
  801499a:	73bb      	strb	r3, [r7, #14]
-
-  hal_status = HAL_PCD_EP_SetStall(pdev->pData, ep_addr);
  801499c:	687b      	ldr	r3, [r7, #4]
  801499e:	f8d3 32c8 	ldr.w	r3, [r3, #712]	@ 0x2c8
  80149a2:	78fa      	ldrb	r2, [r7, #3]
@@ -52031,43 +50664,28 @@ USBD_StatusTypeDef USBD_LL_StallEP(USBD_HandleTypeDef *pdev, uint8_t ep_addr)
  80149a8:	f7f3 fdef 	bl	800858a <HAL_PCD_EP_SetStall>
  80149ac:	4603      	mov	r3, r0
  80149ae:	73fb      	strb	r3, [r7, #15]
-
-  usb_status =  USBD_Get_USB_Status(hal_status);
  80149b0:	7bfb      	ldrb	r3, [r7, #15]
  80149b2:	4618      	mov	r0, r3
  80149b4:	f000 f8de 	bl	8014b74 <USBD_Get_USB_Status>
  80149b8:	4603      	mov	r3, r0
  80149ba:	73bb      	strb	r3, [r7, #14]
-
-  return usb_status;
  80149bc:	7bbb      	ldrb	r3, [r7, #14]
-}
  80149be:	4618      	mov	r0, r3
  80149c0:	3710      	adds	r7, #16
  80149c2:	46bd      	mov	sp, r7
  80149c4:	bd80      	pop	{r7, pc}
 
 080149c6 <USBD_LL_ClearStallEP>:
-  * @param  pdev: Device handle
-  * @param  ep_addr: Endpoint number
-  * @retval USBD status
-  */
-USBD_StatusTypeDef USBD_LL_ClearStallEP(USBD_HandleTypeDef *pdev, uint8_t ep_addr)
-{
  80149c6:	b580      	push	{r7, lr}
  80149c8:	b084      	sub	sp, #16
  80149ca:	af00      	add	r7, sp, #0
  80149cc:	6078      	str	r0, [r7, #4]
  80149ce:	460b      	mov	r3, r1
  80149d0:	70fb      	strb	r3, [r7, #3]
-  HAL_StatusTypeDef hal_status = HAL_OK;
  80149d2:	2300      	movs	r3, #0
  80149d4:	73fb      	strb	r3, [r7, #15]
-  USBD_StatusTypeDef usb_status = USBD_OK;
  80149d6:	2300      	movs	r3, #0
  80149d8:	73bb      	strb	r3, [r7, #14]
-
-  hal_status = HAL_PCD_EP_ClrStall(pdev->pData, ep_addr);
  80149da:	687b      	ldr	r3, [r7, #4]
  80149dc:	f8d3 32c8 	ldr.w	r3, [r3, #712]	@ 0x2c8
  80149e0:	78fa      	ldrb	r2, [r7, #3]
@@ -52076,46 +50694,30 @@ USBD_StatusTypeDef USBD_LL_ClearStallEP(USBD_HandleTypeDef *pdev, uint8_t ep_add
  80149e6:	f7f3 fe33 	bl	8008650 <HAL_PCD_EP_ClrStall>
  80149ea:	4603      	mov	r3, r0
  80149ec:	73fb      	strb	r3, [r7, #15]
-
-  usb_status =  USBD_Get_USB_Status(hal_status);
  80149ee:	7bfb      	ldrb	r3, [r7, #15]
  80149f0:	4618      	mov	r0, r3
  80149f2:	f000 f8bf 	bl	8014b74 <USBD_Get_USB_Status>
  80149f6:	4603      	mov	r3, r0
  80149f8:	73bb      	strb	r3, [r7, #14]
-
-  return usb_status;
  80149fa:	7bbb      	ldrb	r3, [r7, #14]
-}
  80149fc:	4618      	mov	r0, r3
  80149fe:	3710      	adds	r7, #16
  8014a00:	46bd      	mov	sp, r7
  8014a02:	bd80      	pop	{r7, pc}
 
 08014a04 <USBD_LL_IsStallEP>:
-  * @param  pdev: Device handle
-  * @param  ep_addr: Endpoint number
-  * @retval Stall (1: Yes, 0: No)
-  */
-uint8_t USBD_LL_IsStallEP(USBD_HandleTypeDef *pdev, uint8_t ep_addr)
-{
  8014a04:	b480      	push	{r7}
  8014a06:	b085      	sub	sp, #20
  8014a08:	af00      	add	r7, sp, #0
  8014a0a:	6078      	str	r0, [r7, #4]
  8014a0c:	460b      	mov	r3, r1
  8014a0e:	70fb      	strb	r3, [r7, #3]
-  PCD_HandleTypeDef *hpcd = (PCD_HandleTypeDef*) pdev->pData;
  8014a10:	687b      	ldr	r3, [r7, #4]
  8014a12:	f8d3 32c8 	ldr.w	r3, [r3, #712]	@ 0x2c8
  8014a16:	60fb      	str	r3, [r7, #12]
-
-  if((ep_addr & 0x80) == 0x80)
  8014a18:	f997 3003 	ldrsb.w	r3, [r7, #3]
  8014a1c:	2b00      	cmp	r3, #0
  8014a1e:	da0b      	bge.n	8014a38 <USBD_LL_IsStallEP+0x34>
-  {
-    return hpcd->IN_ep[ep_addr & 0x7F].is_stall;
  8014a20:	78fb      	ldrb	r3, [r7, #3]
  8014a22:	f003 027f 	and.w	r2, r3, #127	@ 0x7f
  8014a26:	68f9      	ldr	r1, [r7, #12]
@@ -52127,10 +50729,6 @@ uint8_t USBD_LL_IsStallEP(USBD_HandleTypeDef *pdev, uint8_t ep_addr)
  8014a32:	3316      	adds	r3, #22
  8014a34:	781b      	ldrb	r3, [r3, #0]
  8014a36:	e00b      	b.n	8014a50 <USBD_LL_IsStallEP+0x4c>
-  }
-  else
-  {
-    return hpcd->OUT_ep[ep_addr & 0x7F].is_stall;
  8014a38:	78fb      	ldrb	r3, [r7, #3]
  8014a3a:	f003 027f 	and.w	r2, r3, #127	@ 0x7f
  8014a3e:	68f9      	ldr	r1, [r7, #12]
@@ -52141,8 +50739,6 @@ uint8_t USBD_LL_IsStallEP(USBD_HandleTypeDef *pdev, uint8_t ep_addr)
  8014a48:	440b      	add	r3, r1
  8014a4a:	f203 2356 	addw	r3, r3, #598	@ 0x256
  8014a4e:	781b      	ldrb	r3, [r3, #0]
-  }
-}
  8014a50:	4618      	mov	r0, r3
  8014a52:	3714      	adds	r7, #20
  8014a54:	46bd      	mov	sp, r7
@@ -52150,26 +50746,16 @@ uint8_t USBD_LL_IsStallEP(USBD_HandleTypeDef *pdev, uint8_t ep_addr)
  8014a5a:	4770      	bx	lr
 
 08014a5c <USBD_LL_SetUSBAddress>:
-  * @param  pdev: Device handle
-  * @param  dev_addr: Device address
-  * @retval USBD status
-  */
-USBD_StatusTypeDef USBD_LL_SetUSBAddress(USBD_HandleTypeDef *pdev, uint8_t dev_addr)
-{
  8014a5c:	b580      	push	{r7, lr}
  8014a5e:	b084      	sub	sp, #16
  8014a60:	af00      	add	r7, sp, #0
  8014a62:	6078      	str	r0, [r7, #4]
  8014a64:	460b      	mov	r3, r1
  8014a66:	70fb      	strb	r3, [r7, #3]
-  HAL_StatusTypeDef hal_status = HAL_OK;
  8014a68:	2300      	movs	r3, #0
  8014a6a:	73fb      	strb	r3, [r7, #15]
-  USBD_StatusTypeDef usb_status = USBD_OK;
  8014a6c:	2300      	movs	r3, #0
  8014a6e:	73bb      	strb	r3, [r7, #14]
-
-  hal_status = HAL_PCD_SetAddress(pdev->pData, dev_addr);
  8014a70:	687b      	ldr	r3, [r7, #4]
  8014a72:	f8d3 32c8 	ldr.w	r3, [r3, #712]	@ 0x2c8
  8014a76:	78fa      	ldrb	r2, [r7, #3]
@@ -52178,29 +50764,18 @@ USBD_StatusTypeDef USBD_LL_SetUSBAddress(USBD_HandleTypeDef *pdev, uint8_t dev_a
  8014a7c:	f7f3 fc20 	bl	80082c0 <HAL_PCD_SetAddress>
  8014a80:	4603      	mov	r3, r0
  8014a82:	73fb      	strb	r3, [r7, #15]
-
-  usb_status =  USBD_Get_USB_Status(hal_status);
  8014a84:	7bfb      	ldrb	r3, [r7, #15]
  8014a86:	4618      	mov	r0, r3
  8014a88:	f000 f874 	bl	8014b74 <USBD_Get_USB_Status>
  8014a8c:	4603      	mov	r3, r0
  8014a8e:	73bb      	strb	r3, [r7, #14]
-
-  return usb_status;
  8014a90:	7bbb      	ldrb	r3, [r7, #14]
-}
  8014a92:	4618      	mov	r0, r3
  8014a94:	3710      	adds	r7, #16
  8014a96:	46bd      	mov	sp, r7
  8014a98:	bd80      	pop	{r7, pc}
 
 08014a9a <USBD_LL_Transmit>:
-  * @param  pbuf: Pointer to data to be sent
-  * @param  size: Data size
-  * @retval USBD status
-  */
-USBD_StatusTypeDef USBD_LL_Transmit(USBD_HandleTypeDef *pdev, uint8_t ep_addr, uint8_t *pbuf, uint32_t size)
-{
  8014a9a:	b580      	push	{r7, lr}
  8014a9c:	b086      	sub	sp, #24
  8014a9e:	af00      	add	r7, sp, #0
@@ -52209,14 +50784,10 @@ USBD_StatusTypeDef USBD_LL_Transmit(USBD_HandleTypeDef *pdev, uint8_t ep_addr, u
  8014aa4:	603b      	str	r3, [r7, #0]
  8014aa6:	460b      	mov	r3, r1
  8014aa8:	72fb      	strb	r3, [r7, #11]
-  HAL_StatusTypeDef hal_status = HAL_OK;
  8014aaa:	2300      	movs	r3, #0
  8014aac:	75fb      	strb	r3, [r7, #23]
-  USBD_StatusTypeDef usb_status = USBD_OK;
  8014aae:	2300      	movs	r3, #0
  8014ab0:	75bb      	strb	r3, [r7, #22]
-
-  hal_status = HAL_PCD_EP_Transmit(pdev->pData, ep_addr, pbuf, size);
  8014ab2:	68fb      	ldr	r3, [r7, #12]
  8014ab4:	f8d3 02c8 	ldr.w	r0, [r3, #712]	@ 0x2c8
  8014ab8:	7af9      	ldrb	r1, [r7, #11]
@@ -52225,29 +50796,18 @@ USBD_StatusTypeDef USBD_LL_Transmit(USBD_HandleTypeDef *pdev, uint8_t ep_addr, u
  8014abe:	f7f3 fd2a 	bl	8008516 <HAL_PCD_EP_Transmit>
  8014ac2:	4603      	mov	r3, r0
  8014ac4:	75fb      	strb	r3, [r7, #23]
-
-  usb_status =  USBD_Get_USB_Status(hal_status);
  8014ac6:	7dfb      	ldrb	r3, [r7, #23]
  8014ac8:	4618      	mov	r0, r3
  8014aca:	f000 f853 	bl	8014b74 <USBD_Get_USB_Status>
  8014ace:	4603      	mov	r3, r0
  8014ad0:	75bb      	strb	r3, [r7, #22]
-
-  return usb_status;
  8014ad2:	7dbb      	ldrb	r3, [r7, #22]
-}
  8014ad4:	4618      	mov	r0, r3
  8014ad6:	3718      	adds	r7, #24
  8014ad8:	46bd      	mov	sp, r7
  8014ada:	bd80      	pop	{r7, pc}
 
 08014adc <USBD_LL_PrepareReceive>:
-  * @param  pbuf: Pointer to data to be received
-  * @param  size: Data size
-  * @retval USBD status
-  */
-USBD_StatusTypeDef USBD_LL_PrepareReceive(USBD_HandleTypeDef *pdev, uint8_t ep_addr, uint8_t *pbuf, uint32_t size)
-{
  8014adc:	b580      	push	{r7, lr}
  8014ade:	b086      	sub	sp, #24
  8014ae0:	af00      	add	r7, sp, #0
@@ -52256,14 +50816,10 @@ USBD_StatusTypeDef USBD_LL_PrepareReceive(USBD_HandleTypeDef *pdev, uint8_t ep_a
  8014ae6:	603b      	str	r3, [r7, #0]
  8014ae8:	460b      	mov	r3, r1
  8014aea:	72fb      	strb	r3, [r7, #11]
-  HAL_StatusTypeDef hal_status = HAL_OK;
  8014aec:	2300      	movs	r3, #0
  8014aee:	75fb      	strb	r3, [r7, #23]
-  USBD_StatusTypeDef usb_status = USBD_OK;
  8014af0:	2300      	movs	r3, #0
  8014af2:	75bb      	strb	r3, [r7, #22]
-
-  hal_status = HAL_PCD_EP_Receive(pdev->pData, ep_addr, pbuf, size);
  8014af4:	68fb      	ldr	r3, [r7, #12]
  8014af6:	f8d3 02c8 	ldr.w	r0, [r3, #712]	@ 0x2c8
  8014afa:	7af9      	ldrb	r1, [r7, #11]
@@ -52272,36 +50828,24 @@ USBD_StatusTypeDef USBD_LL_PrepareReceive(USBD_HandleTypeDef *pdev, uint8_t ep_a
  8014b00:	f7f3 fcb6 	bl	8008470 <HAL_PCD_EP_Receive>
  8014b04:	4603      	mov	r3, r0
  8014b06:	75fb      	strb	r3, [r7, #23]
-
-  usb_status =  USBD_Get_USB_Status(hal_status);
  8014b08:	7dfb      	ldrb	r3, [r7, #23]
  8014b0a:	4618      	mov	r0, r3
  8014b0c:	f000 f832 	bl	8014b74 <USBD_Get_USB_Status>
  8014b10:	4603      	mov	r3, r0
  8014b12:	75bb      	strb	r3, [r7, #22]
-
-  return usb_status;
  8014b14:	7dbb      	ldrb	r3, [r7, #22]
-}
  8014b16:	4618      	mov	r0, r3
  8014b18:	3718      	adds	r7, #24
  8014b1a:	46bd      	mov	sp, r7
  8014b1c:	bd80      	pop	{r7, pc}
 
 08014b1e <USBD_LL_GetRxDataSize>:
-  * @param  pdev: Device handle
-  * @param  ep_addr: Endpoint number
-  * @retval Received Data Size
-  */
-uint32_t USBD_LL_GetRxDataSize(USBD_HandleTypeDef *pdev, uint8_t ep_addr)
-{
  8014b1e:	b580      	push	{r7, lr}
  8014b20:	b082      	sub	sp, #8
  8014b22:	af00      	add	r7, sp, #0
  8014b24:	6078      	str	r0, [r7, #4]
  8014b26:	460b      	mov	r3, r1
  8014b28:	70fb      	strb	r3, [r7, #3]
-  return HAL_PCD_EP_GetRxCount((PCD_HandleTypeDef*) pdev->pData, ep_addr);
  8014b2a:	687b      	ldr	r3, [r7, #4]
  8014b2c:	f8d3 32c8 	ldr.w	r3, [r3, #712]	@ 0x2c8
  8014b30:	78fa      	ldrb	r2, [r7, #3]
@@ -52309,28 +50853,17 @@ uint32_t USBD_LL_GetRxDataSize(USBD_HandleTypeDef *pdev, uint8_t ep_addr)
  8014b34:	4618      	mov	r0, r3
  8014b36:	f7f3 fcd6 	bl	80084e6 <HAL_PCD_EP_GetRxCount>
  8014b3a:	4603      	mov	r3, r0
-}
  8014b3c:	4618      	mov	r0, r3
  8014b3e:	3708      	adds	r7, #8
  8014b40:	46bd      	mov	sp, r7
  8014b42:	bd80      	pop	{r7, pc}
 
 08014b44 <USBD_static_malloc>:
-  * @brief  Static single allocation.
-  * @param  size: Size of allocated memory
-  * @retval None
-  */
-void *USBD_static_malloc(uint32_t size)
-{
  8014b44:	b480      	push	{r7}
  8014b46:	b083      	sub	sp, #12
  8014b48:	af00      	add	r7, sp, #0
  8014b4a:	6078      	str	r0, [r7, #4]
-  UNUSED(size);
-  static uint32_t mem[(sizeof(USBD_CDC_HandleTypeDef)/4)+1];/* On 32-bit boundary */
-  return mem;
  8014b4c:	4b03      	ldr	r3, [pc, #12]	@ (8014b5c <USBD_static_malloc+0x18>)
-}
  8014b4e:	4618      	mov	r0, r3
  8014b50:	370c      	adds	r7, #12
  8014b52:	46bd      	mov	sp, r7
@@ -52340,18 +50873,10 @@ void *USBD_static_malloc(uint32_t size)
  8014b5c:	240022d8 	.word	0x240022d8
 
 08014b60 <USBD_static_free>:
-  * @brief  Dummy memory free
-  * @param  p: Pointer to allocated  memory address
-  * @retval None
-  */
-void USBD_static_free(void *p)
-{
  8014b60:	b480      	push	{r7}
  8014b62:	b083      	sub	sp, #12
  8014b64:	af00      	add	r7, sp, #0
  8014b66:	6078      	str	r0, [r7, #4]
-  UNUSED(p);
-}
  8014b68:	bf00      	nop
  8014b6a:	370c      	adds	r7, #12
  8014b6c:	46bd      	mov	sp, r7
@@ -52359,22 +50884,13 @@ void USBD_static_free(void *p)
  8014b72:	4770      	bx	lr
 
 08014b74 <USBD_Get_USB_Status>:
-  * @brief  Returns the USB status depending on the HAL status:
-  * @param  hal_status: HAL status
-  * @retval USB status
-  */
-USBD_StatusTypeDef USBD_Get_USB_Status(HAL_StatusTypeDef hal_status)
-{
  8014b74:	b480      	push	{r7}
  8014b76:	b085      	sub	sp, #20
  8014b78:	af00      	add	r7, sp, #0
  8014b7a:	4603      	mov	r3, r0
  8014b7c:	71fb      	strb	r3, [r7, #7]
-  USBD_StatusTypeDef usb_status = USBD_OK;
  8014b7e:	2300      	movs	r3, #0
  8014b80:	73fb      	strb	r3, [r7, #15]
-
-  switch (hal_status)
  8014b82:	79fb      	ldrb	r3, [r7, #7]
  8014b84:	2b03      	cmp	r3, #3
  8014b86:	d817      	bhi.n	8014bb8 <USBD_Get_USB_Status+0x44>
@@ -52385,41 +50901,22 @@ USBD_StatusTypeDef USBD_Get_USB_Status(HAL_StatusTypeDef hal_status)
  8014b94:	08014ba7 	.word	0x08014ba7
  8014b98:	08014bad 	.word	0x08014bad
  8014b9c:	08014bb3 	.word	0x08014bb3
-  {
-    case HAL_OK :
-      usb_status = USBD_OK;
  8014ba0:	2300      	movs	r3, #0
  8014ba2:	73fb      	strb	r3, [r7, #15]
-    break;
  8014ba4:	e00b      	b.n	8014bbe <USBD_Get_USB_Status+0x4a>
-    case HAL_ERROR :
-      usb_status = USBD_FAIL;
  8014ba6:	2303      	movs	r3, #3
  8014ba8:	73fb      	strb	r3, [r7, #15]
-    break;
  8014baa:	e008      	b.n	8014bbe <USBD_Get_USB_Status+0x4a>
-    case HAL_BUSY :
-      usb_status = USBD_BUSY;
  8014bac:	2301      	movs	r3, #1
  8014bae:	73fb      	strb	r3, [r7, #15]
-    break;
  8014bb0:	e005      	b.n	8014bbe <USBD_Get_USB_Status+0x4a>
-    case HAL_TIMEOUT :
-      usb_status = USBD_FAIL;
  8014bb2:	2303      	movs	r3, #3
  8014bb4:	73fb      	strb	r3, [r7, #15]
-    break;
  8014bb6:	e002      	b.n	8014bbe <USBD_Get_USB_Status+0x4a>
-    default :
-      usb_status = USBD_FAIL;
  8014bb8:	2303      	movs	r3, #3
  8014bba:	73fb      	strb	r3, [r7, #15]
-    break;
  8014bbc:	bf00      	nop
-  }
-  return usb_status;
  8014bbe:	7bfb      	ldrb	r3, [r7, #15]
-}
  8014bc0:	4618      	mov	r0, r3
  8014bc2:	3714      	adds	r7, #20
  8014bc4:	46bd      	mov	sp, r7
