@@ -50,8 +50,21 @@ void bms_mainboard_loop()
 // Seprate loop that gets ticked to run OWC
 void adbms_owc_loop()
 { 
-	Update_Owc_Fault(&mainboard.adbms);
-	Update_Owc_C_Channel_Fault(&mainboard.adbms);
+	Owc_C_Channel_Even_On(&mainboard.adbms_raw);
+    Owc_C_Channel_Read(&mainboard.adbms_raw);
+    Update_6830_Owc_Fault(&mainboard.adbms_raw, &mainboard.adbms_6830);
+    Owc_C_Channel_Odd_On(&mainboard.adbms_raw);
+    Owc_C_Channel_Read(&mainboard.adbms_raw);
+    Update_6830_Owc_Fault(&mainboard.adbms_raw, &mainboard.adbms_6830);
+    Owc_C_Channel_Off(&mainboard.adbms_raw);
+
+    Owc_S_Channel_Even_On(&mainboard.adbms_raw);
+    Owc_S_Channel_Read(&mainboard.adbms_raw);
+    Update_6830_Owc_Fault(&mainboard.adbms_raw, &mainboard.adbms_6830);
+    Owc_S_Channel_Odd_On(&mainboard.adbms_raw);
+    Owc_S_Channel_Read(&mainboard.adbms_raw);
+    Update_6830_Owc_Fault(&mainboard.adbms_raw, &mainboard.adbms_6830);
+    Owc_S_Channel_Off(&mainboard.adbms_raw);
 }
 
 void update_values()

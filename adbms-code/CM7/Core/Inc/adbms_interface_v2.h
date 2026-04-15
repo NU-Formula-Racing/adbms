@@ -75,3 +75,16 @@ void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bi
 
 //Write Data Command
 void ADBMS_Initialize_Write_Data_Command(adbms_raw_* adbms);
+
+
+//OWC Config and Read C Channel
+void Owc_C_Channel_Off(adbms_raw_* adbms);
+void Owc_C_Channel_Even_On(adbms_raw_* adbms);
+void Owc_C_Channel_Odd_On(adbms_raw_* adbms);
+void Owc_C_Channel_Read(adbms_raw_* adbms);
+
+//OWC Config and Read S Channel
+void Owc_S_Channel_Off(adbms_raw_* adbms);
+void Owc_S_Channel_Even_On(adbms_raw_* adbms);
+void Owc_S_Channel_Odd_On(adbms_raw_* adbms);
+void Owc_S_Channel_Read(adbms_raw_* adbms);
