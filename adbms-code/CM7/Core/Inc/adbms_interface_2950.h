@@ -5,6 +5,7 @@ typedef struct
 {
     raw_data_2950_  raw_data;
     data_2950_      data;
+    adbms_2950_faults_   faults;
 
 }adbms_2950_;
 
@@ -38,6 +39,12 @@ typedef struct
     float pack_temperature_2;
 
 }data_2950_;
+
+typedef struct
+{
+    bool overcurrent_fault;
+
+}adbms_2950_faults_;
 
 void ADBMS_2950_Calculate_Values(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950);
 void ADBMS_2950_Calculate_Vbat(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950);

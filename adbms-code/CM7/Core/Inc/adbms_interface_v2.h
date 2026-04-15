@@ -64,7 +64,7 @@ typedef struct
 void ADBMS_Initialize(adbms_raw_ *adbms, SPI_HandleTypeDef *hspi);
 
 //read raw values
-void ADBMS_Read_Voltage(adbms_raw_ *adbms);
+
 void ADBMS_Read_Temps(adbms_raw_* adbms);
 
 
