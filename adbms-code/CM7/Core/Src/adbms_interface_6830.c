@@ -308,3 +308,56 @@ void cell_Balance_Off(adbms_raw_* adbms)
     ADBMS_Write_Data(adbms->SPI_data.hspi, WRCFGB, adbms->command_bit.cfg_b, adbms->SPI_data.spi_dataBuf);
     
 }
+
+void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
+{
+    printf("\nADBMS 6830 Data\n");
+    printf("\nVOLTAGES\n");
+    printf("total v: %f\n", adbms_6830->data.total_v);
+    printf("max v: %f\t", adbms_6830->data.max_v);
+    printf("min v: %f\t", adbms_6830->data.min_v);
+    printf("avg v: %f\t", adbms_6830->data.avg_v);
+    printf("max-min: %f\n", adbms_6830->data.max_v - adbms_6830->data.min_v);
+
+    // print every voltage
+    for (int i = 0; i < (NUM_CHIPS-1); i++)
+    {
+        if (i % 2 == 0)
+        {
+            for (int j = 0; j < NUM_VOLTAGES_EVEN_CHIP; j++)
+            {
+                printf("C%d=%fV\t", ((i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j + 1), adbms_6830->data.voltages[(i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j]);
+            }
+        }
+        else
+        {
+            for (int j = 0; j < NUM_VOLTAGES_ODD_CHIP; j++)
+            {
+                printf("C%d=%fV\t", ((i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j + 1), adbms_6830->data.voltages[(i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j]);
+            }
+        }
+    }
+    printf("\n");
+
+    // print the total, max, min, and avg temp
+    printf("\nTEMPS\n");
+    printf("max temp: %f\t", adbms_6830->data.max_temp);
+    printf("min temp: %f\t", adbms_6830->data.min_temp);
+    printf("avg temp: %f\n", adbms_6830->data.avg_temp);
+
+    for (int i = 0; i < (NUM_CHIPS-1); i++)
+    {
+        for (int j = 0; j < NUM_TEMPS_CHIP; j++)
+        {
+            printf("T%d=%f\t", (i * NUM_TEMPS_CHIP + j + 1), adbms_6830->data.temperatures[i * NUM_TEMPS_CHIP + j]);
+        }
+    }
+    printf("\n");
+    printf("Faults\n");
+    printf("undervoltage: %d\t", adbms_6830->faults.undervoltage_fault);
+    printf("overvoltage: %d\t", adbms_6830->faults.overvoltage_fault);
+    printf("pec: %d\t", adbms_6830->faults.pec_fault_);
+    printf("overtemperature: %d\t", adbms_6830->faults.overtemperature_fault);
+    printf("openwire: %d\t", adbms_6830->faults.openwire_voltage_fault);
+    printf("openwire_temp: %d\n", adbms_6830->faults.openwire_temp_fault);
+}

@@ -56,15 +56,22 @@ void adbms_owc_loop()
 
 void update_values()
 {
-	// ADBMS values
-	ADBMS_UpdateVoltages(&mainboard.adbms);
-	ADBMS_UpdateTemps(&mainboard.adbms);
+	//First Read both Voltages and Temps raw values in lower level interface
+    ADBMS_Read_Voltage(&mainboard.adbms_raw);
+    ADBMS_Read_Temps(&mainboard.adbms_raw);
 
-	UpdateADInternalFault(&mainboard.adbms);
+    //now parse all data in upper level interface
+    ADBMS_2950_Calculate_Values(&mainboard.adbms_raw,&mainboard.adbms_2950);
+    ADBMS_6830_Calculate_Values(&mainboard.adbms_raw,&mainboard.adbms_6830);
+
+    //Update Faults
+    //this is just 6830 faults -> 2950 faults still need to come
+    Update_6830_InternalFault(&mainboard.adbms_6830);
+
 
 	if (mainboard.internal_state == Charging)
 	{
-		cellBalanceOn(&mainboard.adbms);
+		cell_Balance_On(&mainboard.adbms_raw,&mainboard.adbms_6830);
 	}
 
 	// update STM32 Pin values
@@ -75,7 +82,8 @@ void update_values()
 	//soc
 	Soc_Update(&mainboard);
 	
-	mainboard.overcurrent_fault = mainboard.adbms.current > OVERCURRENT;
+    //this should change into both current_1 and 2 when both start working
+	mainboard.adbms_2950.faults.overcurrent_fault = mainboard.adbms_2950.data.current_1 > OVERCURRENT;
 
 	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
 	if(ENABLE_USB_COMMS) send_data_over_USB(); 
@@ -86,14 +94,14 @@ void check_faults()
 	// raise fault flag if any fault is true
 	// faults are latching
 	mainboard.bms_fault = mainboard.bms_fault
-							|| mainboard.adbms.overvoltage_fault_
-							|| mainboard.adbms.undervoltage_fault_
-							|| mainboard.adbms.overtemperature_fault_
-							|| mainboard.adbms.undertemperature_fault_
-							|| mainboard.adbms.openwire_fault_
-							|| mainboard.adbms.openwire_temp_fault_
-							|| mainboard.adbms.pec_fault_
-							|| mainboard.overcurrent_fault;
+							|| mainboard.adbms_6830.faults.overvoltage_fault
+							|| mainboard.adbms_6830.faults.undervoltage_fault
+							|| mainboard.adbms_6830.faults.overtemperature_fault
+							|| mainboard.adbms_6830.faults.undertemperature_fault
+							|| mainboard.adbms_6830.faults.openwire_voltage_fault
+							|| mainboard.adbms_6830.faults.openwire_temp_fault
+							|| mainboard.adbms_6830.faults.pec_fault
+							|| mainboard.adbms_2950.faults.overcurrent_fault;
 
 	// write BMS_Status - healthy is high
 	HAL_GPIO_WritePin(BMS_STATUS_OUT_GPIO_Port, BMS_STATUS_OUT_Pin, !mainboard.bms_fault);
@@ -146,42 +154,20 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) //TSSI Callback
 
 void send_data_over_printf()
 {
-	// AD Prints
-	ADBMS_Print_Vals(&mainboard.adbms);
+	// AD Prints for both chips
+    ADBMS_6830_Print_Vals(&mainboard.adbms_6830);
+	ADBMS_2950_Print_Vals(&mainboard.adbms_2950);
+
 
 	// Mainboard Prints
 	printf("Time: %d\n", (int)(HAL_GetTick() - mainboard.start_time));
 	printf("BMS fault: %d\n", mainboard.bms_fault);
 	printf("External fault: %d\n", mainboard.external_fault);
-	printf("Current: %f\n", mainboard.adbms.current);
 	
 	// TODO Add more prints as needed
-
 }
 
 void send_data_over_USB()
 {
-	// USB Serial Print ADBMS values 
-	ADBMS_USB_Serial_Print_Vals(&mainboard.adbms);
-
-	#define BUFFER_SIZE 256  // Increase this if more snprintfs are added
-    char logBuf[BUFFER_SIZE];
-    int len = 0;
-    int remaining = BUFFER_SIZE;
-
-    len += snprintf(logBuf + len, remaining, "Time: %d\r\n", (int)(HAL_GetTick() - mainboard.start_time));
-    remaining = BUFFER_SIZE - len;
-
-	len += snprintf(logBuf + len, remaining, "Current: %f\r\n", mainboard.adbms.current);
-   remaining = BUFFER_SIZE - len;
-
-	len += snprintf(logBuf + len, remaining, "BMS_fault: %d\r\n", mainboard.bms_fault);
-   remaining = BUFFER_SIZE - len;
-
-	len += snprintf(logBuf + len, remaining, "External_fault: %d\r\n", mainboard.external_fault);
-   remaining = BUFFER_SIZE - len;
-
-	if (remaining <= 0) HardFault_Handler();
-
-	CDC_Transmit_FS((uint8_t*) logBuf, strlen(logBuf));
+	//work on this later because i have more important things to fix right now
 }

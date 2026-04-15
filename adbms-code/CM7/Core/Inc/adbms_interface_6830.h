@@ -54,3 +54,17 @@ typedef struct
 
 
 }adbms_6830_faults_;
+
+void ADBMS_6830_Calculate_Values(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830);
+void ADBMS_6830_Calculate_Voltage(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830);
+float ADBMS_6830_Transfer_Voltage(int data);
+void ADBMS_6830_Calculate_Temperature(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830);
+float ADBMS_6830_Transfer_Temp(float raw_temp_voltage, float Vref);
+
+void Update_6830_InternalFault(adbms_6830_* adbms_6830);
+void Update_6830_Owc_Fault(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830);
+
+void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830);
+void cell_Balance_Off(adbms_raw_* adbms);
+
+void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830);

@@ -55,3 +55,4 @@ void ADBMS_2950_Calculate_Post_Voltage(adbms_raw_* adbms_raw, adbms_2950_* adbms
 float ADBMS_2950_Transfer_Post_Voltage(int16_t v1_raw, int16_t v2_raw);
 void ADBMS_2950_Calculate_Shunt_Temp(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950);
 float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage);
+void ADBMS_2950_Print_Vals(adbms_2950_* adbms_2950);
