@@ -35,7 +35,12 @@ typedef struct
 //this struct stores all spi related stuff
 typedef struct
 {
-    SPI_HandleTypeDef *hspi;
+
+    //
+    // commented out for hspi
+    //
+
+    //SPI_HandleTypeDef *hspi;
     uint8_t spi_dataBuf[DATABUF_LEN];
 
 } SPI_data_;
@@ -217,6 +222,6 @@ void ADBMS_Set_ADV(adv_ adv, uint16_t* adv_cmd_buffer);
 
 //read write function
 void ADBMS_WakeUP_ICs();
-void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd);
-void ADBMS_Write_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf);
-bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf);
+void ADBMS_Write_CMD(uint16_t tx_cmd);
+void ADBMS_Write_Data(uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf);
+bool ADBMS_Read_Data(uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf);

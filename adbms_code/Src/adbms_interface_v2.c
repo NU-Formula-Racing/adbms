@@ -1,8 +1,17 @@
 #include "adbms_interface_v2.h"
 
-void ADBMS_Initialize(adbms_raw_ *adbms, SPI_HandleTypeDef *hspi)
+
+//
+//spi is not needed 
+//
+
+//void ADBMS_Initialize(adbms_raw_ *adbms, SPI_HandleTypeDef *hspi)
+void ADBMS_Initialize(adbms_raw_ *adbms)
 {
-    adbms->SPI_data.hspi = hspi;
+    //
+    //commented out 
+    //
+    //adbms->SPI_data.hspi = hspi;
 
     //configuration parameter place
     ADBMS_6830_Config(adbms->command_parameters->parameter_6830,&adbms->command_bit);
@@ -14,20 +23,34 @@ void ADBMS_Initialize(adbms_raw_ *adbms, SPI_HandleTypeDef *hspi)
     ADBMS_WakeUP_ICs();
 
     //write data and commands
-    ADBMS_Write_Data_Command(adbms);
+
+    //this is a change
+    ADBMS_Initialize_Write_Data_Command(adbms);
 }
 
 void ADBMS_Read_Voltage(adbms_raw_ *adbms){
 
     //get voltages from ADBMS
     bool pec = 0;
+
     ADBMS_WakeUP_ICs();
 
     //reading into raw values struct
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVA, (adbms->raw_value.cell + 0 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); //read voltages 0-2 for each chip //read current for 2950 chip
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVB, (adbms->raw_value.cell + 1 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); //read voltages 3-5 for each chip
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVC, (adbms->raw_value.cell + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); //read voltages 6-8 for each chip
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVD, (adbms->raw_value.cell + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); //read voltages 9-11 for each chip
+
+
+    //
+    //new read for new ADBMS_Read_Data
+    //
+
+    pec |= ADBMS_Read_Data(RDCVA, (adbms->raw_value.cell + 0 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); //read voltages 0-2 for each chip //read current for 2950 chip
+    pec |= ADBMS_Read_Data(RDCVB, (adbms->raw_value.cell + 1 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); //read voltages 3-5 for each chip
+    pec |= ADBMS_Read_Data(RDCVC, (adbms->raw_value.cell + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); //read voltages 6-8 for each chip
+    pec |= ADBMS_Read_Data(RDCVD, (adbms->raw_value.cell + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); //read voltages 9-11 for each chip
+
+    // pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVA, (adbms->raw_value.cell + 0 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); //read voltages 0-2 for each chip //read current for 2950 chip
+    // pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVB, (adbms->raw_value.cell + 1 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); //read voltages 3-5 for each chip
+    // pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVC, (adbms->raw_value.cell + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); //read voltages 6-8 for each chip
+    // pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVD, (adbms->raw_value.cell + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); //read voltages 9-11 for each chip
     //pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVE, (adbms->raw_value.cell + 4 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); //DONT NEED VOLTAGES OVER 12 for nfr26
 
     adbms->read_failure.read_voltage_pec_failure = pec;
@@ -39,15 +62,21 @@ void ADBMS_Read_Temps(adbms_raw_* adbms){
     bool pec = 0;
     ADBMS_WakeUP_ICs();
 
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDAUXA, (adbms->raw_value.aux + 0 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDAUXB, (adbms->raw_value.aux + 1 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDAUXC, (adbms->raw_value.aux + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDAUXD, (adbms->raw_value.aux + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    pec |= ADBMS_Read_Data(RDAUXA, (adbms->raw_value.aux + 0 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    pec |= ADBMS_Read_Data(RDAUXB, (adbms->raw_value.aux + 1 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    pec |= ADBMS_Read_Data(RDAUXC, (adbms->raw_value.aux + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    pec |= ADBMS_Read_Data(RDAUXD, (adbms->raw_value.aux + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+
+    // pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDAUXA, (adbms->raw_value.aux + 0 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    // pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDAUXB, (adbms->raw_value.aux + 1 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    // pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDAUXC, (adbms->raw_value.aux + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    // pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDAUXD, (adbms->raw_value.aux + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
 
     adbms->read_failure.read_temp_pec_failure = pec;
 
     //need to start new poll for conversion before next read (no continuous mode)
-    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adax);
+    ADBMS_Write_CMD(adbms->command_bit.adax);
+    //ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adax);
 }
 
 //
@@ -123,18 +152,29 @@ void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bi
 void ADBMS_Initialize_Write_Data_Command(adbms_raw_* adbms){
     
     //Write data and commands
-    ADBMS_Write_Data(adbms->SPI_data.hspi, WRCFGA, adbms->command_bit.cfg_a, adbms->SPI_data.spi_dataBuf);
-    ADBMS_Write_Data(adbms->SPI_data.hspi, WRCFGB, adbms->command_bit.cfg_b, adbms->SPI_data.spi_dataBuf);
+
+    ADBMS_Write_Data(WRCFGA, adbms->command_bit.cfg_a, adbms->SPI_data.spi_dataBuf);
+    ADBMS_Write_Data(WRCFGB, adbms->command_bit.cfg_b, adbms->SPI_data.spi_dataBuf);
+
+    // ADBMS_Write_Data(adbms->SPI_data.hspi, WRCFGA, adbms->command_bit.cfg_a, adbms->SPI_data.spi_dataBuf);
+    // ADBMS_Write_Data(adbms->SPI_data.hspi, WRCFGB, adbms->command_bit.cfg_b, adbms->SPI_data.spi_dataBuf);
 
     // Turn on sensing
-    ADBMS_Write_CMD(adbms->SPI_data.hspi, adbms->command_bit.adcv);
-    HAL_Delay(1); // ADCs are updated at their conversion rate of 1ms
-    ADBMS_Write_CMD(adbms->SPI_data.hspi, adbms->command_bit.adax);
-    HAL_Delay(8); 
-    ADBMS_Write_CMD(adbms->SPI_data.hspi, adbms->command_bit.adsv);
-    HAL_Delay(8);
-    ADBMS_Write_CMD(adbms->SPI_data.hspi, adbms->command_bit.adv); //new 2950 command to start V1adc and V2adc
-    HAL_Delay(8);
+
+    ADBMS_Write_CMD(adbms->command_bit.adcv);
+    ADBMS_Write_CMD(adbms->command_bit.adax);
+    ADBMS_Write_CMD(adbms->command_bit.adsv);
+    ADBMS_Write_CMD(adbms->command_bit.adv); //new 2950 command to start V1adc and V2adc
+
+
+    // ADBMS_Write_CMD(adbms->SPI_data.hspi, adbms->command_bit.adcv);
+    // HAL_Delay(1); // ADCs are updated at their conversion rate of 1ms
+    // ADBMS_Write_CMD(adbms->SPI_data.hspi, adbms->command_bit.adax);
+    // HAL_Delay(8); 
+    // ADBMS_Write_CMD(adbms->SPI_data.hspi, adbms->command_bit.adsv);
+    // HAL_Delay(8);
+    // ADBMS_Write_CMD(adbms->SPI_data.hspi, adbms->command_bit.adv); //new 2950 command to start V1adc and V2adc
+    // HAL_Delay(8);
 }
 
 
@@ -151,9 +191,12 @@ void Owc_C_Channel_Off(adbms_raw_* adbms)
     adbms->command_parameters.parameter_joint.adcv.ow = 0; //Disable OW
 
     ADBMS_Set_ADCV(adbms->command_parameters.parameter_joint.adcv, &adbms->command_bit.adcv);
-    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
 
-    HAL_Delay(1);
+    //new for testing
+    ADBMS_Write_CMD(adbms->command_bit.adcv);
+    // ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
+
+    //HAL_Delay(1);
 }
 
 void Owc_C_Channel_Even_On(adbms_raw_* adbms)
@@ -164,8 +207,11 @@ void Owc_C_Channel_Even_On(adbms_raw_* adbms)
     adbms->command_parameters.parameter_joint.adcv.ow = 1; //Enable Even Channel OW
 
     ADBMS_Set_ADCV(adbms->command_parameters.parameter_joint.adcv, &adbms->command_bit.adcv);
-    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
-    HAL_Delay(8); 
+
+    //commented out
+    ADBMS_Write_CMD(adbms->command_bit.adcv);
+    //ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
+    //HAL_Delay(8); 
 }
 
 void Owc_C_Channel_Odd_On(adbms_raw_* adbms)
@@ -176,8 +222,11 @@ void Owc_C_Channel_Odd_On(adbms_raw_* adbms)
     adbms->command_parameters.parameter_joint.adcv.ow = 2; //Enable Odd Channel OW
 
     ADBMS_Set_ADCV(adbms->command_parameters.parameter_joint.adcv, &adbms->command_bit.adcv);
-    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
-    HAL_Delay(8); 
+
+    //commented out
+    ADBMS_Write_CMD(adbms->command_bit.adcv);
+    //ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
+    //HAL_Delay(8); 
 }
 
 void Owc_C_Channel_Read(adbms_raw_* adbms)
@@ -185,10 +234,16 @@ void Owc_C_Channel_Read(adbms_raw_* adbms)
     bool pec = 0;
     ADBMS_WakeUP_ICs();
 
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVA, (adbms->raw_value.scell + 0 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVB, (adbms->raw_value.scell + 1 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVC, (adbms->raw_value.scell + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVD, (adbms->raw_value.scell + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    //new for testing
+    pec |= ADBMS_Read_Data(RDCVA, (adbms->raw_value.scell + 0 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    pec |= ADBMS_Read_Data(RDCVB, (adbms->raw_value.scell + 1 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    pec |= ADBMS_Read_Data(RDCVC, (adbms->raw_value.scell + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    pec |= ADBMS_Read_Data(RDCVD, (adbms->raw_value.scell + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+
+    // pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVA, (adbms->raw_value.scell + 0 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    // pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVB, (adbms->raw_value.scell + 1 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    // pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVC, (adbms->raw_value.scell + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    // pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVD, (adbms->raw_value.scell + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
     //pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDCVE, (adbms->raw_value.scell + 4 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); // probably don't need this
 
     adbms->read_failure.read_open_wire_pec_failure = pec;
@@ -207,9 +262,12 @@ void Owc_S_Channel_Off(adbms_raw_* adbms)
     adbms->command_parameters.parameter_joint.adsv.ow = 0; //Disable OW 
 
     ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
-    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
 
-    HAL_Delay(1);
+    //commented out
+    ADBMS_Write_CMD(adbms->command_bit.adsv);
+    //ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
+
+    //HAL_Delay(1);
 }
 
 void Owc_S_Channel_Even_On(adbms_raw_* adbms)
@@ -222,9 +280,12 @@ void Owc_S_Channel_Even_On(adbms_raw_* adbms)
     adbms->command_parameters.parameter_joint.adsv.ow = 1; // Enable OW on even-channel 
 
     ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
-    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
 
-    HAL_Delay(8);
+    //commented out
+    ADBMS_Write_CMD(adbms->command_bit.adsv);
+    //ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
+
+    //HAL_Delay(8);
 }
 
 void Owc_S_Channel_Odd_On(adbms_raw_* adbms)
@@ -238,9 +299,12 @@ void Owc_S_Channel_Odd_On(adbms_raw_* adbms)
     adbms->command_parameters.parameter_joint.adsv.ow = 2; // Enable OW on odd-channel 
 
     ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
-    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
 
-    HAL_Delay(8);
+    //commented out
+    ADBMS_Write_CMD(adbms->command_bit.adsv);
+    //ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
+
+    //HAL_Delay(8);
 }
 
 void Owc_S_Channel_Read(adbms_raw_* adbms)
@@ -248,10 +312,16 @@ void Owc_S_Channel_Read(adbms_raw_* adbms)
     bool pec = 0;
     ADBMS_WakeUP_ICs();
 
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDSVA, (adbms->raw_value.scell + 0 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDSVB, (adbms->raw_value.scell + 1 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDSVC, (adbms->raw_value.scell + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDSVD, (adbms->raw_value.scell + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    //commented out
+    pec |= ADBMS_Read_Data(RDSVA, (adbms->raw_value.scell + 0 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    pec |= ADBMS_Read_Data(RDSVB, (adbms->raw_value.scell + 1 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    pec |= ADBMS_Read_Data(RDSVC, (adbms->raw_value.scell + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    pec |= ADBMS_Read_Data(RDSVD, (adbms->raw_value.scell + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+
+    // pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDSVA, (adbms->raw_value.scell + 0 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    // pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDSVB, (adbms->raw_value.scell + 1 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    // pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDSVC, (adbms->raw_value.scell + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
+    // pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDSVD, (adbms->raw_value.scell + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
     //pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDSVE, (adbms->raw_value.scell + 4 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf); // probably don't need this
 
     adbms->read_failure.read_open_wire_pec_failure = pec;

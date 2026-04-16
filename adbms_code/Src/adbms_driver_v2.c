@@ -1,5 +1,9 @@
 #include "adbms_driver_v2.h"
 
+//added for the printf
+#include <stdio.h>
+#include <stdint.h>
+
 /* Precomputed CRC15 Table */
 const uint16_t Crc15Table[256] =
 {
@@ -289,18 +293,22 @@ void ADBMS_Set_ADV(adv_ adv, uint16_t* adv_cmd_buffer){
 //
 // read write functions
 //
+
+//everything that directly HAL interacts with the chip needs to be commented out
 void ADBMS_WakeUP_ICs()
 {
-    for(uint8_t i = 0; i < NUM_CHIPS; i++){
-        // Blocking Transmit the msg
-    	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-    	HAL_Delay(1);
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
-        HAL_Delay(1);
-    }
+    // for(uint8_t i = 0; i < NUM_CHIPS; i++){
+    //     // Blocking Transmit the msg
+    // 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+    // 	HAL_Delay(1);
+    //     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+    //     HAL_Delay(1);
+    // }
 }
 
-void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd)
+//new function does not need hspi
+//void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd)
+void ADBMS_Write_CMD(uint16_t tx_cmd)
 {
     uint8_t spi_dataBuf[4];
     spi_dataBuf[0] = (uint8_t)(tx_cmd >> 8);
@@ -310,16 +318,24 @@ void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd)
     spi_dataBuf[2] = (uint8_t)(cmd_pec >> 8);
     spi_dataBuf[3] = (uint8_t)(cmd_pec);
 
+    //add printf for testing
+    printf("Writing Command:\n");
+    printf("dec: %u, hex: 0x%04X\n", tx_cmd,tx_cmd);
+
+    //
+    //commented out for THIS testing only
+    //
     // Blocking Transmit the cmd
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-    if (HAL_SPI_Transmit(hspi, spi_dataBuf, CMD_LEN + PEC_LEN, SPI_TIME_OUT) != HAL_OK)
-    {
-        // TODO: do something if fails
-    }
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+    // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+    // if (HAL_SPI_Transmit(hspi, spi_dataBuf, CMD_LEN + PEC_LEN, SPI_TIME_OUT) != HAL_OK)
+    // {
+    //     // TODO: do something if fails
+    // }
+    // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 }
 
-void ADBMS_Write_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf)
+//void ADBMS_Write_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf)
+void ADBMS_Write_Data(uint16_t tx_cmd, uint8_t* data, uint8_t *spi_dataBuf)
 {
     spi_dataBuf[0] = (uint8_t)(tx_cmd >> 8);
     spi_dataBuf[1] = (uint8_t)(tx_cmd);
@@ -341,16 +357,22 @@ void ADBMS_Write_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, u
         spi_dataBuf[4 + DATA_LEN + 1 + ((cic)*(DATA_LEN + PEC_LEN))] = (uint8_t)(data_pec);
     }
 
+
+    //
+    //commented out
+    //
+
     // Blocking Transmit the cmd and data
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-    if (HAL_SPI_Transmit(hspi, spi_dataBuf, DATABUF_LEN, SPI_TIME_OUT) != HAL_OK)
-    {
-        // TODO: do something if fails
-    }
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+    // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+    // if (HAL_SPI_Transmit(hspi, spi_dataBuf, DATABUF_LEN, SPI_TIME_OUT) != HAL_OK)
+    // {
+    //     // TODO: do something if fails
+    // }
+    // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 }
 
-bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf)
+//bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf)
+bool ADBMS_Read_Data(uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf)
 {
     uint8_t spi_tx_dataBuf[DATABUF_LEN] = {0};
     spi_tx_dataBuf[0] = (uint8_t)(tx_cmd >> 8);
@@ -360,14 +382,19 @@ bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf,
     spi_tx_dataBuf[2] = (uint8_t)(cmd_pec >> 8);
     spi_tx_dataBuf[3] = (uint8_t)(cmd_pec);
 
+
+    //
+    //commented out
+    //
+
     // Blocking Transmit Receive the cmd and data
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-    if (HAL_SPI_TransmitReceive(hspi, spi_tx_dataBuf, spi_dataBuf, DATABUF_LEN, SPI_TIME_OUT) != HAL_OK)
-    {
-        // TODO: do something if fails
-    	printf("spi failed");
-    }
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+    // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+    // if (HAL_SPI_TransmitReceive(hspi, spi_tx_dataBuf, spi_dataBuf, DATABUF_LEN, SPI_TIME_OUT) != HAL_OK)
+    // {
+    //     // TODO: do something if fails
+    // 	printf("spi failed");
+    // }
+    // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 
     // Discard data received during transmit phase
     uint8_t *rx_dataBuf = spi_dataBuf + CMD_LEN + PEC_LEN;

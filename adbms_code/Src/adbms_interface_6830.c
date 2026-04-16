@@ -252,7 +252,9 @@ void Update_6830_Owc_Fault(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
 void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
 {
     // Turn on CB indication LED
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_SET);
+
+    //commented out because no HAL
+	//HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_SET);
  
     for (int cic = 0; cic < (NUM_6830); cic++)
     {
@@ -286,7 +288,10 @@ void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
         }
     }
     ADBMS_Set_Config_B(adbms_raw->command_parameters.parameter_6830.cfb6830, adbms_raw->command_bit.cfg_b);
-    ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGB, adbms_raw->command_bit.cfg_b, adbms_raw->SPI_data.spi_dataBuf);
+
+    //commented out
+    ADBMS_Write_Data(WRCFGB, adbms_raw->command_bit.cfg_b, adbms_raw->SPI_data.spi_dataBuf);
+    //ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGB, adbms_raw->command_bit.cfg_b, adbms_raw->SPI_data.spi_dataBuf);
     
 }
 
@@ -297,7 +302,9 @@ void cell_Balance_Off(adbms_raw_* adbms)
     config_command_bits_ command_bits = adbms->command_bit;
 
     // Turn off CB indication LED
-	HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_RESET);
+
+    //commented out because no HAL
+	//HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_RESET);
 
     for (int cic = 0; cic < (NUM_6830); cic++)
     {
@@ -305,8 +312,10 @@ void cell_Balance_Off(adbms_raw_* adbms)
     }
 
     ADBMS_Set_Config_B_6830(&parameters.cfb6830,&command_bits.cfg_b, NUM_6830);
-    ADBMS_Write_Data(adbms->SPI_data.hspi, WRCFGB, adbms->command_bit.cfg_b, adbms->SPI_data.spi_dataBuf);
-    
+
+    //commented out
+    ADBMS_Write_Data(WRCFGB, adbms->command_bit.cfg_b, adbms->SPI_data.spi_dataBuf);
+    //ADBMS_Write_Data(adbms->SPI_data.hspi, WRCFGB, adbms->command_bit.cfg_b, adbms->SPI_data.spi_dataBuf);
 }
 
 void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
