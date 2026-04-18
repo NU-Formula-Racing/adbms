@@ -99,10 +99,11 @@ void ADBMS_UpdateVoltages(adbms_ *adbms)
     //this is reading v_shunt_1 (v7) and v_shunt_2 (v9)
     //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDAUXC, (adbms->ICs.shunt_temp), adbms->ICs.spi_dataBuf);
     
-    adbms->voltage_pec_failure = pec;
+     adbms->voltage_pec_failure = pec;
+     printf("pec: %d", adbms->voltage_pec_failure);
 
     // calulate new values with the updated raw ones
-    ADBMS_CalculateValues_Voltages(adbms);
+    // ADBMS_CalculateValues_Voltages(adbms);
 
     // calculate 2950 values 
     ADBMS_2950_Calculate_Values(adbms);
@@ -113,7 +114,7 @@ void ADBMS_UpdateVoltages(adbms_ *adbms)
 //calculates values for 2950 from this
 void ADBMS_2950_Calculate_Values(adbms_* adbms){
     
-    ADBMS2950_Calculate_Vbat(adbms);
+    // ADBMS2950_Calculate_Vbat(adbms);
     ADBMS2950_Calculate_Current(adbms);
     //ADBMS2950_Calculate_Post_Voltage(adbms);
     //ADBMS2950_Calculate_Shunt_Temp(adbms);
@@ -182,6 +183,7 @@ void ADBMS2950_Calculate_Current(adbms_* adbms){
     adbms->data_2950.i2 = ADBMS2950_Transfer_Current(i2_raw);
 
     adbms->current = adbms->data_2950.i1;
+    printf("Current: %f\n", adbms->current);
     //i2 doesn't work yet, technically we should take the average of i1 and i2
     //adbms->current = (adbms->data_2950.i1 + adbms->data_2950.i2) / 2;
 }

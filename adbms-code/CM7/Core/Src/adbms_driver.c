@@ -304,7 +304,7 @@ void ADBMS_Write_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, u
 
 bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf)
 {
-    uint8_t spi_tx_dataBuf[4] = {0};
+    uint8_t spi_tx_dataBuf[DATABUF_LEN] = {0};
     spi_tx_dataBuf[0] = (uint8_t)(tx_cmd >> 8);
     spi_tx_dataBuf[1] = (uint8_t)(tx_cmd);
 
