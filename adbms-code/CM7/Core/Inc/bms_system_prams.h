@@ -11,7 +11,7 @@
 #define NUM_TEMPS_CHIP 10				/* Number of Temps to read per IC 	*/
 
 #define OVERVOLTAGE 4.2					/* Overvoltage Threshold 	*/
-#define UNDERVOLTAGE 1.5				/* Undervoltage Threshold 	*/
+#define UNDERVOLTAGE 2.5				/* Undervoltage Threshold 	*/
 #define OVERTEMP 90						/* Over Temp Threshold 		*/
 #define UNDERTEMP -40					/* Under Temp Threshold 	*/
 #define OVERCURRENT 135					/* Over Current Threshold 	*/

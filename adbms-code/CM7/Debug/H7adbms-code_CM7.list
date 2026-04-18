@@ -2639,7 +2639,7 @@ void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi)
 
         // Init config B
         adbms->cfb[cic].vuv = Set_UnderOver_Voltage_Threshold(UNDERVOLTAGE);
- 80016b2:	eeb7 0a08 	vmov.f32	s0, #120	@ 0x3fc00000  1.5
+ 80016b2:	eeb0 0a04 	vmov.f32	s0, #4	@ 0x40200000  2.5
  80016b6:	f7ff f9e7 	bl	8000a88 <Set_UnderOver_Voltage_Threshold>
  80016ba:	4603      	mov	r3, r0
  80016bc:	461a      	mov	r2, r3
@@ -4229,7 +4229,7 @@ void UpdateADInternalFault(adbms_ *adbms)
  80022ac:	d109      	bne.n	80022c2 <UpdateADInternalFault+0x5a>
  80022ae:	687b      	ldr	r3, [r7, #4]
  80022b0:	edd3 7ac2 	vldr	s15, [r3, #776]	@ 0x308
- 80022b4:	eeb7 7a08 	vmov.f32	s14, #120	@ 0x3fc00000  1.5
+ 80022b4:	eeb0 7a04 	vmov.f32	s14, #4	@ 0x40200000  2.5
  80022b8:	eef4 7ac7 	vcmpe.f32	s15, s14
  80022bc:	eef1 fa10 	vmrs	APSR_nzcv, fpscr
  80022c0:	d501      	bpl.n	80022c6 <UpdateADInternalFault+0x5e>
@@ -10314,7 +10314,7 @@ void Soc_Update(mainboard_ *mainboard)
  80057e6:	687b      	ldr	r3, [r7, #4]
  80057e8:	edd3 7ac3 	vldr	s15, [r3, #780]	@ 0x30c
  80057ec:	eeb7 7ae7 	vcvt.f64.f32	d7, s15
- 80057f0:	eeb7 6b08 	vmov.f64	d6, #120	@ 0x3fc00000  1.5
+ 80057f0:	eeb0 6b04 	vmov.f64	d6, #4	@ 0x40200000  2.5
  80057f4:	ee37 5b46 	vsub.f64	d5, d7, d6
  80057f8:	687b      	ldr	r3, [r7, #4]
  80057fa:	edd3 7ad8 	vldr	s15, [r3, #864]	@ 0x360
