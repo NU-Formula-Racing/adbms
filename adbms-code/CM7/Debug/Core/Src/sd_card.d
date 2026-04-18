@@ -45,7 +45,8 @@ Core/Src/sd_card.o: ../Core/Src/sd_card.c ../Core/Inc/sd_card.h \
  ../FATFS/Target/bsp_driver_sd.h ../FATFS/Target/fatfs_platform.h \
  ../../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h \
  ../../Middlewares/Third_Party/FatFs/src/diskio.h \
- ../../Middlewares/Third_Party/FatFs/src/ff.h ../FATFS/Target/sd_diskio.h
+ ../../Middlewares/Third_Party/FatFs/src/ff.h ../FATFS/Target/sd_diskio.h \
+ ../Core/Inc/bms_system_prams.h
 ../Core/Inc/sd_card.h:
 ../FATFS/App/fatfs.h:
 ../../Middlewares/Third_Party/FatFs/src/ff.h:
@@ -98,3 +99,4 @@ Core/Src/sd_card.o: ../Core/Src/sd_card.c ../Core/Inc/sd_card.h \
 ../../Middlewares/Third_Party/FatFs/src/diskio.h:
 ../../Middlewares/Third_Party/FatFs/src/ff.h:
 ../FATFS/Target/sd_diskio.h:
+../Core/Inc/bms_system_prams.h:
