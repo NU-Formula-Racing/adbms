@@ -83,13 +83,13 @@ void ADBMS_UpdateVoltages(adbms_ *adbms)
 {
     // get voltages from ADBMS
     bool pec = 0;
-    ADBMS_WakeUP_ICs();
+    // ADBMS_WakeUP_ICs();
 
     //getting to the
     pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVA, (adbms->ICs.cell + 0 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 0-2 for each chip
-    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVB, (adbms->ICs.cell + 1 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 3-5 for each chip
-    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVC, (adbms->ICs.cell + 2 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 6-8 for each chip
-    pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVD, (adbms->ICs.cell + 3 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 9-11 for each chip
+    // pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVB, (adbms->ICs.cell + 1 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 3-5 for each chip
+    // pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVC, (adbms->ICs.cell + 2 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 6-8 for each chip
+    // pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVD, (adbms->ICs.cell + 3 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //read voltages 9-11 for each chip
     //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDCVE, (adbms->ICs.cell + 4 * NUM_CHIPS * DATA_LEN), adbms->ICs.spi_dataBuf); //DONT NEED VOLTAGES OVER 12 for nfr26
     
     //this is reading v1adc and v2adc
@@ -99,8 +99,20 @@ void ADBMS_UpdateVoltages(adbms_ *adbms)
     //this is reading v_shunt_1 (v7) and v_shunt_2 (v9)
     //pec |= ADBMS_Read_Data(adbms->ICs.hspi, RDAUXC, (adbms->ICs.shunt_temp), adbms->ICs.spi_dataBuf);
     
-     adbms->voltage_pec_failure = pec;
-     printf("pec: %d", adbms->voltage_pec_failure);
+    adbms->voltage_pec_failure = pec;
+    if (adbms->voltage_pec_failure){
+        #define BUFFER_SIZE 64  // Increase this if more snprintfs are added
+        char logBuf[BUFFER_SIZE];
+        int len = 0;
+        int remaining = BUFFER_SIZE;
+        
+        len += snprintf(logBuf + len, remaining, "\r\nPEC Fault\r\n");
+        remaining = BUFFER_SIZE - len;
+
+        if (remaining <= 0) HardFault_Handler();
+
+        CDC_Transmit_FS((uint8_t*) logBuf, strlen(logBuf));
+    }
 
     // calulate new values with the updated raw ones
     // ADBMS_CalculateValues_Voltages(adbms);
@@ -183,7 +195,7 @@ void ADBMS2950_Calculate_Current(adbms_* adbms){
     adbms->data_2950.i2 = ADBMS2950_Transfer_Current(i2_raw);
 
     adbms->current = adbms->data_2950.i1;
-    printf("Current: %f\n", adbms->current);
+    // printf("Current: %f\n", adbms->current);
     //i2 doesn't work yet, technically we should take the average of i1 and i2
     //adbms->current = (adbms->data_2950.i1 + adbms->data_2950.i2) / 2;
 }
