@@ -1,3 +1,5 @@
+#pragma once
+
 #include "adbms_interface_v2.h"
 #include <float.h>
 
@@ -7,14 +9,6 @@
 #define B                   3435
 #define T25                 298.15     
 
-
-typedef struct
-{
-    data_6830_ data;
-    adbms_6830_failures_    failures;
-    adbms_6830_faults_  faults;
-
-}adbms_6830_;
 
 
 typedef struct
@@ -55,6 +49,14 @@ typedef struct
 
 }adbms_6830_faults_;
 
+typedef struct
+{
+    data_6830_ data;
+    adbms_6830_failures_    failures;
+    adbms_6830_faults_  faults;
+
+}adbms_6830_;
+
 void ADBMS_6830_Calculate_Values(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830);
 void ADBMS_6830_Calculate_Voltage(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830);
 float ADBMS_6830_Transfer_Voltage(int data);
@@ -63,6 +65,8 @@ float ADBMS_6830_Transfer_Temp(float raw_temp_voltage, float Vref);
 
 void Update_6830_InternalFault(adbms_6830_* adbms_6830);
 void Update_6830_Owc_Fault(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830);
+
+float ADBMS_getVoltage(int data);
 
 void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830);
 void cell_Balance_Off(adbms_raw_* adbms);

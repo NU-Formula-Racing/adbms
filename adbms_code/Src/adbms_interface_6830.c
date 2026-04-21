@@ -1,4 +1,5 @@
 #include "adbms_interface_6830.h"
+#include <math.h>
 
 void ADBMS_6830_Calculate_Values(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830)
 {
@@ -249,6 +250,14 @@ void Update_6830_Owc_Fault(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
     }
 }
 
+//added because forgot to include since last version
+float ADBMS_getVoltage(int data)
+{
+    // voltage in Volts
+    float voltage_float = ((data + 10000) * 0.000150);
+    return voltage_float;
+}
+
 void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
 {
     // Turn on CB indication LED
@@ -287,7 +296,11 @@ void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
             adbms_raw->command_parameters.parameter_6830.cfb6830[cic].dcc = 1 << 1;
         }
     }
-    ADBMS_Set_Config_B(adbms_raw->command_parameters.parameter_6830.cfb6830, adbms_raw->command_bit.cfg_b);
+
+    command_parameters_6830_ parameters = adbms_raw->command_parameters.parameter_6830;
+    config_command_bits_ command_bits = adbms_raw->command_bit;
+
+    ADBMS_Set_Config_B_6830(&parameters.cfb6830,&command_bits.cfg_b, NUM_6830);
 
     //commented out
     ADBMS_Write_Data(WRCFGB, adbms_raw->command_bit.cfg_b, adbms_raw->SPI_data.spi_dataBuf);
@@ -365,7 +378,7 @@ void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
     printf("Faults\n");
     printf("undervoltage: %d\t", adbms_6830->faults.undervoltage_fault);
     printf("overvoltage: %d\t", adbms_6830->faults.overvoltage_fault);
-    printf("pec: %d\t", adbms_6830->faults.pec_fault_);
+    printf("pec: %d\t", adbms_6830->faults.pec_fault);
     printf("overtemperature: %d\t", adbms_6830->faults.overtemperature_fault);
     printf("openwire: %d\t", adbms_6830->faults.openwire_voltage_fault);
     printf("openwire_temp: %d\n", adbms_6830->faults.openwire_temp_fault);

@@ -157,32 +157,6 @@ uint16_t Set_UnderOver_Voltage_Threshold(float voltage)
   return v_th_value;
 }
 
-/**
- *******************************************************************************
- * Function: UnderOver_Voltage_Threshold
- * @brief Converts a float into Voltage Threshold 
- *
- * @details This function takes a float and converts it into the 12 bits that 
- *          ADBMS config expects. 
- *
- * Parameters:
- *
- * @param [in]  voltage       Over or Under Voltage Threshold
- *
- * @return VoltageThreshold_value
- *
- *******************************************************************************
-*/
-uint16_t Set_UnderOver_Voltage_Threshold(float voltage)
-{
-  uint16_t v_th_value;
-  uint8_t rbits = 12;
-  voltage = (voltage - 1.5);
-  voltage = voltage / (16 * 0.000150);
-  v_th_value = (uint16_t )(voltage + 2 * (1 << (rbits - 1)));
-  v_th_value &= 0xFFF;
-  return v_th_value;
-}
 
 
 
@@ -319,8 +293,8 @@ void ADBMS_Write_CMD(uint16_t tx_cmd)
     spi_dataBuf[3] = (uint8_t)(cmd_pec);
 
     //add printf for testing
-    printf("Writing Command:\n");
-    printf("dec: %u, hex: 0x%04X\n", tx_cmd,tx_cmd);
+    printf("Writing Command: dec: %u, hex: 0x%04X\n", tx_cmd,tx_cmd);
+    printf("Command Pec: dec: %u, hex: 0x%04X\n\n",cmd_pec,cmd_pec);
 
     //
     //commented out for THIS testing only
@@ -356,6 +330,9 @@ void ADBMS_Write_Data(uint16_t tx_cmd, uint8_t* data, uint8_t *spi_dataBuf)
         spi_dataBuf[4 + DATA_LEN + ((cic)*(DATA_LEN + PEC_LEN))] = (uint8_t)(data_pec >> 8);
         spi_dataBuf[4 + DATA_LEN + 1 + ((cic)*(DATA_LEN + PEC_LEN))] = (uint8_t)(data_pec);
     }
+
+    printf("Writing Data Command: dec: %u, hex: 0x%04X\n", tx_cmd,tx_cmd);
+    printf("Writing Data Command Pec: dec: %u, hex: 0x%04X\n\n",tx_cmd,tx_cmd);
 
 
     //

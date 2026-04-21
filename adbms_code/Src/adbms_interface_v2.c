@@ -6,7 +6,7 @@
 //
 
 //void ADBMS_Initialize(adbms_raw_ *adbms, SPI_HandleTypeDef *hspi)
-void ADBMS_Initialize(adbms_raw_ *adbms)
+void ADBMS_Initialize(adbms_raw_* adbms_raw)
 {
     //
     //commented out 
@@ -14,9 +14,9 @@ void ADBMS_Initialize(adbms_raw_ *adbms)
     //adbms->SPI_data.hspi = hspi;
 
     //configuration parameter place
-    ADBMS_6830_Config(adbms->command_parameters->parameter_6830,&adbms->command_bit);
-    ADBMS_2950_Config(adbms->command_parameters->parameter_2950,&adbms->command_bit);
-    ADBMS_joint_Config(adbms->command_parameters->parameter_joint,&adbms->command_bit);
+    ADBMS_6830_Config(&adbms_raw->command_parameters.parameter_6830,&adbms_raw->command_bit);
+    ADBMS_2950_Config(&adbms_raw->command_parameters.parameter_2950,&adbms_raw->command_bit);
+    ADBMS_joint_Config(&adbms_raw->command_parameters.parameter_joint,&adbms_raw->command_bit);
 
     //wakeup IC
     ADBMS_WakeUP_ICs();
@@ -25,7 +25,7 @@ void ADBMS_Initialize(adbms_raw_ *adbms)
     //write data and commands
 
     //this is a change
-    ADBMS_Initialize_Write_Data_Command(adbms);
+    ADBMS_Initialize_Write_Data_Command(adbms_raw);
 }
 
 void ADBMS_Read_Voltage(adbms_raw_ *adbms){
@@ -96,8 +96,8 @@ void ADBMS_6830_Config(command_parameters_6830_* parameters,config_command_bits_
         parameters->cfb6830[cic].vov = Set_UnderOver_Voltage_Threshold(OVERVOLTAGE);
     }
 
-    ADBMS_Set_Config_A_6830(&parameters->cfa6830,command_bits->cfg_a, NUM_6830); //sets for all 6830
-    ADBMS_Set_Config_B_6830(&parameters->cfb6830,command_bits->cfg_b, NUM_6830); // sets for all 6830
+    ADBMS_Set_Config_A_6830(parameters->cfa6830,command_bits->cfg_a, NUM_6830); //sets for all 6830
+    ADBMS_Set_Config_B_6830(parameters->cfb6830,command_bits->cfg_b, NUM_6830); // sets for all 6830
     
 }
 
@@ -127,7 +127,7 @@ void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bi
     //
     parameters->adcv.cont = 1; //Init sensing cmd
 
-    ADBMS_Set_ADCV(parameters->adcv, command_bits->adcv); // set adcv
+    ADBMS_Set_ADCV(parameters->adcv, &command_bits->adcv); // set adcv
 
 
     //
@@ -135,7 +135,7 @@ void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bi
     //
     parameters->adsv.cont = 1; // for 2950 measurements
 
-    ADBMS_Set_ADSV(parameters->adsv,command_bits->adsv); //set adsv
+    ADBMS_Set_ADSV(parameters->adsv, &command_bits->adsv); //set adsv
 
     //
     //adv configs
@@ -143,7 +143,7 @@ void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bi
     parameters->adv.ow = 0;  //open_wire source off
     parameters->adv.vch = 0; //vch = 0 (this is complicated, for reference check datasheet table 57/58)
 
-    ADBMS_Set_ADV(parameters->adv,command_bits->adv); //set adv
+    ADBMS_Set_ADV(parameters->adv, &command_bits->adv); //set adv
 }
 
 //
@@ -153,7 +153,10 @@ void ADBMS_Initialize_Write_Data_Command(adbms_raw_* adbms){
     
     //Write data and commands
 
+    printf("Writing Cfga\n");
     ADBMS_Write_Data(WRCFGA, adbms->command_bit.cfg_a, adbms->SPI_data.spi_dataBuf);
+
+    printf("Writing Cfgb\n");
     ADBMS_Write_Data(WRCFGB, adbms->command_bit.cfg_b, adbms->SPI_data.spi_dataBuf);
 
     // ADBMS_Write_Data(adbms->SPI_data.hspi, WRCFGA, adbms->command_bit.cfg_a, adbms->SPI_data.spi_dataBuf);
@@ -161,9 +164,13 @@ void ADBMS_Initialize_Write_Data_Command(adbms_raw_* adbms){
 
     // Turn on sensing
 
+    printf("Writing adcv\n");
     ADBMS_Write_CMD(adbms->command_bit.adcv);
+    printf("Writing adax\n");
     ADBMS_Write_CMD(adbms->command_bit.adax);
+    printf("Writing adsv\n");
     ADBMS_Write_CMD(adbms->command_bit.adsv);
+    printf("Writing adv\n");
     ADBMS_Write_CMD(adbms->command_bit.adv); //new 2950 command to start V1adc and V2adc
 
 
@@ -274,7 +281,9 @@ void Owc_S_Channel_Even_On(adbms_raw_* adbms)
 {
     // check openwire fault
     ADBMS_WakeUP_ICs();
-    cell_Balance_Off(adbms);  // need to turn off cell balancing to check for OWC
+
+    //we're going to change this to elsewhere when we actually read
+    //cell_Balance_Off(adbms);  // need to turn off cell balancing to check for OWC
 
     adbms->command_parameters.parameter_joint.adsv.cont = 1;
     adbms->command_parameters.parameter_joint.adsv.ow = 1; // Enable OW on even-channel 
@@ -292,7 +301,9 @@ void Owc_S_Channel_Odd_On(adbms_raw_* adbms)
 {
     // check openwire fault
     ADBMS_WakeUP_ICs();
-    cell_Balance_Off(adbms);  // need to turn off cell balancing to check for OWC
+
+    //same with here
+    //cell_Balance_Off(adbms);  // need to turn off cell balancing to check for OWC
 
     /// OWC ODD Check
     adbms->command_parameters.parameter_joint.adsv.cont = 1;

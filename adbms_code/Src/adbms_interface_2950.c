@@ -6,7 +6,7 @@ void ADBMS_2950_Calculate_Values(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
     ADBMS_2950_Calculate_Vbat(adbms_raw, adbms_2950);
     ADBMS_2950_Calculate_Current(adbms_raw, adbms_2950);
     ADBMS_2950_Calculate_Post_Voltage(adbms_raw, adbms_2950);
-    ADBMS_2950_Calculat_Shunt_Temp(adbms_raw, adbms_2950);
+    ADBMS_2950_Calculate_Shunt_Temp(adbms_raw, adbms_2950);
 }
 
 void ADBMS_2950_Calculate_Vbat(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
@@ -63,8 +63,8 @@ void ADBMS_2950_Calculate_Current(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950
     }
 
     //i2 doesn't work yet, or else we should only have 1 final current reading
-    adbms_2950->data.current1 = -ADBMS_2950_Transfer_current(adbms_2950->raw_data.i1_raw);
-    adbms_2950->data.current2 = ADBMS_2950_Transfer_current(adbms_2950->raw_data.i2_raw);
+    adbms_2950->data.current_1 = -ADBMS_2950_Transfer_Current(adbms_2950->raw_data.i1_raw);
+    adbms_2950->data.current_2 = ADBMS_2950_Transfer_Current(adbms_2950->raw_data.i2_raw);
 }
 
 float ADBMS_2950_Transfer_Current(int32_t data)

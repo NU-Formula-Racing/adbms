@@ -22,45 +22,10 @@ typedef struct
 }adbms_raw_;
 
 
-//for all command paramters
-typedef struct
-{
-    command_parameters_6830_    parameter_6830;
-    command_parameters_2950_    parameter_2950;
-    command_parameters_joint_   parameter_joint;
-
-}configurations_command_parameters_;
-
-typedef struct
-{
-    //6830 configuration commands
-    cfa6830_    cfa6830[NUM_6830];
-    cfb6830_    cfb6830[NUM_6830];
-
-}command_parameters_6830_;
-
-typedef struct
-{
-    //2950 configuration commands
-    cfa2950_    cfa2950;
-    cfb2950_    cfb2950;
-
-}command_parameters_2950_;
-
-typedef struct
-{
-    //joint configuration commands
-    adcv_       adcv;
-    adsv_       adsv;
-    adax_       adax;
-    adax2_      adax2_;
-    adv_        adv;
-}command_parameters_joint_;
-
 
 
 //interface functions
-void ADBMS_Initialize(adbms_raw_ *adbms, SPI_HandleTypeDef *hspi);
+void ADBMS_Initialize(adbms_raw_ *adbms);
 
 //read raw values
 void ADBMS_Read_Voltage(adbms_raw_ *adbms);
