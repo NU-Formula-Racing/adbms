@@ -1,0 +1,3 @@
+/Users/jasperweng/STM32Cube/adbms/build/CMakeFiles/adbms_test.dir
+/Users/jasperweng/STM32Cube/adbms/build/CMakeFiles/edit_cache.dir
+/Users/jasperweng/STM32Cube/adbms/build/CMakeFiles/rebuild_cache.dir

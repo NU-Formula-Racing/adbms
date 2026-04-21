@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/Users/jasperweng/STM32Cube/adbms/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
