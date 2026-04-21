@@ -6,7 +6,7 @@ C_DEFINES =
 
 C_INCLUDES = -I/Users/jasperweng/STM32Cube/adbms/adbms_code/Inc
 
-C_FLAGSarm64 = -std=gnu99 -arch arm64
+C_FLAGSarm64 = -g -std=gnu99 -arch arm64
 
-C_FLAGS = -std=gnu99 -arch arm64
+C_FLAGS = -g -std=gnu99 -arch arm64
 
