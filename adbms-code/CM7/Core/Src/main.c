@@ -87,7 +87,6 @@ void PeriphCommonClock_Config(void);
 static void MPU_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SDMMC1_SD_Init(void);
-static void MX_SPI1_Init(void);
 static void MX_FDCAN1_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM4_Init(void);
@@ -170,15 +169,14 @@ Error_Handler();
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  //MX_SDMMC1_SD_Init();
-  MX_SPI1_Init();
+  MX_SDMMC1_SD_Init();
   MX_USB_DEVICE_Init();
   MX_FDCAN1_Init();
   MX_FATFS_Init();
   MX_TIM2_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-  Bms_Mainbaord_Setup(&hspi1, &hfdcan1);
+  Bms_Mainbaord_Setup(&hfdcan1);
   HAL_TIM_Base_Start_IT(&htim4);
 
   /* USER CODE END 2 */
@@ -362,7 +360,7 @@ static void MX_SDMMC1_SD_Init(void)
   * @param None
   * @retval None
   */
-static void MX_SPI1_Init(void)
+void MX_SPI1_Init(void)
 {
 
   /* USER CODE BEGIN SPI1_Init 0 */

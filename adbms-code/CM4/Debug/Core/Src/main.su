@@ -1,3 +1,5 @@
-../Core/Src/main.c:76:5:main	16	static
-../Core/Src/main.c:134:6:MX_SPI1_Init	8	static
-../Core/Src/main.c:185:6:Error_Handler	4	static,ignoring_inline_asm
+../Core/Src/main.c:80:5:main	16	static
+../Core/Src/main.c:151:6:PeriphCommonClock_Config	200	static
+../Core/Src/main.c:170:13:MX_SPI1_Init	8	static
+../Core/Src/main.c:218:13:MX_GPIO_Init	16	static
+../Core/Src/main.c:240:6:Error_Handler	4	static,ignoring_inline_asm

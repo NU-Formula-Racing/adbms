@@ -7,9 +7,10 @@
 #include "bms_can.h" 
 #include "bms_soc.h"
 #include "bms_control.h"
+#include "adbms_interface.h"
 #include <stdio.h>
 
-void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan);
+void Bms_Mainbaord_Setup(FDCAN_HandleTypeDef *hcan);
 
 void Tick_Mainboard_Timers();
 

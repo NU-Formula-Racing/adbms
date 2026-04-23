@@ -46,7 +46,7 @@ typedef struct
 } adbms_;
 
 
-void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi);
+//void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi);
 
 void UpdateADInternalFault(adbms_ *adbms);
 

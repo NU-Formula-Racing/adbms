@@ -60,12 +60,16 @@ SPI_HandleTypeDef hspi1;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
+static void MX_GPIO_Init(void);
+static void MX_SPI1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+  adbms_ m4_adbms;
+  volatile adbms_* const shared_adbms = (volatile adbms_ *)0x38001000;
 
 /* USER CODE END 0 */
 
@@ -77,7 +81,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+  
   /* USER CODE END 1 */
 
 /* USER CODE BEGIN Boot_Mode_Sequence_1 */
@@ -111,8 +115,11 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-
+  ADBMS_Initialize(&m4_adbms, &hspi1);
+  int n = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -122,6 +129,17 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    ADBMS_UpdateVoltages(&m4_adbms);
+    ADBMS_UpdateTemps(&m4_adbms);
+    UpdateADInternalFault(&m4_adbms);
+    if (n == 10)
+    {
+      Update_Owc_Fault(&m4_adbms);
+	    Update_Owc_C_Channel_Fault(&m4_adbms);
+      n = 0;
+    }
+    n++;
+    *shared_adbms = m4_adbms;
   }
   /* USER CODE END 3 */
 }
@@ -149,7 +167,7 @@ void PeriphCommonClock_Config(void)
   * @param None
   * @retval None
   */
-void MX_SPI1_Init(void)
+static void MX_SPI1_Init(void)
 {
 
   /* USER CODE BEGIN SPI1_Init 0 */
@@ -190,6 +208,25 @@ void MX_SPI1_Init(void)
 
   /* USER CODE END SPI1_Init 2 */
 
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+
+  /* USER CODE END MX_GPIO_Init_1 */
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+
+  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */

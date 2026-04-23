@@ -1,14 +1,13 @@
 #include "bms.h"
 
 mainboard_ mainboard;
+volatile adbms_* const shared_adbms = (volatile adbms_ *)0x38001000;
 
-void Bms_Mainbaord_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
+
+void Bms_Mainbaord_Setup(FDCAN_HandleTypeDef *hcan)
 {
 	// initialize handles
 	mainboard.hcan = hcan;
-
-	// initialize ad chip;
-	ADBMS_Initialize(&mainboard.adbms, hspi);
 
 	// initialize CAN;
 	Bms_Initialize_Can(&mainboard);
@@ -48,17 +47,18 @@ void bms_mainboard_loop()
 // Seprate loop that gets ticked to run OWC
 void adbms_owc_loop()
 { 
-	Update_Owc_Fault(&mainboard.adbms);
-	Update_Owc_C_Channel_Fault(&mainboard.adbms);
+	// Update_Owc_Fault(&mainboard.adbms);
+	// Update_Owc_C_Channel_Fault(&mainboard.adbms);
 }
 
-void update_values()
+void update_values() 
 {
-	// ADBMS values
-	ADBMS_UpdateVoltages(&mainboard.adbms);
-	ADBMS_UpdateTemps(&mainboard.adbms);
+	mainboard.adbms = *shared_adbms;
+	// ADBMS values Not ran on H7
+	// ADBMS_UpdateVoltages(&mainboard.adbms);
+	// ADBMS_UpdateTemps(&mainboard.adbms);
 
-	UpdateADInternalFault(&mainboard.adbms);
+	// UpdateADInternalFault(&mainboard.adbms);
 
 	// update STM32 Pin values
     mainboard.shutdown_present = HAL_GPIO_ReadPin(GPIOD, Shutdown_Contactors_Pin); 	   		  // shutdown status

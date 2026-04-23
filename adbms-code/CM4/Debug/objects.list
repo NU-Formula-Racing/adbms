@@ -1,4 +1,7 @@
 "./Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.o"
+"./Core/Src/m4_adbms_driver.o"
+"./Core/Src/m4_adbms_interface.o"
+"./Core/Src/m4_thermistor_driver.o"
 "./Core/Src/main.o"
 "./Core/Src/stm32h7xx_hal_msp.o"
 "./Core/Src/stm32h7xx_it.o"

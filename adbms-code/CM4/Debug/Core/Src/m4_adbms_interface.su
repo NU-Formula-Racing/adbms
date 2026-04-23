@@ -1,0 +1,12 @@
+../Core/Src/m4_adbms_interface.c:3:6:ADBMS_Initialize	24	static
+../Core/Src/m4_adbms_interface.c:40:6:ADBMS_UpdateVoltages	24	static
+../Core/Src/m4_adbms_interface.c:58:6:ADBMS_UpdateTemps	24	static
+../Core/Src/m4_adbms_interface.c:76:6:ADBMS_CalculateValues_Voltages	48	static
+../Core/Src/m4_adbms_interface.c:157:6:ADBMS_CalculateValues_Temps	48	static
+../Core/Src/m4_adbms_interface.c:215:6:UpdateADInternalFault	16	static
+../Core/Src/m4_adbms_interface.c:232:6:cellBalanceOn	48	static
+../Core/Src/m4_adbms_interface.c:270:6:cellBalanceOff	24	static
+../Core/Src/m4_adbms_interface.c:283:6:Update_Owc_Fault	64	static
+../Core/Src/m4_adbms_interface.c:421:6:Update_Owc_C_Channel_Fault	64	static
+../Core/Src/m4_adbms_interface.c:557:6:ADBMS_Print_Vals	48	static
+../Core/Src/m4_adbms_interface.c:611:6:ADBMS_USB_Serial_Print_Vals	3560	static
