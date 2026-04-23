@@ -134,9 +134,9 @@ float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage){
 void ADBMS_2950_Print_Vals(adbms_2950_* adbms_2950)
 {
     // 2950 prints
-    printf("\n ADBMS 2950 Data\n");
-    printf("adbms2950 precontactor voltage: %f\t", adbms_2950->data.precontactor_voltage);
-    printf("adbms2950 i1: %f\t", adbms_2950->data.current_1);
-    printf("adbms2950 i2: %f\t", adbms_2950->data.current_1);
+    printf("ADBMS 2950 Data\n");
+    printf("adbms2950 precontactor voltage: %f\n", adbms_2950->data.precontactor_voltage);
+    printf("adbms2950 i1: %f\n", adbms_2950->data.current_1);
+    printf("adbms2950 i2: %f\n", adbms_2950->data.current_1);
     printf("adbms2950 TS: %f\n", adbms_2950->data.postcontactor_voltage);
 }

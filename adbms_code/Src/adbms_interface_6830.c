@@ -333,7 +333,7 @@ void cell_Balance_Off(adbms_raw_* adbms)
 
 void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
 {
-    printf("\nADBMS 6830 Data\n");
+    printf("\nADBMS 6830 Data");
     printf("\nVOLTAGES\n");
     printf("total v: %f\n", adbms_6830->data.total_v);
     printf("max v: %f\t", adbms_6830->data.max_v);
@@ -373,9 +373,10 @@ void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
         {
             printf("T%d=%f\t", (i * NUM_TEMPS_CHIP + j + 1), adbms_6830->data.temperatures[i * NUM_TEMPS_CHIP + j]);
         }
+        printf("\n");
     }
-    printf("\n");
-    printf("Faults\n");
+
+    printf("\nFaults\n");
     printf("undervoltage: %d\t", adbms_6830->faults.undervoltage_fault);
     printf("overvoltage: %d\t", adbms_6830->faults.overvoltage_fault);
     printf("pec: %d\t", adbms_6830->faults.pec_fault);

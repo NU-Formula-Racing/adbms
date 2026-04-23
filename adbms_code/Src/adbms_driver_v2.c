@@ -220,46 +220,46 @@ void ADBMS_Set_Config_B_2950(cfb2950_* cfg_b2950, uint8_t* cfg_b_tx_buffer, uint
 void ADBMS_Set_ADCV(adcv_ adcv, uint16_t *adcv_cmd_buffer)
 {
     *adcv_cmd_buffer = (0x1 << 9) 
-                        | ((adcv.rd && 0x1) << 8) 
-                        | ((adcv.cont && 0x1) << 7) 
+                        | ((adcv.rd & 0x1) << 8) 
+                        | ((adcv.cont & 0x1) << 7) 
                         | (0x3 << 5) 
-                        | ((adcv.dcp && 0x1) << 4) 
-                        | ((adcv.rstf && 0x1) << 2) 
-                        | (adcv.ow && 0x3);
+                        | ((adcv.dcp & 0x1) << 4) 
+                        | ((adcv.rstf & 0x1) << 2) 
+                        | (adcv.ow & 0x3);
 }
 
 void ADBMS_Set_ADSV(adsv_ adsv, uint16_t *adsv_cmd_buffer)
 {
     *adsv_cmd_buffer = (0x1 << 8)
-                        | ((adsv.cont && 0x1) << 7)
+                        | ((adsv.cont & 0x1) << 7)
                         | (0x3 << 5)
-                        | ((adsv.dcp && 0x1) << 4)
+                        | ((adsv.dcp & 0x1) << 4)
                         | (0x1 << 3)
-                        | (adsv.ow && 0x3);
+                        | (adsv.ow & 0x3);
 }
 
 void ADBMS_Set_ADAX(adax_ adax, uint16_t *adax_cmd_buffer)
 {
     *adax_cmd_buffer = (0x1 << 10) 
-                        | ((adax.ow && 0x1) << 8)
-                        | ((adax.pup && 0x1) << 7)
-                        | ((adax.ch && 0x10) << 6)
+                        | ((adax.ow & 0x1) << 8)
+                        | ((adax.pup & 0x1) << 7)
+                        | ((adax.ch & 0x10) << 6)
                         | (0x1 << 4)
-                        | (adax.ch && 0xF);
+                        | (adax.ch & 0xF);
 }
 
 void ADBMS_Set_ADAX2(adax2_ adax2, uint16_t *adax2_cmd_buffer)
 {
     *adax2_cmd_buffer = (0x1 << 10) 
-                        | (adax2.ch && 0xF);
+                        | (adax2.ch & 0xF);
 }
 
 void ADBMS_Set_ADV(adv_ adv, uint16_t* adv_cmd_buffer){
 
     *adv_cmd_buffer = (0x1 << 10)
-                    | (adv.ow && 0x3 << 6)
+                    | ((adv.ow & 0x3) << 6)
                     | (0x3 << 4)
-                    | (adv.vch && 0xF);
+                    | (adv.vch & 0xF);
 
 }
 

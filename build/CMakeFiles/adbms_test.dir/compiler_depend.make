@@ -411,9 +411,11 @@ CMakeFiles/adbms_test.dir/adbms_code/Src/test.c.o: /Users/jasperweng/STM32Cube/a
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/AvailabilityInternalLegacy.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/AvailabilityVersions.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_printf.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_static_assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdlib.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_string.h \
@@ -432,6 +434,7 @@ CMakeFiles/adbms_test.dir/adbms_code/Src/test.c.o: /Users/jasperweng/STM32Cube/a
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/endian.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/signal.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/types.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/assert.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/float.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/libkern/_OSByteOrder.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/libkern/arm/_OSByteOrder.h \
@@ -503,14 +506,18 @@ CMakeFiles/adbms_test.dir/adbms_code/Src/test.c.o: /Users/jasperweng/STM32Cube/a
   /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h \
   /Users/jasperweng/STM32Cube/adbms/adbms_code/Inc/adbms_cmd.h \
   /Users/jasperweng/STM32Cube/adbms/adbms_code/Inc/adbms_driver_v2.h \
-  /Users/jasperweng/STM32Cube/adbms/adbms_code/Inc/adbms_interface_2950.h \
-  /Users/jasperweng/STM32Cube/adbms/adbms_code/Inc/adbms_interface_6830.h \
   /Users/jasperweng/STM32Cube/adbms/adbms_code/Inc/adbms_interface_v2.h \
   /Users/jasperweng/STM32Cube/adbms/adbms_code/Inc/bms_system_prams.h \
   /Users/jasperweng/STM32Cube/adbms/adbms_code/Inc/test.h
 
 
 /Users/jasperweng/STM32Cube/adbms/adbms_code/Inc/test.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/assert.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_static_assert.h:
+
+/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_assert.h:
 
 /Users/jasperweng/STM32Cube/adbms/adbms_code/Src/test.c:
 
