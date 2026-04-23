@@ -21,25 +21,25 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
   8 .ARM.attributes 00000030  00000000  00000000  00002010  2**0
                   CONTENTS, READONLY
-  9 .debug_info   000070f5  00000000  00000000  00002040  2**0
+  9 .debug_info   00006cd6  00000000  00000000  00002040  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 10 .debug_abbrev 00001376  00000000  00000000  00009135  2**0
+ 10 .debug_abbrev 00001331  00000000  00000000  00008d16  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 11 .debug_aranges 000006b0  00000000  00000000  0000a4b0  2**3
+ 11 .debug_aranges 000006b0  00000000  00000000  0000a048  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 12 .debug_rnglists 000004ea  00000000  00000000  0000ab60  2**0
+ 12 .debug_rnglists 000004e9  00000000  00000000  0000a6f8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_macro  00037b70  00000000  00000000  0000b04a  2**0
+ 13 .debug_macro  00037ce6  00000000  00000000  0000abe1  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_line   000076c8  00000000  00000000  00042bba  2**0
+ 14 .debug_line   00007592  00000000  00000000  000428c7  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_str    00173058  00000000  00000000  0004a282  2**0
+ 15 .debug_str    001730ee  00000000  00000000  00049e59  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .comment      00000043  00000000  00000000  001bd2da  2**0
+ 16 .comment      00000043  00000000  00000000  001bcf47  2**0
                   CONTENTS, READONLY
- 17 .debug_frame  00001980  00000000  00000000  001bd320  2**2
+ 17 .debug_frame  00001988  00000000  00000000  001bcf8c  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_line_str 0000005c  00000000  00000000  001beca0  2**0
+ 18 .debug_line_str 0000005c  00000000  00000000  001be914  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -237,21 +237,9 @@ int main(void)
  81003b4:	58026400 	.word	0x58026400
 
 081003b8 <HAL_MspInit>:
-/* USER CODE END 0 */
-/**
-  * Initializes the Global MSP.
-  */
-void HAL_MspInit(void)
-{
  81003b8:	b480      	push	{r7}
  81003ba:	b083      	sub	sp, #12
  81003bc:	af00      	add	r7, sp, #0
-
-  /* USER CODE BEGIN MspInit 0 */
-
-  /* USER CODE END MspInit 0 */
-
-  __HAL_RCC_SYSCFG_CLK_ENABLE();
  81003be:	4b0a      	ldr	r3, [pc, #40]	@ (81003e8 <HAL_MspInit+0x30>)
  81003c0:	f8d3 30f4 	ldr.w	r3, [r3, #244]	@ 0xf4
  81003c4:	4a08      	ldr	r2, [pc, #32]	@ (81003e8 <HAL_MspInit+0x30>)
@@ -262,12 +250,6 @@ void HAL_MspInit(void)
  81003d4:	f003 0302 	and.w	r3, r3, #2
  81003d8:	607b      	str	r3, [r7, #4]
  81003da:	687b      	ldr	r3, [r7, #4]
-  /* System interrupt init*/
-
-  /* USER CODE BEGIN MspInit 1 */
-
-  /* USER CODE END MspInit 1 */
-}
  81003dc:	bf00      	nop
  81003de:	370c      	adds	r7, #12
  81003e0:	46bd      	mov	sp, r7
@@ -276,269 +258,109 @@ void HAL_MspInit(void)
  81003e8:	58024400 	.word	0x58024400
 
 081003ec <NMI_Handler>:
-/******************************************************************************/
-/**
-  * @brief This function handles Non maskable interrupt.
-  */
-void NMI_Handler(void)
-{
  81003ec:	b480      	push	{r7}
  81003ee:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
-
-  /* USER CODE END NonMaskableInt_IRQn 0 */
-  /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
-   while (1)
  81003f0:	bf00      	nop
  81003f2:	e7fd      	b.n	81003f0 <NMI_Handler+0x4>
 
 081003f4 <HardFault_Handler>:
-
-/**
-  * @brief This function handles Hard fault interrupt.
-  */
-void HardFault_Handler(void)
-{
  81003f4:	b480      	push	{r7}
  81003f6:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN HardFault_IRQn 0 */
-
-  /* USER CODE END HardFault_IRQn 0 */
-  while (1)
  81003f8:	bf00      	nop
  81003fa:	e7fd      	b.n	81003f8 <HardFault_Handler+0x4>
 
 081003fc <MemManage_Handler>:
-
-/**
-  * @brief This function handles Memory management fault.
-  */
-void MemManage_Handler(void)
-{
  81003fc:	b480      	push	{r7}
  81003fe:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN MemoryManagement_IRQn 0 */
-
-  /* USER CODE END MemoryManagement_IRQn 0 */
-  while (1)
  8100400:	bf00      	nop
  8100402:	e7fd      	b.n	8100400 <MemManage_Handler+0x4>
 
 08100404 <BusFault_Handler>:
-
-/**
-  * @brief This function handles Pre-fetch fault, memory access fault.
-  */
-void BusFault_Handler(void)
-{
  8100404:	b480      	push	{r7}
  8100406:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN BusFault_IRQn 0 */
-
-  /* USER CODE END BusFault_IRQn 0 */
-  while (1)
  8100408:	bf00      	nop
  810040a:	e7fd      	b.n	8100408 <BusFault_Handler+0x4>
 
 0810040c <UsageFault_Handler>:
-
-/**
-  * @brief This function handles Undefined instruction or illegal state.
-  */
-void UsageFault_Handler(void)
-{
  810040c:	b480      	push	{r7}
  810040e:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN UsageFault_IRQn 0 */
-
-  /* USER CODE END UsageFault_IRQn 0 */
-  while (1)
  8100410:	bf00      	nop
  8100412:	e7fd      	b.n	8100410 <UsageFault_Handler+0x4>
 
 08100414 <SVC_Handler>:
-
-/**
-  * @brief This function handles System service call via SWI instruction.
-  */
-void SVC_Handler(void)
-{
  8100414:	b480      	push	{r7}
  8100416:	af00      	add	r7, sp, #0
-
-  /* USER CODE END SVCall_IRQn 0 */
-  /* USER CODE BEGIN SVCall_IRQn 1 */
-
-  /* USER CODE END SVCall_IRQn 1 */
-}
  8100418:	bf00      	nop
  810041a:	46bd      	mov	sp, r7
  810041c:	f85d 7b04 	ldr.w	r7, [sp], #4
  8100420:	4770      	bx	lr
 
 08100422 <DebugMon_Handler>:
-
-/**
-  * @brief This function handles Debug monitor.
-  */
-void DebugMon_Handler(void)
-{
  8100422:	b480      	push	{r7}
  8100424:	af00      	add	r7, sp, #0
-
-  /* USER CODE END DebugMonitor_IRQn 0 */
-  /* USER CODE BEGIN DebugMonitor_IRQn 1 */
-
-  /* USER CODE END DebugMonitor_IRQn 1 */
-}
  8100426:	bf00      	nop
  8100428:	46bd      	mov	sp, r7
  810042a:	f85d 7b04 	ldr.w	r7, [sp], #4
  810042e:	4770      	bx	lr
 
 08100430 <PendSV_Handler>:
-
-/**
-  * @brief This function handles Pendable request for system service.
-  */
-void PendSV_Handler(void)
-{
  8100430:	b480      	push	{r7}
  8100432:	af00      	add	r7, sp, #0
-
-  /* USER CODE END PendSV_IRQn 0 */
-  /* USER CODE BEGIN PendSV_IRQn 1 */
-
-  /* USER CODE END PendSV_IRQn 1 */
-}
  8100434:	bf00      	nop
  8100436:	46bd      	mov	sp, r7
  8100438:	f85d 7b04 	ldr.w	r7, [sp], #4
  810043c:	4770      	bx	lr
 
 0810043e <SysTick_Handler>:
-
-/**
-  * @brief This function handles System tick timer.
-  */
-void SysTick_Handler(void)
-{
  810043e:	b580      	push	{r7, lr}
  8100440:	af00      	add	r7, sp, #0
-  /* USER CODE BEGIN SysTick_IRQn 0 */
-
-  /* USER CODE END SysTick_IRQn 0 */
-  HAL_IncTick();
  8100442:	f000 f8c3 	bl	81005cc <HAL_IncTick>
-  /* USER CODE BEGIN SysTick_IRQn 1 */
-
-  /* USER CODE END SysTick_IRQn 1 */
-}
  8100446:	bf00      	nop
  8100448:	bd80      	pop	{r7, pc}
 	...
 
 0810044c <Reset_Handler>:
-
-    .section  .text.Reset_Handler
-  .weak  Reset_Handler
-  .type  Reset_Handler, %function
-Reset_Handler:
-  ldr   sp, =_estack      /* set stack pointer */
  810044c:	f8df d038 	ldr.w	sp, [pc, #56]	@ 8100488 <LoopFillZerobss+0xe>
-
-/* Call the ExitRun0Mode function to configure the power supply */
-  bl  ExitRun0Mode
  8100450:	f7ff ff5a 	bl	8100308 <ExitRun0Mode>
-/* Call the clock system initialization function.*/
-  bl  SystemInit
  8100454:	f7ff ff40 	bl	81002d8 <SystemInit>
-
-/* Copy the data segment initializers from flash to SRAM */
-  ldr r0, =_sdata
  8100458:	480c      	ldr	r0, [pc, #48]	@ (810048c <LoopFillZerobss+0x12>)
-  ldr r1, =_edata
  810045a:	490d      	ldr	r1, [pc, #52]	@ (8100490 <LoopFillZerobss+0x16>)
-  ldr r2, =_sidata
  810045c:	4a0d      	ldr	r2, [pc, #52]	@ (8100494 <LoopFillZerobss+0x1a>)
-  movs r3, #0
  810045e:	2300      	movs	r3, #0
-  b LoopCopyDataInit
  8100460:	e002      	b.n	8100468 <LoopCopyDataInit>
 
 08100462 <CopyDataInit>:
-
-CopyDataInit:
-  ldr r4, [r2, r3]
  8100462:	58d4      	ldr	r4, [r2, r3]
-  str r4, [r0, r3]
  8100464:	50c4      	str	r4, [r0, r3]
-  adds r3, r3, #4
  8100466:	3304      	adds	r3, #4
 
 08100468 <LoopCopyDataInit>:
-
-LoopCopyDataInit:
-  adds r4, r0, r3
  8100468:	18c4      	adds	r4, r0, r3
-  cmp r4, r1
  810046a:	428c      	cmp	r4, r1
-  bcc CopyDataInit
  810046c:	d3f9      	bcc.n	8100462 <CopyDataInit>
-/* Zero fill the bss segment. */
-  ldr r2, =_sbss
  810046e:	4a0a      	ldr	r2, [pc, #40]	@ (8100498 <LoopFillZerobss+0x1e>)
-  ldr r4, =_ebss
  8100470:	4c0a      	ldr	r4, [pc, #40]	@ (810049c <LoopFillZerobss+0x22>)
-  movs r3, #0
  8100472:	2300      	movs	r3, #0
-  b LoopFillZerobss
  8100474:	e001      	b.n	810047a <LoopFillZerobss>
 
 08100476 <FillZerobss>:
-
-FillZerobss:
-  str  r3, [r2]
  8100476:	6013      	str	r3, [r2, #0]
-  adds r2, r2, #4
  8100478:	3204      	adds	r2, #4
 
 0810047a <LoopFillZerobss>:
-
-LoopFillZerobss:
-  cmp r2, r4
  810047a:	42a2      	cmp	r2, r4
-  bcc FillZerobss
  810047c:	d3fb      	bcc.n	8100476 <FillZerobss>
-
-/* Call static constructors */
-    bl __libc_init_array
  810047e:	f000 fbc3 	bl	8100c08 <__libc_init_array>
-/* Call the application's entry point.*/
-  bl  main
  8100482:	f7ff ff5b 	bl	810033c <main>
-  bx  lr
  8100486:	4770      	bx	lr
-  ldr   sp, =_estack      /* set stack pointer */
  8100488:	10048000 	.word	0x10048000
-  ldr r0, =_sdata
  810048c:	10000000 	.word	0x10000000
-  ldr r1, =_edata
  8100490:	10000010 	.word	0x10000010
-  ldr r2, =_sidata
  8100494:	08100c80 	.word	0x08100c80
-  ldr r2, =_sbss
  8100498:	10000010 	.word	0x10000010
-  ldr r4, =_ebss
  810049c:	10000030 	.word	0x10000030
 
 081004a0 <ADC3_IRQHandler>:
- * @retval None
-*/
-    .section  .text.Default_Handler,"ax",%progbits
-Default_Handler:
-Infinite_Loop:
-  b  Infinite_Loop
  81004a0:	e7fe      	b.n	81004a0 <ADC3_IRQHandler>
 	...
 
