@@ -59,6 +59,11 @@ int _write(int le, char *ptr, int len)
 #endif
 #endif /* DUAL_CORE_BOOT_SYNC_SEQUENCE */
 
+// HSEM for shared adbms struct
+#ifndef HSEM_ID_1
+#define HSEM_ID_1 (1U)
+#endif
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -178,6 +183,12 @@ Error_Handler();
   /* USER CODE BEGIN 2 */
   Bms_Mainbaord_Setup(&hfdcan1);
   HAL_TIM_Base_Start_IT(&htim4);
+
+  // Enable HSEM to get notified shared struct
+  __HAL_RCC_HSEM_CLK_ENABLE();
+  HAL_NVIC_SetPriority(HSEM1_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(HSEM1_IRQn);
+  HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_ID_1));
 
   /* USER CODE END 2 */
 

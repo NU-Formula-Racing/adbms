@@ -1,5 +1,5 @@
-../Core/Src/main.c:80:5:main	3
-../Core/Src/main.c:151:6:PeriphCommonClock_Config	2
-../Core/Src/main.c:170:13:MX_SPI1_Init	2
-../Core/Src/main.c:218:13:MX_GPIO_Init	1
-../Core/Src/main.c:240:6:Error_Handler	1
+../Core/Src/main.c:85:5:main	3
+../Core/Src/main.c:161:6:PeriphCommonClock_Config	2
+../Core/Src/main.c:180:13:MX_SPI1_Init	2
+../Core/Src/main.c:228:13:MX_GPIO_Init	1
+../Core/Src/main.c:250:6:Error_Handler	1

@@ -51,13 +51,11 @@ void adbms_owc_loop()
 	// Update_Owc_C_Channel_Fault(&mainboard.adbms);
 }
 
-void update_values() 
+void update_values()
 {
-	mainboard.adbms = *shared_adbms;
-	// ADBMS values Not ran on H7
+	/*Following functions should be running on M4 and updated by HSME interrupt*/
 	// ADBMS_UpdateVoltages(&mainboard.adbms);
 	// ADBMS_UpdateTemps(&mainboard.adbms);
-
 	// UpdateADInternalFault(&mainboard.adbms);
 
 	// update STM32 Pin values
@@ -179,4 +177,13 @@ void send_data_over_USB()
 	if (remaining <= 0) HardFault_Handler();
 
 	CDC_Transmit_FS((uint8_t*) logBuf, strlen(logBuf));
+}
+
+void HAL_HSEM_FreeCallback(uint32_t SemMask) //Runs when m4 takes and releases semaphore
+{
+	if (SemMask & __HAL_HSEM_SEMID_TO_MASK(HSEM_ID_1))
+	{
+		mainboard.adbms = *shared_adbms; //copy over writted data
+		HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_ID_1)); //re-arm notification, HAL disables after each trigger
+	}
 }

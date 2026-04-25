@@ -44,6 +44,11 @@
 #endif
 #endif /* DUAL_CORE_BOOT_SYNC_SEQUENCE */
 
+/* HSEM used to signal CM7 that shared adbms struct has been updated */
+#ifndef HSEM_ID_1
+#define HSEM_ID_1 (1U)
+#endif
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -118,6 +123,7 @@ int main(void)
   MX_GPIO_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+  __HAL_RCC_HSEM_CLK_ENABLE();
   ADBMS_Initialize(&m4_adbms, &hspi1);
   int n = 0;
   /* USER CODE END 2 */
@@ -140,6 +146,10 @@ int main(void)
     }
     n++;
     *shared_adbms = m4_adbms;
+
+    /* Notify CM7 that shared struct is freshly written */
+    HAL_HSEM_FastTake(HSEM_ID_1);
+    HAL_HSEM_Release(HSEM_ID_1, 0);
   }
   /* USER CODE END 3 */
 }
