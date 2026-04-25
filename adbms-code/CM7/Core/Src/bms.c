@@ -1,5 +1,8 @@
 #include "bms.h"
 
+//also new includes because implicit declaration
+#include "sd_card.h"
+
 mainboard_ mainboard;
 
 void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)

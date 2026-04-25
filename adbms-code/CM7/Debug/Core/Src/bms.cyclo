@@ -1,0 +1,9 @@
+../Core/Src/bms.c:8:6:Bms_Mainboard_Setup	1
+../Core/Src/bms.c:47:6:Tick_Mainboard_Timers	1
+../Core/Src/bms.c:53:6:bms_mainboard_loop	1
+../Core/Src/bms.c:62:6:adbms_owc_loop	1
+../Core/Src/bms.c:68:6:update_values	4
+../Core/Src/bms.c:105:6:check_faults	15
+../Core/Src/bms.c:152:6:HAL_TIM_PeriodElapsedCallback	3
+../Core/Src/bms.c:168:6:send_data_over_printf	1
+../Core/Src/bms.c:183:6:send_data_over_USB	2

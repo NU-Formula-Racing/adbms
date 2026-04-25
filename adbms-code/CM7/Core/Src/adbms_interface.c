@@ -1,5 +1,9 @@
 #include "adbms_interface.h"
 
+//this is just here because there's an implicit problem
+#include "stm32h7xx_it.h"
+#include "usbd_cdc_if.h"
+
 void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi)
 {
     adbms->ICs.hspi = hspi;
