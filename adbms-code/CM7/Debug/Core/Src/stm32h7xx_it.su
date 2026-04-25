@@ -11,3 +11,4 @@
 ../Core/Src/stm32h7xx_it.c:221:6:TIM4_IRQHandler	8	static
 ../Core/Src/stm32h7xx_it.c:235:6:SDMMC1_IRQHandler	8	static
 ../Core/Src/stm32h7xx_it.c:249:6:OTG_FS_IRQHandler	8	static
+../Core/Src/stm32h7xx_it.c:263:6:HSEM1_IRQHandler	8	static

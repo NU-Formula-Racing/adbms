@@ -10,4 +10,4 @@
 ../Core/Src/main.c:456:13:MX_TIM4_Init	4
 ../Core/Src/main.c:501:13:MX_GPIO_Init	1
 ../Core/Src/main.c:581:6:MPU_Config	1
-../Core/Src/main.c:612:6:Error_Handler	1
+../Core/Src/main.c:623:6:Error_Handler	1
