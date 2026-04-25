@@ -14,7 +14,6 @@
 "./Core/Src/stm32h7xx_it.o"
 "./Core/Src/syscalls.o"
 "./Core/Src/sysmem.o"
-"./Core/Src/thermistor_driver.o"
 "./Core/Src/virtual_timer.o"
 "./Core/Startup/startup_stm32h745zitx.o"
 "./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal.o"

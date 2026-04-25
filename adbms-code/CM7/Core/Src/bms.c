@@ -1,27 +1,14 @@
 #include "bms.h"
 
-//also new includes because implicit declaration
-#include "sd_card.h"
-
 mainboard_ mainboard;
 
 void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 {
 	// initialize handles
 	mainboard.hcan = hcan;
-	
-	//initialize sd_card
-    if(ENABLE_SD_LOGGING_BIN)
-    {
-        sd_init_bin();
-    }
-    else if (ENABLE_SD_LOGGING_CSV)
-    {
-        sd_init_csv(NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2), NUM_CHIPS * NUM_TEMPS_CHIP);
-    }
 
 	// initialize ad chip;
-	ADBMS_Initialize(&mainboard.adbms, hspi);
+	ADBMS_Initialize(&mainboard.adbms_raw, hspi);
 
 	// initialize CAN;
 	Bms_Initialize_Can(&mainboard);
@@ -52,6 +39,8 @@ void Tick_Mainboard_Timers()
 // ADBMS loop that gets ticked
 void bms_mainboard_loop()
 {
+    //this loops need i think a lot of changes (because the entire structure chnanged)
+
 	update_values();
 	check_faults();
 	Can_Loop();
@@ -61,21 +50,41 @@ void bms_mainboard_loop()
 // Seprate loop that gets ticked to run OWC
 void adbms_owc_loop()
 { 
-	Update_Owc_Fault(&mainboard.adbms);
-	Update_Owc_C_Channel_Fault(&mainboard.adbms);
+	Owc_C_Channel_Even_On(&mainboard.adbms_raw);
+    Owc_C_Channel_Read(&mainboard.adbms_raw);
+    Update_6830_Owc_Fault(&mainboard.adbms_raw, &mainboard.adbms_6830);
+    Owc_C_Channel_Odd_On(&mainboard.adbms_raw);
+    Owc_C_Channel_Read(&mainboard.adbms_raw);
+    Update_6830_Owc_Fault(&mainboard.adbms_raw, &mainboard.adbms_6830);
+    Owc_C_Channel_Off(&mainboard.adbms_raw);
+
+    Owc_S_Channel_Even_On(&mainboard.adbms_raw);
+    Owc_S_Channel_Read(&mainboard.adbms_raw);
+    Update_6830_Owc_Fault(&mainboard.adbms_raw, &mainboard.adbms_6830);
+    Owc_S_Channel_Odd_On(&mainboard.adbms_raw);
+    Owc_S_Channel_Read(&mainboard.adbms_raw);
+    Update_6830_Owc_Fault(&mainboard.adbms_raw, &mainboard.adbms_6830);
+    Owc_S_Channel_Off(&mainboard.adbms_raw);
 }
 
 void update_values()
 {
-	// ADBMS values
-	ADBMS_UpdateVoltages(&mainboard.adbms);
-	ADBMS_UpdateTemps(&mainboard.adbms);
+	//First Read both Voltages and Temps raw values in lower level interface
+    ADBMS_Read_Voltage(&mainboard.adbms_raw);
+    ADBMS_Read_Temps(&mainboard.adbms_raw);
 
-	UpdateADInternalFault(&mainboard.adbms);
+    //now parse all data in upper level interface
+    ADBMS_2950_Calculate_Values(&mainboard.adbms_raw,&mainboard.adbms_2950);
+    ADBMS_6830_Calculate_Values(&mainboard.adbms_raw,&mainboard.adbms_6830);
+
+    //Update Faults
+    //this is just 6830 faults -> 2950 faults still need to come
+    Update_6830_InternalFault(&mainboard.adbms_6830);
+
 
 	if (mainboard.internal_state == Charging)
 	{
-		cellBalanceOn(&mainboard.adbms);
+		cell_Balance_On(&mainboard.adbms_raw,&mainboard.adbms_6830);
 	}
 
 	// update STM32 Pin values
@@ -86,20 +95,11 @@ void update_values()
 	//soc
 	Soc_Update(&mainboard);
 	
-	mainboard.overcurrent_fault = mainboard.adbms.current > OVERCURRENT;
+    //this should change into both current_1 and 2 when both start working
+	mainboard.adbms_2950.faults.overcurrent_fault = mainboard.adbms_2950.data.current_1 > OVERCURRENT;
 
 	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
 	if(ENABLE_USB_COMMS) send_data_over_USB(); 
-	if(ENABLE_SD_LOGGING_BIN)
-    {
-        uint32_t tick = HAL_GetTick();
-        log_bms_data_bin(tick, mainboard.adbms.ICs.cell, NUM_CHIPS * CELL_REG_GRP * DATA_LEN, mainboard.adbms.ICs.aux, NUM_CHIPS * CELL_REG_GRP * DATA_LEN);
-    }
-    else if (ENABLE_SD_LOGGING_CSV)
-    {
-        uint32_t tick = HAL_GetTick();
-        log_bms_data_csv(tick, mainboard.adbms.voltages, NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2), mainboard.adbms.temperatures, NUM_CHIPS * NUM_TEMPS_CHIP);
-    }
 }
 
 void check_faults()
@@ -107,14 +107,14 @@ void check_faults()
 	// raise fault flag if any fault is true
 	// faults are latching
 	mainboard.bms_fault = mainboard.bms_fault
-							|| mainboard.adbms.overvoltage_fault_
-							|| mainboard.adbms.undervoltage_fault_
-							|| mainboard.adbms.overtemperature_fault_
-							|| mainboard.adbms.undertemperature_fault_
-							|| mainboard.adbms.openwire_fault_
-							|| mainboard.adbms.openwire_temp_fault_
-							|| mainboard.adbms.pec_fault_
-							|| mainboard.overcurrent_fault;
+							|| mainboard.adbms_6830.faults.overvoltage_fault
+							|| mainboard.adbms_6830.faults.undervoltage_fault
+							|| mainboard.adbms_6830.faults.overtemperature_fault
+							|| mainboard.adbms_6830.faults.undertemperature_fault
+							|| mainboard.adbms_6830.faults.openwire_voltage_fault
+							|| mainboard.adbms_6830.faults.openwire_temp_fault
+							|| mainboard.adbms_6830.faults.pec_fault
+							|| mainboard.adbms_2950.faults.overcurrent_fault;
 
 	// write BMS_Status - healthy is high
 	HAL_GPIO_WritePin(BMS_STATUS_OUT_GPIO_Port, BMS_STATUS_OUT_Pin, !mainboard.bms_fault);
@@ -167,42 +167,20 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) //TSSI Callback
 
 void send_data_over_printf()
 {
-	// AD Prints
-	ADBMS_Print_Vals(&mainboard.adbms);
+	// AD Prints for both chips
+    ADBMS_6830_Print_Vals(&mainboard.adbms_6830);
+	ADBMS_2950_Print_Vals(&mainboard.adbms_2950);
+
 
 	// Mainboard Prints
 	printf("Time: %d\n", (int)(HAL_GetTick() - mainboard.start_time));
 	printf("BMS fault: %d\n", mainboard.bms_fault);
 	printf("External fault: %d\n", mainboard.external_fault);
-	printf("Current: %f\n", mainboard.adbms.current);
 	
 	// TODO Add more prints as needed
-
 }
 
 void send_data_over_USB()
 {
-	// USB Serial Print ADBMS values 
-	ADBMS_USB_Serial_Print_Vals(&mainboard.adbms);
-
-	#define BUFFER_SIZE 256  // Increase this if more snprintfs are added
-    char logBuf[BUFFER_SIZE];
-    int len = 0;
-    int remaining = BUFFER_SIZE;
-
-    len += snprintf(logBuf + len, remaining, "Time: %d\r\n", (int)(HAL_GetTick() - mainboard.start_time));
-    remaining = BUFFER_SIZE - len;
-
-	len += snprintf(logBuf + len, remaining, "Current: %f\r\n", mainboard.adbms.current);
-   remaining = BUFFER_SIZE - len;
-
-	len += snprintf(logBuf + len, remaining, "BMS_fault: %d\r\n", mainboard.bms_fault);
-   remaining = BUFFER_SIZE - len;
-
-	len += snprintf(logBuf + len, remaining, "External_fault: %d\r\n", mainboard.external_fault);
-   remaining = BUFFER_SIZE - len;
-
-	if (remaining <= 0) HardFault_Handler();
-
-	CDC_Transmit_FS((uint8_t*) logBuf, strlen(logBuf));
+	//work on this later because i have more important things to fix right now
 }

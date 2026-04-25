@@ -1,6 +1,4 @@
-Core/Src/bms.o: ../Core/Src/bms.c ../Core/Inc/bms.h ../Core/Inc/bms_can.h \
- ../Core/Inc/nfr_can_driver.h ../Core/Inc/bms_main_struct.h \
- ../Core/Inc/adbms_interface.h ../Core/Inc/adbms_driver.h \
+Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal.h \
  ../Core/Inc/stm32h7xx_hal_conf.h \
  ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_rcc.h \
@@ -41,12 +39,21 @@ Core/Src/bms.o: ../Core/Src/bms.c ../Core/Inc/bms.h ../Core/Inc/bms_can.h \
  ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pcd.h \
  ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_ll_usb.h \
  ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pcd_ex.h \
+ ../FATFS/App/fatfs.h ../../Middlewares/Third_Party/FatFs/src/ff.h \
+ ../../Middlewares/Third_Party/FatFs/src/integer.h \
+ ../FATFS/Target/ffconf.h ../FATFS/Target/bsp_driver_sd.h \
+ ../FATFS/Target/fatfs_platform.h \
+ ../../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h \
+ ../../Middlewares/Third_Party/FatFs/src/diskio.h \
+ ../../Middlewares/Third_Party/FatFs/src/ff.h ../FATFS/Target/sd_diskio.h \
+ ../USB_DEVICE/App/usb_device.h \
+ ../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h \
+ ../USB_DEVICE/Target/usbd_conf.h ../Core/Inc/bms.h ../Core/Inc/bms_can.h \
+ ../Core/Inc/nfr_can_driver.h ../Core/Inc/bms_main_struct.h \
+ ../Core/Inc/adbms_interface.h ../Core/Inc/adbms_driver.h \
  ../Core/Inc/adbms_cmd.h ../Core/Inc/bms_system_prams.h \
  ../Core/Inc/adbms_interface_2950.h ../Core/Inc/adbms_interface_6830.h \
  ../Core/Inc/virtual_timer.h ../Core/Inc/stm32h7xx_it.h \
- ../USB_DEVICE/App/usb_device.h \
- ../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h \
- ../USB_DEVICE/Target/usbd_conf.h ../Core/Inc/main.h \
  ../USB_DEVICE/App/usbd_cdc_if.h \
  ../../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc/usbd_cdc.h \
  ../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h \
@@ -55,12 +62,7 @@ Core/Src/bms.o: ../Core/Src/bms.c ../Core/Inc/bms.h ../Core/Inc/bms_can.h \
  ../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h \
  ../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h \
  ../Core/Inc/bms_soc.h ../Core/Inc/bms_control.h
-../Core/Inc/bms.h:
-../Core/Inc/bms_can.h:
-../Core/Inc/nfr_can_driver.h:
-../Core/Inc/bms_main_struct.h:
-../Core/Inc/adbms_interface.h:
-../Core/Inc/adbms_driver.h:
+../Core/Inc/main.h:
 ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal.h:
 ../Core/Inc/stm32h7xx_hal_conf.h:
 ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_rcc.h:
@@ -101,16 +103,31 @@ Core/Src/bms.o: ../Core/Src/bms.c ../Core/Inc/bms.h ../Core/Inc/bms_can.h \
 ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pcd.h:
 ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_ll_usb.h:
 ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pcd_ex.h:
+../FATFS/App/fatfs.h:
+../../Middlewares/Third_Party/FatFs/src/ff.h:
+../../Middlewares/Third_Party/FatFs/src/integer.h:
+../FATFS/Target/ffconf.h:
+../FATFS/Target/bsp_driver_sd.h:
+../FATFS/Target/fatfs_platform.h:
+../../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h:
+../../Middlewares/Third_Party/FatFs/src/diskio.h:
+../../Middlewares/Third_Party/FatFs/src/ff.h:
+../FATFS/Target/sd_diskio.h:
+../USB_DEVICE/App/usb_device.h:
+../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h:
+../USB_DEVICE/Target/usbd_conf.h:
+../Core/Inc/bms.h:
+../Core/Inc/bms_can.h:
+../Core/Inc/nfr_can_driver.h:
+../Core/Inc/bms_main_struct.h:
+../Core/Inc/adbms_interface.h:
+../Core/Inc/adbms_driver.h:
 ../Core/Inc/adbms_cmd.h:
 ../Core/Inc/bms_system_prams.h:
 ../Core/Inc/adbms_interface_2950.h:
 ../Core/Inc/adbms_interface_6830.h:
 ../Core/Inc/virtual_timer.h:
 ../Core/Inc/stm32h7xx_it.h:
-../USB_DEVICE/App/usb_device.h:
-../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h:
-../USB_DEVICE/Target/usbd_conf.h:
-../Core/Inc/main.h:
 ../USB_DEVICE/App/usbd_cdc_if.h:
 ../../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc/usbd_cdc.h:
 ../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h:

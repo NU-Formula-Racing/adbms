@@ -1,3 +1,4 @@
+//new include header
 #include "bms_can.h"
 
 bms_can_ bms_can;
@@ -196,9 +197,13 @@ void populate_bms_soc(uint8_t *data)
 	RawCanSignal signals[5];
 	populateRawMessage(&signals[0], 0, 12, 0.1, 0);									  // max discharge current
 	populateRawMessage(&signals[1], 0, 12, 0.1, 0);									  // max regen current
-	populateRawMessage(&signals[2], bms_can.mainboard->adbms.total_v, 16, 0.01, 0);   // battery voltage
-	populateRawMessage(&signals[3], bms_can.mainboard->adbms.avg_temp, 8, 1, -40);    // battery temp
-	populateRawMessage(&signals[4], 100 + bms_can.mainboard->adbms.current, 16, 0.01, 0);		  // battery current
+
+    //total_v and avg_temp are 6830
+	populateRawMessage(&signals[2], bms_can.mainboard->adbms_6830.data.total_v, 16, 0.01, 0);   // battery voltage
+	populateRawMessage(&signals[3], bms_can.mainboard->adbms_6830.data.avg_temp, 8, 1, -40);    // battery temp
+
+    //this current is for the 2950
+	populateRawMessage(&signals[4], 100 + bms_can.mainboard->adbms_2950.data.current_1, 16, 0.01, 0);		  // battery current
 	encodeSignals(data, 5, signals[0], signals[1], signals[2], signals[3], signals[4]);
 }
 
@@ -207,15 +212,22 @@ void populate_bms_faults(uint8_t *data)
 	RawCanSignal signals[11];
 	populateRawMessage(&signals[0], bms_can.mainboard->bms_fault, 1, 1, 0);																  	// fault summary
 	populateRawMessage(&signals[1], bms_can.mainboard->external_fault, 1, 1, 0);													   		// external fault
-	populateRawMessage(&signals[2], bms_can.mainboard->adbms.undervoltage_fault_, 1, 1, 0);												  	// undervoltage fault
-	populateRawMessage(&signals[3], bms_can.mainboard->adbms.overvoltage_fault_, 1, 1, 0);												   	// overvoltage fault
-	populateRawMessage(&signals[4], bms_can.mainboard->adbms.undertemperature_fault_, 1, 1, 0);												// undertemp fault
-	populateRawMessage(&signals[5], bms_can.mainboard->adbms.overtemperature_fault_, 1, 1, 0);											 	// overemp fault
-	populateRawMessage(&signals[6], bms_can.mainboard->overcurrent_fault, 1, 1, 0);														 	// overcurrent fault
-	populateRawMessage(&signals[7], bms_can.mainboard->adbms.openwire_fault_, 1, 1, 0);														// open wire fault
-	populateRawMessage(&signals[8], bms_can.mainboard->adbms.openwire_temp_fault_, 1, 1, 0);												// open wire temp fault
-	populateRawMessage(&signals[9], bms_can.mainboard->adbms.pec_fault_, 1, 1, 0);															//Pec Fault
+
+    //6830 faults
+	populateRawMessage(&signals[2], bms_can.mainboard->adbms_6830.faults.undervoltage_fault, 1, 1, 0);									    // undervoltage fault
+	populateRawMessage(&signals[3], bms_can.mainboard->adbms_6830.faults.overvoltage_fault, 1, 1, 0);										// overvoltage fault
+	populateRawMessage(&signals[4], bms_can.mainboard->adbms_6830.faults.undertemperature_fault, 1, 1, 0);									// undertemp fault
+	populateRawMessage(&signals[5], bms_can.mainboard->adbms_6830.faults.overtemperature_fault, 1, 1, 0);									// overemp fault
+
+    //6830 openwire faults
+	populateRawMessage(&signals[7], bms_can.mainboard->adbms_6830.faults.openwire_voltage_fault, 1, 1, 0);									// open wire fault
+	populateRawMessage(&signals[8], bms_can.mainboard->adbms_6830.faults.openwire_temp_fault, 1, 1, 0);									    // open wire temp fault
+	populateRawMessage(&signals[9], bms_can.mainboard->adbms_6830.faults.pec_fault, 1, 1, 0);												//Pec Fault
 	encodeSignals(data, 8, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]); 				// Pec Failures
+
+    //2950 faults
+	populateRawMessage(&signals[6], bms_can.mainboard->adbms_2950.faults.overcurrent_fault, 1, 1, 0);										// overcurrent fault
+
 }
 
 void populate_bms_status(uint8_t *data)
@@ -224,10 +236,12 @@ void populate_bms_status(uint8_t *data)
 
 	populateRawMessage(&signals[0], bms_can.mainboard->internal_state, 8, 1, 0);	 // BMS State
 	populateRawMessage(&signals[1], bms_can.mainboard->imd_status, 8, 1, 0);		 // IMD State
-	populateRawMessage(&signals[2], bms_can.mainboard->adbms.max_temp, 8, 1, -40);   // max cell temp
-	populateRawMessage(&signals[3], bms_can.mainboard->adbms.min_temp, 8, 1, -40);   // min cell temp
-	populateRawMessage(&signals[4], bms_can.mainboard->adbms.max_v, 8, 0.012, 2);	 // max cell voltage
-	populateRawMessage(&signals[5], bms_can.mainboard->adbms.min_v, 8, 0.012, 2);	 // min cell voltage
+
+    //6830 data
+	populateRawMessage(&signals[2], bms_can.mainboard->adbms_6830.data.max_temp, 8, 1, -40);   // max cell temp
+	populateRawMessage(&signals[3], bms_can.mainboard->adbms_6830.data.min_temp, 8, 1, -40);   // min cell temp
+	populateRawMessage(&signals[4], bms_can.mainboard->adbms_6830.data.max_v, 8, 0.012, 2);	 // max cell voltage
+	populateRawMessage(&signals[5], bms_can.mainboard->adbms_6830.data.min_v, 8, 0.012, 2);	 // min cell voltage
 	populateRawMessage(&signals[6], 0, 8, 0.5, 0);									 // BMS SOC
 	encodeSignals(data, 7, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6]);
 }
@@ -237,7 +251,7 @@ void populate_bms_voltages(uint8_t *data, int volt_msg_num)
 {
 	RawCanSignal signals[8];
 	for(int i = 0; i < NUM_DATA_CAN_VOLTAGES_PER_MSG; i++){
-		populateRawMessage(&signals[i], bms_can.mainboard->adbms.voltages[volt_msg_num * NUM_DATA_CAN_VOLTAGES_PER_MSG + i], 8, 0.012, 2);
+		populateRawMessage(&signals[i], bms_can.mainboard->adbms_6830.data.voltages[volt_msg_num * NUM_DATA_CAN_VOLTAGES_PER_MSG + i], 8, 0.012, 2);
 	}
 	populateRawMessage(&signals[7], 0, 8, 0.004, 0);	// OCV msg that is legacy from BQ code and only included for backwards compatibility
 	// num_per_msg + 1 because includes the added OCV msg
@@ -248,7 +262,7 @@ void populate_bms_temparatures(uint8_t *data, int temp_num)
 {
 	RawCanSignal signals[8];
 	for(int i = 0; i < NUM_DATA_CAN_TEMPS_PER_MSG; i++){
-		populateRawMessage(&signals[i], bms_can.mainboard->adbms.temperatures[temp_num * NUM_DATA_CAN_TEMPS_PER_MSG + i], 8, 1, -40);
+		populateRawMessage(&signals[i], bms_can.mainboard->adbms_6830.data.temperatures[temp_num * NUM_DATA_CAN_TEMPS_PER_MSG + i], 8, 1, -40);
 	}
 	encodeSignals(data, NUM_DATA_CAN_TEMPS_PER_MSG, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]);
 }
