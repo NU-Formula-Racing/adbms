@@ -42,6 +42,7 @@ Core/Src/bms_control.o: ../Core/Src/bms_control.c \
  ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_ll_usb.h \
  ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pcd_ex.h \
  ../Core/Inc/adbms_cmd.h ../Core/Inc/bms_system_prams.h \
+ ../Core/Inc/adbms_interface_2950.h ../Core/Inc/adbms_interface_6830.h \
  ../Core/Inc/virtual_timer.h ../Core/Inc/stm32h7xx_it.h \
  ../USB_DEVICE/App/usb_device.h \
  ../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_def.h \
@@ -99,6 +100,8 @@ Core/Src/bms_control.o: ../Core/Src/bms_control.c \
 ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pcd_ex.h:
 ../Core/Inc/adbms_cmd.h:
 ../Core/Inc/bms_system_prams.h:
+../Core/Inc/adbms_interface_2950.h:
+../Core/Inc/adbms_interface_6830.h:
 ../Core/Inc/virtual_timer.h:
 ../Core/Inc/stm32h7xx_it.h:
 ../USB_DEVICE/App/usb_device.h:

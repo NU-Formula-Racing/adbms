@@ -2,6 +2,11 @@
 #define ADBMS_MAIN_STRUCT_H
 
 #include "adbms_interface.h"
+
+//new includes
+#include "adbms_interface_2950.h"
+#include "adbms_interface_6830.h"
+
 #include "virtual_timer.h"
 #include "stm32h7xx_it.h"
 #include "stm32h7xx_hal.h"
@@ -13,7 +18,9 @@
 typedef struct
 {
 	// AD Chips
-	adbms_ adbms;
+	adbms_raw_ adbms_raw;
+	adbms_2950_ adbms_2950;
+	adbms_6830_ adbms_6830;
 
 	// Timer Group
 	timer_group_ *tg;
@@ -29,7 +36,6 @@ typedef struct
 	// current
 	// float current;
 	float current_offset;
-	bool overcurrent_fault;
 
 	// external values
 	bool shutdown_present;
