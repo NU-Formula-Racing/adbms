@@ -1,97 +1,52 @@
 #pragma once
 
 #include "adbms_driver.h"
-#include "thermistor_driver.h"
 #include "bms_system_prams.h"
 #include <float.h>
 
-// Container that holds all the adbms values. 
-// Different from the ICs struct that the raw SPI data gets put into.
-typedef struct
+typedef struct 
 {
-    adbms6830_ICs ICs;
+    //configs
+    config_command_bits_                command_bit;
+    configurations_command_parameters_  command_parameters;
 
-    //all the data collected from 2950 will go into this struct
-    //has attibutes for current and voltage
-    data_2950 data_2950;
+    //spi configs
+    SPI_data_                           SPI_data;
 
-    cfa_ cfa[NUM_CHIPS-1]; //one less because of the 2950
-    cfb_ cfb[NUM_CHIPS];
-    adcv_ adcv;
-    adsv_ adsv;
-    adax_ adax;
+    //read returns
+    raw_read_return_values_             raw_value;
 
-    //2950 specific configurations and commands
-    cfa2950_ cfa2950;
-    adv_ adv;
+    //read failures
+    read_failures_                      read_failure;
 
-    //2950 
-    float current;
-    float precontactor_voltage;
-    float postcontactor_voltage;
-    float pack_temperature;
-
-    float voltages[NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2)]; //0 indexed, even chips (including 0) have 12 voltages, odds have 11
-    float temperatures[NUM_CHIPS * NUM_TEMPS_CHIP];
-
-    float total_v;
-    float max_v;
-    float min_v;
-    float avg_v;
-
-    float max_temp;
-    float min_temp;
-    float avg_temp;
-
-    bool undervoltage_fault_;
-    bool overvoltage_fault_;
-    bool undertemperature_fault_;
-    bool overtemperature_fault_;
-    bool openwire_fault_;
-    bool openwire_temp_fault_;
-    bool pec_fault_;
-
-    bool voltage_pec_failure;
-    bool temp_pec_failure;
-    bool status_reg_pec_failure;
-    float current_owc_failures;
-    float current_pec_failures;
-    float total_pec_failures;
-} adbms_;
+}adbms_raw_;
 
 
-void ADBMS_Initialize(adbms_ *adbms, SPI_HandleTypeDef *hspi);
-void ADBMS_2950_config(uint8_t* cfg_a, cfa2950_* cfa2950);
+//interface functions
+void ADBMS_Initialize(adbms_raw_ *adbms, SPI_HandleTypeDef *hspi);
 
-void UpdateADInternalFault(adbms_ *adbms);
-
-void ADBMS_UpdateVoltages(adbms_ *adbms);
-
-//2950 function headerfiles
-void ADBMS_2950_Calculate_Values(adbms_* adbms);
-void ADBMS2950_Calculate_Vbat(adbms_* adbms);
-float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw);
-void ADBMS2950_Calculate_Current(adbms_* adbms);
-float ADBMS2950_Transfer_Current(int32_t data);
-
-float ADBMS2950_Calculate_Post_Voltage(adbms_ *adbms);
-float ADBMS_Calculate_Post_Voltage(int16_t v1_raw, int16_t v2_raw);
-
-float ADBMS2950_Calculate_Shunt_Temp(adbms_ *adbms);
-float ADBMS2950_Transfer_Shunt_Temp(int16_t voltage);
+//read raw values
+void ADBMS_Read_Voltage(adbms_raw_ *adbms);
+void ADBMS_Read_Temps(adbms_raw_* adbms);
 
 
-void ADBMS_UpdateTemps(adbms_ *adbms);
-void Update_Owc_Fault(adbms_ *adbms);
-void Update_Owc_C_Channel_Fault(adbms_ *adbms);
+//chip configurations
+void ADBMS_6830_Config(command_parameters_6830_* parameters,config_command_bits_* command_bits);
+void ADBMS_2950_Config(command_parameters_2950_* parameters, config_command_bits_* command_bits);
+void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bits_* command_bits);
 
-void ADBMS_CalculateValues_Voltages(adbms_ *adbms);
-void ADBMS_CalculateValues_Temps(adbms_ *adbms);
+//Write Data Command
+void ADBMS_Initialize_Write_Data_Command(adbms_raw_* adbms);
 
-bool ADBMS_PEC_Check(adbms_ *adbms);
 
-void cellBalanceOn(adbms_ *adbms);
-void cellBalanceOff(adbms_ *adbms);
+//OWC Config and Read C Channel
+void Owc_C_Channel_Off(adbms_raw_* adbms);
+void Owc_C_Channel_Even_On(adbms_raw_* adbms);
+void Owc_C_Channel_Odd_On(adbms_raw_* adbms);
+void Owc_C_Channel_Read(adbms_raw_* adbms);
 
-void ADBMS_Print_Vals(adbms_ *adbms);
-void ADBMS_USB_Serial_Print_Vals(adbms_ *adbms);
+//OWC Config and Read S Channel
+void Owc_S_Channel_Off(adbms_raw_* adbms);
+void Owc_S_Channel_Even_On(adbms_raw_* adbms);
+void Owc_S_Channel_Odd_On(adbms_raw_* adbms);
+void Owc_S_Channel_Read(adbms_raw_* adbms);

@@ -5,7 +5,9 @@
 // This might change in future years, if so change which contactors are closed accoringly in the FSM 
 
 
-#define NUM_CHIPS 3 			        /* Number of ICs 					*/
+#define NUM_6830  2
+#define NUM_2950  1
+#define NUM_CHIPS NUM_6830+NUM_2950		/* Number of ICs 					*/
 #define NUM_VOLTAGES_EVEN_CHIP 12		/* Nmber of Cells in even number ICs starting at 0 ending at 8*/
 #define NUM_VOLTAGES_ODD_CHIP  11  	   	/* Nmber of Cells in odd number ICs starting at 1 ending at 9*/
 #define NUM_TEMPS_CHIP 10				/* Number of Temps to read per IC 	*/

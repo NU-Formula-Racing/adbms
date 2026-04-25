@@ -56,6 +56,7 @@ uint16_t Pec15_Calc(uint8_t len, uint8_t *data)
   return(remainder*2);/* The CRC15 has a 0 in the LSB so the remainder must be multiplied by 2 */
 }
 
+
 /**
 *******************************************************************************
 * Function: Pec10_Calc
@@ -124,6 +125,7 @@ uint16_t Pec10_Calc(bool isRxCmd, int len, uint8_t *data)
     return ((uint16_t)(nRemainder & 0x3FFu));
 }
 
+
 /**
  *******************************************************************************
  * Function: UnderOver_Voltage_Threshold
@@ -151,14 +153,11 @@ uint16_t Set_UnderOver_Voltage_Threshold(float voltage)
   return v_th_value;
 }
 
-float ADBMS_getVoltage(int data)
-{
-    // voltage in Volts
-    float voltage_float = ((data + 10000) * 0.000150);
-    return voltage_float;
-}
 
-void ADBMS_Set_Config_A(cfa_ *cfg_a, uint8_t *cfg_a_tx_buffer, uint8_t num_6830)
+//
+// 6830 configration functions
+//
+void ADBMS_Set_Config_A_6830(cfa6830_ *cfg_a, uint8_t *cfg_a_tx_buffer, uint8_t num_6830)
 {
     for(uint8_t cic = 0; cic < num_6830; cic++)
     {
@@ -171,6 +170,23 @@ void ADBMS_Set_Config_A(cfa_ *cfg_a, uint8_t *cfg_a_tx_buffer, uint8_t num_6830)
     }
 }
 
+void ADBMS_Set_Config_B_6830(cfb6830_ *cfg_b, uint8_t *cfg_b_tx_buffer, uint8_t num_6830)
+{
+    for(uint8_t cic = 0; cic < num_6830; cic++)
+    {
+        cfg_b_tx_buffer[cic * DATA_LEN + 0] = (uint8_t)(cfg_b[cic].vuv & 0x0FF);
+        cfg_b_tx_buffer[cic * DATA_LEN + 1] = (uint8_t)(((cfg_b[cic].vov & 0x00F) << 4) | ((cfg_b[cic].vuv & 0xF00) >> 8));
+        cfg_b_tx_buffer[cic * DATA_LEN + 2] = (uint8_t)((cfg_b[cic].vov & 0xFF0) >> 4);
+        cfg_b_tx_buffer[cic * DATA_LEN + 3] = (uint8_t)(((cfg_b[cic].dtmen & 0x01) << 7) | ((cfg_b[cic].dtrng & 0x01) << 6) | (cfg_b[cic].dcto & 0x3F));
+        cfg_b_tx_buffer[cic * DATA_LEN + 4] = (uint8_t)(cfg_b[cic].dcc & 0x00FF);
+        cfg_b_tx_buffer[cic * DATA_LEN + 5] = (uint8_t)((cfg_b[cic].dcc & 0xFF00) >> 8);
+    }
+}
+
+
+//
+// 2950 configuration functions
+//
 void ADBMS_Set_Config_A_2950(cfa2950_* cfg_a2950, uint8_t* cfg_a_tx_buffer, uint8_t chip_position){
     
     cfg_a_tx_buffer[(chip_position-1) * DATA_LEN + 0] = (uint8_t)((cfg_a2950->ocen & 0x01) << 7) | (uint8_t)((cfg_a2950->vs5 & 0x01) << 6) | (uint8_t)((cfg_a2950->vs4 & 0x01) << 5) | (uint8_t)((cfg_a2950->vs3 & 0x01) << 4) | (uint8_t)((cfg_a2950->vs2 & 0x03) << 2) | (uint8_t)(cfg_a2950->vs1 & 0x03);
@@ -182,65 +198,69 @@ void ADBMS_Set_Config_A_2950(cfa2950_* cfg_a2950, uint8_t* cfg_a_tx_buffer, uint
     
 }
 
-void ADBMS_Set_Config_B(cfb_ *cfg_b, uint8_t *cfg_b_tx_buffer)
-{
-    for(uint8_t cic = 0; cic < NUM_CHIPS; cic++)
-    {
-        cfg_b_tx_buffer[cic * DATA_LEN + 0] = (uint8_t)(cfg_b[cic].vuv & 0x0FF);
-        cfg_b_tx_buffer[cic * DATA_LEN + 1] = (uint8_t)(((cfg_b[cic].vov & 0x00F) << 4) | ((cfg_b[cic].vuv & 0xF00) >> 8));
-        cfg_b_tx_buffer[cic * DATA_LEN + 2] = (uint8_t)((cfg_b[cic].vov & 0xFF0) >> 4);
-        cfg_b_tx_buffer[cic * DATA_LEN + 3] = (uint8_t)(((cfg_b[cic].dtmen & 0x01) << 7) | ((cfg_b[cic].dtrng & 0x01) << 6) | (cfg_b[cic].dcto & 0x3F));
-        cfg_b_tx_buffer[cic * DATA_LEN + 4] = (uint8_t)(cfg_b[cic].dcc & 0x00FF);
-        cfg_b_tx_buffer[cic * DATA_LEN + 5] = (uint8_t)((cfg_b[cic].dcc & 0xFF00) >> 8);
-    }
+void ADBMS_Set_Config_B_2950(cfb2950_* cfg_b2950, uint8_t* cfg_b_tx_buffer, uint8_t chip_position){
+    cfg_b_tx_buffer[(chip_position-1) * DATA_LEN + 0] = (uint8_t)(0x0 << 7) | (uint8_t)(cfg_b2950->oc1th & 0x7F);
+    cfg_b_tx_buffer[(chip_position-1) * DATA_LEN + 1] = (uint8_t)(0x0 << 7) | (uint8_t)(cfg_b2950->oc2th & 0x7F);
+    cfg_b_tx_buffer[(chip_position-1) * DATA_LEN + 2] = (uint8_t)(0x0 << 7) | (uint8_t)(cfg_b2950->oc3th & 0x7F);
+    cfg_b_tx_buffer[(chip_position-1) * DATA_LEN + 3] = (uint8_t)(0x0 << 4) | (uint8_t)((cfg_b2950->ocdp & 0x01) << 3) | (uint8_t)(0x0 << 2) | (uint8_t)(cfg_b2950->ocdgt & 0x3);
+    cfg_b_tx_buffer[(chip_position-1) * DATA_LEN + 4] = (uint8_t)((cfg_b2950->ocbx & 0x01) << 7) | (uint8_t)((cfg_b2950->ocax & 0x01) << 6) | (uint8_t)((cfg_b2950->ocmode & 0x03) << 4) | (uint8_t)((cfg_b2950->oc3gc & 0x01) << 3) | (uint8_t)((cfg_b2950->oc2gc & 0x01) << 2) | (uint8_t)((cfg_b2950->oc1gc & 0x01) << 1) | (uint8_t)(cfg_b2950->ocod & 0x01);
+    cfg_b_tx_buffer[(chip_position-1) * DATA_LEN + 5] = (uint8_t)((cfg_b2950->gpio4c & 0x01) << 7) | (uint8_t)((cfg_b2950->gpio3c & 0x01) << 6) | (uint8_t)((cfg_b2950->gpio2c & 0x01) << 5) | (uint8_t)((cfg_b2950->gpio1c & 0x01) << 4) | (uint8_t)((cfg_b2950->gpio2eoc & 0x01) << 3) | (uint8_t)(cfg_b2950->diagsel & 0x07);
 }
 
+
+//
+//Joint configuration functions (for both 6830 and 2950)
+//
 void ADBMS_Set_ADCV(adcv_ adcv, uint16_t *adcv_cmd_buffer)
 {
     *adcv_cmd_buffer = (0x1 << 9) 
-                        | ((adcv.rd && 0x1) << 8) 
-                        | ((adcv.cont && 0x1) << 7) 
+                        | ((adcv.rd & 0x1) << 8) 
+                        | ((adcv.cont & 0x1) << 7) 
                         | (0x3 << 5) 
-                        | ((adcv.dcp && 0x1) << 4) 
-                        | ((adcv.rstf && 0x1) << 2) 
-                        | (adcv.ow && 0x3);
+                        | ((adcv.dcp & 0x1) << 4) 
+                        | ((adcv.rstf & 0x1) << 2) 
+                        | (adcv.ow & 0x3);
 }
 
 void ADBMS_Set_ADSV(adsv_ adsv, uint16_t *adsv_cmd_buffer)
 {
     *adsv_cmd_buffer = (0x1 << 8)
-                        | ((adsv.cont && 0x1) << 7)
+                        | ((adsv.cont & 0x1) << 7)
                         | (0x3 << 5)
-                        | ((adsv.dcp && 0x1) << 4)
+                        | ((adsv.dcp & 0x1) << 4)
                         | (0x1 << 3)
-                        | (adsv.ow && 0x3);
+                        | (adsv.ow & 0x3);
 }
 
 void ADBMS_Set_ADAX(adax_ adax, uint16_t *adax_cmd_buffer)
 {
     *adax_cmd_buffer = (0x1 << 10) 
-                        | ((adax.ow && 0x1) << 8)
-                        | ((adax.pup && 0x1) << 7)
-                        | ((adax.ch && 0x10) << 6)
+                        | ((adax.ow & 0x1) << 8)
+                        | ((adax.pup & 0x1) << 7)
+                        | ((adax.ch & 0x10) << 6)
                         | (0x1 << 4)
-                        | (adax.ch && 0xF);
+                        | (adax.ch & 0xF);
 }
 
 void ADBMS_Set_ADAX2(adax2_ adax2, uint16_t *adax2_cmd_buffer)
 {
     *adax2_cmd_buffer = (0x1 << 10) 
-                        | (adax2.ch && 0xF);
+                        | (adax2.ch & 0xF);
 }
 
 void ADBMS_Set_ADV(adv_ adv, uint16_t* adv_cmd_buffer){
 
     *adv_cmd_buffer = (0x1 << 10)
-                    | (adv.ow && 0x3 << 6)
+                    | (adv.ow & 0x3 << 6)
                     | (0x3 << 4)
-                    | (adv.vch && 0xF);
+                    | (adv.vch & 0xF);
 
 }
 
+
+//
+// read write functions
+//
 void ADBMS_WakeUP_ICs()
 {
     for(uint8_t i = 0; i < NUM_CHIPS; i++){
@@ -304,7 +324,7 @@ void ADBMS_Write_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, u
 
 bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf)
 {
-    uint8_t spi_tx_dataBuf[4] = {0};
+    uint8_t spi_tx_dataBuf[DATABUF_LEN] = {0};
     spi_tx_dataBuf[0] = (uint8_t)(tx_cmd >> 8);
     spi_tx_dataBuf[1] = (uint8_t)(tx_cmd);
 
