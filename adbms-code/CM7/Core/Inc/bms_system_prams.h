@@ -6,10 +6,13 @@
 
 
 #define NUM_6830  2
-#define NUM_2950  1
-#define NUM_CHIPS NUM_6830+NUM_2950		/* Number of ICs 					*/
+#define NUM_2950  0
+#define POSITION_2950 1					/*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
+#define POSITION_6830 (POSITION_2950 ^ 1) /*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
+#define NUM_CHIPS (NUM_6830+NUM_2950)	/* Number of ICs 					*/
 #define NUM_VOLTAGES_EVEN_CHIP 12		/* Nmber of Cells in even number ICs starting at 0 ending at 8*/
 #define NUM_VOLTAGES_ODD_CHIP  11  	   	/* Nmber of Cells in odd number ICs starting at 1 ending at 9*/
+//#define NUM_VOLTAGES  //add later
 #define NUM_TEMPS_CHIP 10				/* Number of Temps to read per IC 	*/
 
 #define OVERVOLTAGE 4.2					/* Overvoltage Threshold 	*/

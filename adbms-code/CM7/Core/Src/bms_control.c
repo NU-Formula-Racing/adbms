@@ -94,6 +94,7 @@ bool check_fault_status(mainboard_ *mainboard)
    
 }
 
+
 void charger_control(mainboard_ *mainboard)
 {
     if ((mainboard->internal_state == Fault) || mainboard->bms_fault || !mainboard->imd_status)

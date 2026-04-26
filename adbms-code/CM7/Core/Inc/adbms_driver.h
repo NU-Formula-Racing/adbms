@@ -240,13 +240,13 @@ uint16_t Set_UnderOver_Voltage_Threshold(float voltage);
 
 
 //6830 configuration functions
-void ADBMS_Set_Config_A_6830(cfa6830_ *cfg_a, uint8_t *cfg_a_tx_buffer, uint8_t num_6830);
-void ADBMS_Set_Config_B_6830(cfb6830_ *cfg_b, uint8_t *cfg_b_tx_buffer, uint8_t num_6830);
+void ADBMS_Set_Config_A_6830(cfa6830_ *cfg_a, uint8_t *cfg_a_tx_buffer, uint8_t num_6830, uint8_t position);
+void ADBMS_Set_Config_B_6830(cfb6830_ *cfg_b, uint8_t *cfg_b_tx_buffer, uint8_t num_6830, uint8_t position);
 
 
 //2950 configuration functions
-void ADBMS_Set_Config_A_2950(cfa2950_* cfg_a2950, uint8_t* cfg_a_tx_buffer, uint8_t chip_position);
-void ADBMS_Set_Config_B_2950(cfb2950_* cfg_b2950, uint8_t* cfg_b_tx_buffer, uint8_t chip_position);
+void ADBMS_Set_Config_A_2950(cfa2950_* cfg_a2950, uint8_t* cfg_a_tx_buffer, uint8_t num_2950, uint8_t position);
+void ADBMS_Set_Config_B_2950(cfb2950_* cfg_b2950, uint8_t* cfg_b_tx_buffer, uint8_t num_2950, uint8_t position);
 
 //joint configuration functions
 void ADBMS_Set_ADCV(adcv_ adcv, uint16_t *adcv_cmd_buffer);

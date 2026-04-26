@@ -88,10 +88,9 @@ void ADBMS_6830_Calculate_Voltage(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830)
         }
     }
     
-    //adbms->total_v = even_total + odd_total;
-    adbms_6830->data.total_v = 60.0;
+    adbms_6830->data.total_v = even_total + odd_total;
     // calculate the avg voltage
-    if(NUM_CHIPS > 1){
+    if(NUM_6830 > 0){
         adbms_6830->data.avg_v = adbms_6830->data.total_v / ((NUM_6830) * NUM_VOLTAGES_ODD_CHIP + (((NUM_6830+1))/2));
     }
     else{
@@ -299,7 +298,7 @@ void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
     command_parameters_6830_ parameters = adbms_raw->command_parameters.parameter_6830;
     config_command_bits_ command_bits = adbms_raw->command_bit;
 
-    ADBMS_Set_Config_B_6830(parameters.cfb6830,command_bits.cfg_b, NUM_6830);
+    ADBMS_Set_Config_B_6830(parameters.cfb6830,command_bits.cfg_b, NUM_6830, POSITION_6830);
     ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGB, adbms_raw->command_bit.cfg_b, adbms_raw->SPI_data.spi_dataBuf);
     
 }
@@ -318,7 +317,7 @@ void cell_Balance_Off(adbms_raw_* adbms)
         parameters.cfb6830[cic].dcc = 0;
     }
 
-    ADBMS_Set_Config_B_6830(parameters.cfb6830,command_bits.cfg_b, NUM_6830);
+    ADBMS_Set_Config_B_6830(parameters.cfb6830,command_bits.cfg_b, NUM_6830, POSITION_6830);
     ADBMS_Write_Data(adbms->SPI_data.hspi, WRCFGB, adbms->command_bit.cfg_b, adbms->SPI_data.spi_dataBuf);
 }
 
@@ -333,7 +332,7 @@ void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
     printf("max-min: %f\n", adbms_6830->data.max_v - adbms_6830->data.min_v);
 
     // print every voltage
-    for (int i = 0; i < (NUM_CHIPS-1); i++)
+    for (int i = 0; i < NUM_6830; i++)
     {
         if (i % 2 == 0)
         {
@@ -358,7 +357,7 @@ void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
     printf("min temp: %f\t", adbms_6830->data.min_temp);
     printf("avg temp: %f\n", adbms_6830->data.avg_temp);
 
-    for (int i = 0; i < (NUM_CHIPS-1); i++)
+    for (int i = 0; i < NUM_6830; i++)
     {
         for (int j = 0; j < NUM_TEMPS_CHIP; j++)
         {

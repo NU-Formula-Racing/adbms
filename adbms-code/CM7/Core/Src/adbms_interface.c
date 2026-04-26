@@ -50,9 +50,11 @@ void ADBMS_Read_Temps(adbms_raw_* adbms){
     pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDAUXC, (adbms->raw_value.aux + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
     pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDAUXD, (adbms->raw_value.aux + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
 
+
     adbms->read_failure.read_temp_pec_failure = pec;
 
-    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adax);
+    //need to start new poll for conversion before next read 
+    ADBMS_Write_CMD(adbms->SPI_data.hspi, adbms->command_bit.adax);
 }
 
 //
@@ -61,7 +63,7 @@ void ADBMS_Read_Temps(adbms_raw_* adbms){
 void ADBMS_6830_Config(command_parameters_6830_* parameters,config_command_bits_* command_bits){
 
     // Set initial configurations
-    for (uint8_t cic = 0; cic < (NUM_6830-1); cic++)
+    for (uint8_t cic = 0; cic < (NUM_6830); cic++)
     {
         // Init config A
         parameters->cfa6830[cic].refon = 1;
@@ -70,10 +72,11 @@ void ADBMS_6830_Config(command_parameters_6830_* parameters,config_command_bits_
         // Init config B
         parameters->cfb6830[cic].vuv = Set_UnderOver_Voltage_Threshold(UNDERVOLTAGE);
         parameters->cfb6830[cic].vov = Set_UnderOver_Voltage_Threshold(OVERVOLTAGE);
+        
     }
 
-    ADBMS_Set_Config_A_6830(parameters->cfa6830,command_bits->cfg_a, NUM_6830); //sets for all 6830
-    ADBMS_Set_Config_B_6830(parameters->cfb6830,command_bits->cfg_b, NUM_6830); // sets for all 6830
+    ADBMS_Set_Config_A_6830(parameters->cfa6830,command_bits->cfg_a, NUM_6830, POSITION_6830); //sets for all 6830
+    ADBMS_Set_Config_B_6830(parameters->cfb6830,command_bits->cfg_b, NUM_6830, POSITION_6830); // sets for all 6830
     
 }
 
@@ -86,12 +89,12 @@ void ADBMS_2950_Config(command_parameters_2950_* parameters, config_command_bits
     parameters->cfa2950.gpo1c = 1; //for opening the mosfet for vbat
     parameters->cfa2950.gpo1od = 0; //for opening the mosfet for vbat
 
-    ADBMS_Set_Config_A_2950(&parameters->cfa2950,command_bits->cfg_a, NUM_CHIPS); //2950 is the last chip on the daisychain
+    ADBMS_Set_Config_A_2950(&parameters->cfa2950,command_bits->cfg_a, NUM_2950,POSITION_2950); //2950 is the last chip on the daisychain
 
     //
     //no cfb configs for now
     //
-    ADBMS_Set_Config_B_2950(&parameters->cfb2950,command_bits->cfg_b, NUM_CHIPS); //2950 is the last chip on the daisychain
+    ADBMS_Set_Config_B_2950(&parameters->cfb2950,command_bits->cfg_b, NUM_2950,POSITION_2950); //2950 is the last chip on the daisychain
 
     
 }
@@ -112,6 +115,12 @@ void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bi
     parameters->adsv.cont = 1; // for 2950 measurements
 
     ADBMS_Set_ADSV(parameters->adsv, &command_bits->adsv); //set adsv
+
+    //
+    //adax configs
+    //
+    ADBMS_Set_ADAX(parameters->adax,&command_bits->adax); //set adax
+
 
     //
     //adv configs
