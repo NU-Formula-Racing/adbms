@@ -6,7 +6,7 @@
 
 
 #define NUM_6830  2
-#define NUM_2950  0
+#define NUM_2950  1
 #define POSITION_2950 1					/*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
 #define POSITION_6830 (POSITION_2950 ^ 1) /*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
 #define NUM_CHIPS (NUM_6830+NUM_2950)	/* Number of ICs 					*/

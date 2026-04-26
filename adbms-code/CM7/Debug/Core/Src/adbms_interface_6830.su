@@ -6,6 +6,6 @@
 ../Core/Src/adbms_interface_6830.c:181:6:Update_6830_InternalFault	16	static
 ../Core/Src/adbms_interface_6830.c:199:6:Update_6830_Owc_Fault	40	static
 ../Core/Src/adbms_interface_6830.c:253:7:ADBMS_getVoltage	24	static
-../Core/Src/adbms_interface_6830.c:260:6:cell_Balance_On	120	static
-../Core/Src/adbms_interface_6830.c:306:6:cell_Balance_Off	96	static
+../Core/Src/adbms_interface_6830.c:260:6:cell_Balance_On	128	static
+../Core/Src/adbms_interface_6830.c:306:6:cell_Balance_Off	104	static
 ../Core/Src/adbms_interface_6830.c:324:6:ADBMS_6830_Print_Vals	40	static
