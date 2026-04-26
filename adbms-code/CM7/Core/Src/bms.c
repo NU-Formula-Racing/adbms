@@ -18,7 +18,7 @@ void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 
 	// initialize the timers: adbms_mainboard_loop, drive_can, data_can
 	timer_ t_adbms = Create_Timer(250, bms_mainboard_loop);
-	timer_ t_adbms_owc_check = Create_Timer(30000, adbms_owc_loop);
+	timer_ t_adbms_owc_check = Create_Timer(10000, adbms_owc_loop);
 	timer_ timers[NUM_TIMERS] = {t_adbms, t_adbms_owc_check};
 	mainboard.tg = Create_Timer_Group(timers);
 
@@ -50,21 +50,12 @@ void bms_mainboard_loop()
 // Seprate loop that gets ticked to run OWC
 void adbms_owc_loop()
 { 
-	Owc_C_Channel_Even_On(&mainboard.adbms_raw);
-    Owc_C_Channel_Read(&mainboard.adbms_raw);
-    Update_6830_Owc_Fault(&mainboard.adbms_raw, &mainboard.adbms_6830);
-    Owc_C_Channel_Odd_On(&mainboard.adbms_raw);
-    Owc_C_Channel_Read(&mainboard.adbms_raw);
-    Update_6830_Owc_Fault(&mainboard.adbms_raw, &mainboard.adbms_6830);
-    Owc_C_Channel_Off(&mainboard.adbms_raw);
+	cell_Balance_Off(&mainboard.adbms_raw);
 
-    Owc_S_Channel_Even_On(&mainboard.adbms_raw);
-    Owc_S_Channel_Read(&mainboard.adbms_raw);
-    Update_6830_Owc_Fault(&mainboard.adbms_raw, &mainboard.adbms_6830);
-    Owc_S_Channel_Odd_On(&mainboard.adbms_raw);
-    Owc_S_Channel_Read(&mainboard.adbms_raw);
-    Update_6830_Owc_Fault(&mainboard.adbms_raw, &mainboard.adbms_6830);
-    Owc_S_Channel_Off(&mainboard.adbms_raw);
+	Owc_c_channel_update(&mainboard.adbms_raw,&mainboard.adbms_6830);
+	Owc_s_channel_update(&mainboard.adbms_raw,&mainboard.adbms_6830);
+    
+	cell_Balance_On(&mainboard.adbms_raw,&mainboard.adbms_6830);
 }
 
 void update_values()

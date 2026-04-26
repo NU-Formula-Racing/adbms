@@ -321,6 +321,28 @@ void cell_Balance_Off(adbms_raw_* adbms)
     ADBMS_Write_Data(adbms->SPI_data.hspi, WRCFGB, adbms->command_bit.cfg_b, adbms->SPI_data.spi_dataBuf);
 }
 
+void Owc_c_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
+{
+    Owc_C_Channel_Even_On(adbms_raw);
+    Owc_C_Channel_Read(adbms_raw);
+    Update_6830_Owc_Fault(adbms_raw, adbms_6830);
+    Owc_C_Channel_Odd_On(adbms_raw);
+    Owc_C_Channel_Read(adbms_raw);
+    Update_6830_Owc_Fault(adbms_raw, adbms_6830);
+    Owc_C_Channel_Off(adbms_raw);
+}
+
+void Owc_s_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
+{
+    Owc_S_Channel_Even_On(adbms_raw);
+    Owc_S_Channel_Read(adbms_raw);
+    Update_6830_Owc_Fault(adbms_raw, adbms_6830);
+    Owc_S_Channel_Odd_On(adbms_raw);
+    Owc_S_Channel_Read(adbms_raw);
+    Update_6830_Owc_Fault(adbms_raw, adbms_6830);
+    Owc_S_Channel_Off(adbms_raw);
+}
+
 void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
 {
     printf("\nADBMS 6830 Data");

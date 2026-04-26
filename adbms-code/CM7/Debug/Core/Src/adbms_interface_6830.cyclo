@@ -8,4 +8,6 @@
 ../Core/Src/adbms_interface_6830.c:253:7:ADBMS_getVoltage	1
 ../Core/Src/adbms_interface_6830.c:260:6:cell_Balance_On	11
 ../Core/Src/adbms_interface_6830.c:306:6:cell_Balance_Off	2
-../Core/Src/adbms_interface_6830.c:324:6:ADBMS_6830_Print_Vals	11
+../Core/Src/adbms_interface_6830.c:324:6:Owc_c_channel_update	1
+../Core/Src/adbms_interface_6830.c:335:6:Owc_s_channel_update	1
+../Core/Src/adbms_interface_6830.c:346:6:ADBMS_6830_Print_Vals	11

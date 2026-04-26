@@ -10,6 +10,6 @@
 ../Core/Src/adbms_interface.c:189:6:Owc_C_Channel_Odd_On	16	static
 ../Core/Src/adbms_interface.c:202:6:Owc_C_Channel_Read	24	static
 ../Core/Src/adbms_interface.c:218:6:Owc_S_Channel_Off	16	static
-../Core/Src/adbms_interface.c:235:6:Owc_S_Channel_Even_On	16	static
-../Core/Src/adbms_interface.c:252:6:Owc_S_Channel_Odd_On	16	static
-../Core/Src/adbms_interface.c:270:6:Owc_S_Channel_Read	24	static
+../Core/Src/adbms_interface.c:232:6:Owc_S_Channel_Even_On	16	static
+../Core/Src/adbms_interface.c:246:6:Owc_S_Channel_Odd_On	16	static
+../Core/Src/adbms_interface.c:264:6:Owc_S_Channel_Read	24	static

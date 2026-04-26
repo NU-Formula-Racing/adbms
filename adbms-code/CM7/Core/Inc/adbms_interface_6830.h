@@ -71,4 +71,7 @@ float ADBMS_getVoltage(int data);
 void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830);
 void cell_Balance_Off(adbms_raw_* adbms);
 
+void Owc_c_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830);
+void Owc_s_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830);
+
 void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830);

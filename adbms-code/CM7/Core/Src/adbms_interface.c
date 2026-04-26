@@ -219,9 +219,6 @@ void Owc_S_Channel_Off(adbms_raw_* adbms)
 {
     ADBMS_WakeUP_ICs();
 
-    // not quite sure if we should turn it back on right now, or if i just turn it on in BMS
-    // cell_Balance_Off(adbms); 
-
     adbms->command_parameters.parameter_joint.adsv.cont = 1;
     adbms->command_parameters.parameter_joint.adsv.ow = 0; //Disable OW 
 
@@ -236,9 +233,6 @@ void Owc_S_Channel_Even_On(adbms_raw_* adbms)
 {
     // check openwire fault
     ADBMS_WakeUP_ICs();
-
-    //we're going to change this to elsewhere when we actually read
-    //cell_Balance_Off(adbms);  // need to turn off cell balancing to check for OWC
 
     adbms->command_parameters.parameter_joint.adsv.cont = 1;
     adbms->command_parameters.parameter_joint.adsv.ow = 1; // Enable OW on even-channel 
