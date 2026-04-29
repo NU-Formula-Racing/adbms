@@ -61,13 +61,22 @@ void adbms_owc_loop()
 void update_values()
 {
 	//First Read both Voltages and Temps raw values in lower level interface
-    ADBMS_Read_Voltage(&mainboard.adbms_raw);
-    ADBMS_Read_Temps(&mainboard.adbms_raw);
-	//RESTART ADAX
 
-    //now parse all data in upper level interface
+	//read voltages
+	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw, C_Channel_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
+	//Parse 6830 voltage
+	ADBMS_6830_Parse_Voltage(&mainboard.adbms_raw.read_raw,&mainboard.adbms_6830.voltage);
+
+	//read temp
+	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw,AUX_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
+	//RESTART ADAX
+	ADBMS_Set_ADAX(mainboard.adbms_raw.command_parameters.parameter_joint.adax,&mainboard.adbms_raw.command_bit.adax); //set adax
+	//parse 6830 temp
+	ADBMS_6830_Parse_Temperature(&mainboard.adbms_raw.read_raw,&mainboard.adbms_6830.temperature);
+
+
+    //parse 2950 data
     ADBMS_2950_Calculate_Values(&mainboard.adbms_raw,&mainboard.adbms_2950);
-    ADBMS_6830_Calculate_Values(&mainboard.adbms_raw,&mainboard.adbms_6830);
 
     //Update Faults
     //this is just 6830 faults -> 2950 faults still need to come
@@ -88,7 +97,7 @@ void update_values()
 	Soc_Update(&mainboard);
 	
     //this should change into both current_1 and 2 when both start working
-	mainboard.adbms_2950.faults.overcurrent_fault = mainboard.adbms_2950.data.current_1 > OVERCURRENT;
+	mainboard.adbms_2950.faults.overcurrent_fault = mainboard.adbms_2950.data.current > OVERCURRENT;
 
 	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
 	if(ENABLE_USB_COMMS) send_data_over_USB(); 

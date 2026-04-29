@@ -84,7 +84,7 @@ void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_pa
 }
 
 
-void ADBMS_6830_Parse_Temperatrue(adbms_read_raw_* raw_return, adbms_6830_temperature_parsed_* temp_parsed)
+void ADBMS_6830_Parse_Temperature(adbms_read_raw_* raw_return, adbms_6830_temperature_parsed_* temp_parsed)
 {
     //if there is a pec, process and don't update values
     if(raw_return->read_pec_failure)

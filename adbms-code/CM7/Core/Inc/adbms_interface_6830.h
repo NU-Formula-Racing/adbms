@@ -65,7 +65,7 @@ typedef struct
 
 //Parsers Voltage/Temperature
 void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_parsed_* voltage_parsed);
-void ADBMS_6830_Parse_Temperatrue(adbms_read_raw_* raw_return, adbms_6830_temperature_parsed_* temp_parsed);
+void ADBMS_6830_Parse_Temperature(adbms_read_raw_* raw_return, adbms_6830_temperature_parsed_* temp_parsed);
 
 //Upate Faults
 void Update_6830_InternalFault(adbms_6830_* adbms_6830);
