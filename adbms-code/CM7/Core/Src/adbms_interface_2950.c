@@ -5,10 +5,13 @@ void ADBMS_2950_Calculate_Values(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
 {
     ADBMS_2950_Calculate_Vbat(adbms_raw, adbms_2950);
     ADBMS_2950_Calculate_Current(adbms_raw, adbms_2950);
-    ADBMS_2950_Calculate_Post_Voltage(adbms_raw, adbms_2950);
     ADBMS_2950_Calculate_Shunt_Temp(adbms_raw, adbms_2950);
 }
 
+
+//
+//Calculate Values
+//
 void ADBMS_2950_Calculate_Vbat(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
 {
     //initialize values
@@ -28,17 +31,6 @@ void ADBMS_2950_Calculate_Vbat(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
 
 }
 
-float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw){
-    float vbat_final = 0.0;
-
-    //transfer to real value and store
-    float vbat1 = (float)(vbat1_raw / 0.0041938); // (15000/3,600,000 + 15000)
-    float vbat2 = (float) vbat2_raw;
-
-    vbat_final = (vbat1-vbat2) * 0.0001; //100 microolms
-    
-    return vbat_final;
-}
 
 void ADBMS_2950_Calculate_Current(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
 {
@@ -66,14 +58,6 @@ void ADBMS_2950_Calculate_Current(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950
     adbms_2950->data.current = (-ADBMS_2950_Transfer_Current(adbms_2950->raw_data.i1_raw) + ADBMS_2950_Transfer_Current(adbms_2950->raw_data.i2_raw)) / 2 ;
 }
 
-float ADBMS_2950_Transfer_Current(int32_t data)
-{
-  float current;
-  //the actual measured resistance is closer to 94 microolms instead of 100
-  current = (float) data / 94.0;
-  return current;
-}
-
 
 void ADBMS_2950_Calculate_Shunt_Temp(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
 {
@@ -94,12 +78,41 @@ void ADBMS_2950_Calculate_Shunt_Temp(adbms_raw_* adbms_raw, adbms_2950_* adbms_2
 
 }
 
+
+
+//
+//Transfer Functions
+//
+float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw){
+    float vbat_final = 0.0;
+
+    //transfer to real value and store
+    float vbat1 = (float)(vbat1_raw / 0.0041938); // (15000/3,600,000 + 15000)
+    float vbat2 = (float) vbat2_raw;
+
+    vbat_final = (vbat1-vbat2) * 0.0001; //100 microolms
+    
+    return vbat_final;
+}
+
+float ADBMS_2950_Transfer_Current(int32_t data)
+{
+  float current;
+  //the actual measured resistance is closer to 94 microolms instead of 100
+  current = (float) data / 94.0;
+  return current;
+}
+
 float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage){
 
 //write this later :)
 
 }
 
+
+//
+//Prints 
+//
 void ADBMS_2950_Print_Vals(adbms_2950_* adbms_2950)
 {
     // 2950 prints

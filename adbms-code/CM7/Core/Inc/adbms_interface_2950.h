@@ -43,13 +43,18 @@ typedef struct
 
 }adbms_2950_;
 
+
 void ADBMS_2950_Calculate_Values(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950);
+
+//Calculate Values
 void ADBMS_2950_Calculate_Vbat(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950);
-float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw);
 void ADBMS_2950_Calculate_Current(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950);
-float ADBMS_2950_Transfer_Current(int32_t data);
-void ADBMS_2950_Calculate_Post_Voltage(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950);
-float ADBMS_2950_Transfer_Post_Voltage(int16_t v1_raw, int16_t v2_raw);
 void ADBMS_2950_Calculate_Shunt_Temp(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950);
+
+//Transfer Functions
+float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw);
+float ADBMS_2950_Transfer_Current(int32_t data);
 float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage);
+
+//Prints
 void ADBMS_2950_Print_Vals(adbms_2950_* adbms_2950);
