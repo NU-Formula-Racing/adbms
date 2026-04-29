@@ -162,6 +162,18 @@ void Update_6830_InternalFault(adbms_6830_* adbms_6830)
     // check undertemperature fault
     adbms_6830->faults.undertemperature_fault = adbms_6830->faults.undertemperature_fault || (adbms_6830->temperature.min_temp < UNDERTEMP);
 
+    //
+    // moved here new
+    //
+
+    // check pec fault
+    if ((adbms_6830->voltage.pec_counts > PEC_FAILURE_THRESHOLD) || (adbms_6830->temperature.pec_counts > PEC_FAILURE_THRESHOLD))
+    {
+        adbms_6830->faults.pec_fault = true;
+    }
+
+    // check openwire temp fault
+    adbms_6830->faults.openwire_temp_fault = adbms_6830->faults.openwire_temp_fault || (adbms_6830->temperature.openwire_temp_fault);
 }
 
 
@@ -178,8 +190,8 @@ void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
             uint16_t dcc = 0;
             for (int cvoltage = 0; cvoltage < NUM_VOLTAGES_EVEN_CHIP; cvoltage++)
             {
-                float curr_v = adbms_6830->data.voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + cvoltage];
-                if ((curr_v - adbms_6830->data.min_v) > CB_THRESHOLD && curr_v > CB_MIN_V_THRESHOLD)
+                float curr_v = adbms_6830->voltage.voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + cvoltage];
+                if ((curr_v - adbms_6830->voltage.min_v) > CB_THRESHOLD && curr_v > CB_MIN_V_THRESHOLD)
                 {
                     dcc |= 1 << cvoltage;
                 }
@@ -192,8 +204,8 @@ void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
             uint16_t dcc = 0;
             for (int cvoltage = 0; cvoltage < NUM_VOLTAGES_ODD_CHIP; cvoltage++)
             {
-                float curr_v = adbms_6830->data.voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + cvoltage];
-                if ((curr_v - adbms_6830->data.min_v) > CB_THRESHOLD && curr_v > CB_MIN_V_THRESHOLD)
+                float curr_v = adbms_6830->voltage.voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + cvoltage];
+                if ((curr_v - adbms_6830->voltage.min_v) > CB_THRESHOLD && curr_v > CB_MIN_V_THRESHOLD)
                 {
                     dcc |= 1 << cvoltage;
                 }
@@ -234,13 +246,13 @@ void Owc_c_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
 {
     //Turn on Even, Read, Update
     Owc_C_Channel_Config(adbms_raw,Channel_Even_On);
-    ADBMS_Read_Voltages();
-    Update_6830_Owc_Fault(adbms_raw, adbms_6830);
+    ADBMS_Read_Voltages(&adbms_raw->read_raw,C_Channel_Read,&adbms_raw->SPI_data.hspi,adbms_raw->SPI_data.spi_dataBuf);
+    ADBMS_6830_Parse_Voltage(&adbms_raw->read_raw,&adbms_6830->voltage);
 
     //Turn on Odd, Read, Update
     Owc_C_Channel_Config(adbms_raw,Channel_Odd_On);
-    ADBMS_Read_Voltages();
-    Update_6830_Owc_Fault(adbms_raw, adbms_6830);
+    ADBMS_Read_Voltages(&adbms_raw->read_raw,C_Channel_Read,&adbms_raw->SPI_data.hspi,adbms_raw->SPI_data.spi_dataBuf);
+    ADBMS_6830_Parse_Voltage(&adbms_raw->read_raw,&adbms_6830->voltage);
 
     //Turn Off
     Owc_C_Channel_Config(adbms_raw,Channel_Off);
@@ -251,13 +263,13 @@ void Owc_s_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
 
     //Turn on Even, Read, Update
     Owc_S_Channel_Config(adbms_raw,Channel_Even_On);
-    ADBMS_Read_Voltages();
-    Update_6830_Owc_Fault(adbms_raw, adbms_6830);
+    ADBMS_Read_Voltages(&adbms_raw->read_raw,S_Channel_Read,&adbms_raw->SPI_data.hspi,adbms_raw->SPI_data.spi_dataBuf);
+    ADBMS_6830_Parse_Voltage(&adbms_raw->read_raw,&adbms_6830->voltage);
 
     //Turn on Odd, Read, Update
     Owc_S_Channel_Config(adbms_raw,Channel_Odd_On);
-    ADBMS_Read_Voltages();
-    Update_6830_Owc_Fault(adbms_raw, adbms_6830);
+    ADBMS_Read_Voltages(&adbms_raw->read_raw,S_Channel_Read,&adbms_raw->SPI_data.hspi,adbms_raw->SPI_data.spi_dataBuf);
+    ADBMS_6830_Parse_Voltage(&adbms_raw->read_raw,&adbms_6830->voltage);
 
     //Turn off
     Owc_S_Channel_Off(adbms_raw);
@@ -293,11 +305,11 @@ void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
 {
     printf("\nADBMS 6830 Data");
     printf("\nVOLTAGES\n");
-    printf("total v: %f\n", adbms_6830->data.total_v);
-    printf("max v: %f\t", adbms_6830->data.max_v);
-    printf("min v: %f\t", adbms_6830->data.min_v);
-    printf("avg v: %f\t", adbms_6830->data.avg_v);
-    printf("max-min: %f\n", adbms_6830->data.max_v - adbms_6830->data.min_v);
+    printf("total v: %f\n", adbms_6830->voltage.total_v);
+    printf("max v: %f\t", adbms_6830->voltage.max_v);
+    printf("min v: %f\t", adbms_6830->voltage.min_v);
+    printf("avg v: %f\t", adbms_6830->voltage.avg_v);
+    printf("max-min: %f\n", adbms_6830->voltage.max_v - adbms_6830->voltage.min_v);
 
     // print every voltage
     for (int i = 0; i < NUM_6830; i++)
@@ -306,14 +318,14 @@ void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
         {
             for (int j = 0; j < NUM_VOLTAGES_EVEN_CHIP; j++)
             {
-                printf("C%d=%fV\t", ((i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j + 1), adbms_6830->data.voltages[(i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j]);
+                printf("C%d=%fV\t", ((i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j + 1), adbms_6830->voltage.voltages[(i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j]);
             }
         }
         else
         {
             for (int j = 0; j < NUM_VOLTAGES_ODD_CHIP; j++)
             {
-                printf("C%d=%fV\t", ((i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j + 1), adbms_6830->data.voltages[(i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j]);
+                printf("C%d=%fV\t", ((i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j + 1), adbms_6830->voltage.voltages[(i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j]);
             }
         }
     }
@@ -321,15 +333,15 @@ void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
 
     // print the total, max, min, and avg temp
     printf("\nTEMPS\n");
-    printf("max temp: %f\t", adbms_6830->data.max_temp);
-    printf("min temp: %f\t", adbms_6830->data.min_temp);
-    printf("avg temp: %f\n", adbms_6830->data.avg_temp);
+    printf("max temp: %f\t", adbms_6830->temperature.max_temp);
+    printf("min temp: %f\t", adbms_6830->temperature.min_temp);
+    printf("avg temp: %f\n", adbms_6830->temperature.avg_temp);
 
     for (int i = 0; i < NUM_6830; i++)
     {
         for (int j = 0; j < NUM_TEMPS_CHIP; j++)
         {
-            printf("T%d=%f\t", (i * NUM_TEMPS_CHIP + j + 1), adbms_6830->data.temperatures[i * NUM_TEMPS_CHIP + j]);
+            printf("T%d=%f\t", (i * NUM_TEMPS_CHIP + j + 1), adbms_6830->temperature.temperatures[i * NUM_TEMPS_CHIP + j]);
         }
         printf("\n");
     }
