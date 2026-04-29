@@ -154,97 +154,151 @@ void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bi
 //
 // these are all configuration or reads for open-wire checks
 //
+// this also repeats quite a lot, i think i can change this too
 
-
-void Owc_C_Channel_Off(adbms_raw_* adbms)
+void Owc_C_Channel_Config(adbms_raw_* adbms, Owc_Channel_Mode_ mode)
 {
     ADBMS_WakeUP_ICs();
 
-    adbms->command_parameters.parameter_joint.adcv.cont = 1;
-    adbms->command_parameters.parameter_joint.adcv.ow = 0; //Disable OW
+    switch(mode)
+    {
+        case Channel_Off:
+            adbms->command_parameters.parameter_joint.adcv.cont = 1;
+            adbms->command_parameters.parameter_joint.adcv.ow = 0; //Disable OW
+            break;
 
+        case Channel_Even_On:
+            adbms->command_parameters.parameter_joint.adcv.cont = 1;
+            adbms->command_parameters.parameter_joint.adcv.ow = 1; //Enable Even Channel OW
+            break;
+        case Channel_Odd_On:
+            adbms->command_parameters.parameter_joint.adcv.cont = 1;
+            adbms->command_parameters.parameter_joint.adcv.ow = 2; //Enable Odd Channel OW
+            break;
+    }
+    
     ADBMS_Set_ADCV(adbms->command_parameters.parameter_joint.adcv, &adbms->command_bit.adcv);
-
     ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
-
     HAL_Delay(1);
 }
 
-void Owc_C_Channel_Even_On(adbms_raw_* adbms)
+void Owc_S_Channel_Config(adbms_raw_* adbms, Owc_Channel_Mode_ mode)
 {
     ADBMS_WakeUP_ICs();
 
-    adbms->command_parameters.parameter_joint.adcv.cont = 1;
-    adbms->command_parameters.parameter_joint.adcv.ow = 1; //Enable Even Channel OW
-
-    ADBMS_Set_ADCV(adbms->command_parameters.parameter_joint.adcv, &adbms->command_bit.adcv);
-
-    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
-    HAL_Delay(8); 
-}
-
-void Owc_C_Channel_Odd_On(adbms_raw_* adbms)
-{
-    ADBMS_WakeUP_ICs();
-
-    adbms->command_parameters.parameter_joint.adcv.cont = 1;
-    adbms->command_parameters.parameter_joint.adcv.ow = 2; //Enable Odd Channel OW
-
-    ADBMS_Set_ADCV(adbms->command_parameters.parameter_joint.adcv, &adbms->command_bit.adcv);
-
-    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
-    HAL_Delay(8); 
-}
-
-
-void Owc_S_Channel_Off(adbms_raw_* adbms)
-{
-    ADBMS_WakeUP_ICs();
-
-    adbms->command_parameters.parameter_joint.adsv.cont = 1;
-    adbms->command_parameters.parameter_joint.adsv.ow = 0; //Disable OW 
+    switch(mode)
+    {
+        case Channel_Off:
+            adbms->command_parameters.parameter_joint.adsv.cont = 1;
+            adbms->command_parameters.parameter_joint.adsv.ow = 0; //Disable OW 
+            break;
+        case Channel_Even_On:
+            adbms->command_parameters.parameter_joint.adsv.cont = 1;
+            adbms->command_parameters.parameter_joint.adsv.ow = 1; // Enable OW on even-channel 
+            break;
+        case Channel_Odd_On:
+            adbms->command_parameters.parameter_joint.adsv.cont = 1;
+            adbms->command_parameters.parameter_joint.adsv.ow = 2; // Enable OW on odd-channel 
+            break;
+    }
 
     ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
-
     ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
-
     HAL_Delay(1);
 }
 
-void Owc_S_Channel_Even_On(adbms_raw_* adbms)
-{
-    // check openwire fault
-    ADBMS_WakeUP_ICs();
 
-    adbms->command_parameters.parameter_joint.adsv.cont = 1;
-    adbms->command_parameters.parameter_joint.adsv.ow = 1; // Enable OW on even-channel 
+// void Owc_C_Channel_Off(adbms_raw_* adbms)
+// {
+//     ADBMS_WakeUP_ICs();
 
-    ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
+//     adbms->command_parameters.parameter_joint.adcv.cont = 1;
+//     adbms->command_parameters.parameter_joint.adcv.ow = 0; //Disable OW
 
-    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
-    HAL_Delay(8);
-}
+//     ADBMS_Set_ADCV(adbms->command_parameters.parameter_joint.adcv, &adbms->command_bit.adcv);
 
-void Owc_S_Channel_Odd_On(adbms_raw_* adbms)
-{
-    // check openwire fault
-    ADBMS_WakeUP_ICs();
+//     ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
 
-    //same with here
-    //cell_Balance_Off(adbms);  // need to turn off cell balancing to check for OWC
+//     HAL_Delay(1);
+// }
 
-    /// OWC ODD Check
-    adbms->command_parameters.parameter_joint.adsv.cont = 1;
-    adbms->command_parameters.parameter_joint.adsv.ow = 2; // Enable OW on odd-channel 
+// void Owc_C_Channel_Even_On(adbms_raw_* adbms)
+// {
+//     ADBMS_WakeUP_ICs();
 
-    ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
+//     adbms->command_parameters.parameter_joint.adcv.cont = 1;
+//     adbms->command_parameters.parameter_joint.adcv.ow = 1; //Enable Even Channel OW
 
-    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
-    HAL_Delay(8);
-}
+//     ADBMS_Set_ADCV(adbms->command_parameters.parameter_joint.adcv, &adbms->command_bit.adcv);
+
+//     ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
+//     HAL_Delay(8); 
+// }
+
+// void Owc_C_Channel_Odd_On(adbms_raw_* adbms)
+// {
+//     ADBMS_WakeUP_ICs();
+
+//     adbms->command_parameters.parameter_joint.adcv.cont = 1;
+//     adbms->command_parameters.parameter_joint.adcv.ow = 2; //Enable Odd Channel OW
+
+//     ADBMS_Set_ADCV(adbms->command_parameters.parameter_joint.adcv, &adbms->command_bit.adcv);
+
+//     ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
+//     HAL_Delay(8); 
+// }
 
 
+// void Owc_S_Channel_Off(adbms_raw_* adbms)
+// {
+//     ADBMS_WakeUP_ICs();
 
+//     adbms->command_parameters.parameter_joint.adsv.cont = 1;
+//     adbms->command_parameters.parameter_joint.adsv.ow = 0; //Disable OW 
+
+//     ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
+
+//     ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
+
+//     HAL_Delay(1);
+// }
+
+// void Owc_S_Channel_Even_On(adbms_raw_* adbms)
+// {
+//     // check openwire fault
+//     ADBMS_WakeUP_ICs();
+
+//     adbms->command_parameters.parameter_joint.adsv.cont = 1;
+//     adbms->command_parameters.parameter_joint.adsv.ow = 1; // Enable OW on even-channel 
+
+//     ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
+
+//     ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
+//     HAL_Delay(8);
+// }
+
+// void Owc_S_Channel_Odd_On(adbms_raw_* adbms)
+// {
+//     // check openwire fault
+//     ADBMS_WakeUP_ICs();
+
+//     //same with here
+//     //cell_Balance_Off(adbms);  // need to turn off cell balancing to check for OWC
+
+//     /// OWC ODD Check
+//     adbms->command_parameters.parameter_joint.adsv.cont = 1;
+//     adbms->command_parameters.parameter_joint.adsv.ow = 2; // Enable OW on odd-channel 
+
+//     ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
+
+//     ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
+//     HAL_Delay(8);
+// }
+
+
+//
+//all retired read functions
+//
 
 
 // void ADBMS_Read_Voltage(adbms_raw_ *adbms){

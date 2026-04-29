@@ -23,6 +23,14 @@ typedef struct
 
 }adbms_raw_;
 
+typedef enum
+{
+    Channel_Odd_On = 0,
+    Channel_Even_On,
+    Channel_Off
+
+}Owc_Channel_Mode_;
+
 
 //
 //interface functions
@@ -43,13 +51,7 @@ void ADBMS_2950_Config(command_parameters_2950_* parameters, config_command_bits
 void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bits_* command_bits);
 
 
-//OWC Config and Read C Channel
-void Owc_C_Channel_Off(adbms_raw_* adbms);
-void Owc_C_Channel_Even_On(adbms_raw_* adbms);
-void Owc_C_Channel_Odd_On(adbms_raw_* adbms);
+//OWC Config Functions
+void Owc_C_Channel_Config(adbms_raw_* adbms, Owc_Channel_Mode_ mode);
+void Owc_S_Channel_Config(adbms_raw_* adbms, Owc_Channel_Mode_ mode);
 
-
-//OWC Config and Read S Channel
-void Owc_S_Channel_Off(adbms_raw_* adbms);
-void Owc_S_Channel_Even_On(adbms_raw_* adbms);
-void Owc_S_Channel_Odd_On(adbms_raw_* adbms);
