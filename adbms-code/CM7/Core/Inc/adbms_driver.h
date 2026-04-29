@@ -53,9 +53,29 @@ typedef struct
 
 } raw_read_return_values_;
 
+typedef enum
+{
+    C_Channel_Read = 0,
+    S_Channel_Read
+
+}voltage_read_type_;
+
+typedef struct 
+{
+
+    //each is its own raw channel read + own pec failure
+    uint8_t c_channel_raw[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
+    uint8_t s_channel_raw[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
+    
+    bool voltage_read_pec;
+
+}voltages_raw_;
+
 typedef struct
 {
-    bool read_voltage_pec_failure;
+    //we get rid of this, moved into new struct
+    //bool read_voltage_pec_failure;
+
     bool read_temp_pec_failure;
     bool read_open_wire_pec_failure;
 
