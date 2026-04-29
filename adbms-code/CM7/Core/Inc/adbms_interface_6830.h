@@ -10,28 +10,31 @@
 #define T25                 298.15     
 
 
-typedef struct
+typedef struct 
 {
-    float voltages[NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2)]; //0 indexed, even chips (including 0) have 12 voltages, odds have 11
-    float temperatures[NUM_CHIPS * NUM_TEMPS_CHIP];
+    float voltages[NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2)];
 
     float total_v;
     float max_v;
     float min_v;
     float avg_v;
 
+    int pec_counts;
+
+}adbms_6830_voltage_parsed_;
+
+typedef struct
+{
+    float temperatures[NUM_CHIPS * NUM_TEMPS_CHIP];
+
     float max_temp;
     float min_temp;
     float avg_temp;
 
-}data_6830_;
+    int pec_counts;
 
-typedef struct 
-{
-    int pec_failure_count;
+}adbms_6830_temperature_parsed_;
 
-
-}adbms_6830_failures_;
 
 typedef struct
 {
@@ -50,15 +53,16 @@ typedef struct
 
 typedef struct
 {
-    data_6830_ data;
-    adbms_6830_failures_    failures;
-    adbms_6830_faults_  faults;
+    adbms_6830_voltage_parsed_         voltage;
+    adbms_6830_temperature_parsed_     temperature;
+    adbms_6830_faults_                  faults;
 
 }adbms_6830_;
 
 
-//Calculate Values
 void ADBMS_6830_Calculate_Values(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830);
+
+//Calculate Values
 void ADBMS_6830_Calculate_Voltage(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830);
 void ADBMS_6830_Calculate_Temperature(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830);
 

@@ -63,6 +63,7 @@ void update_values()
 	//First Read both Voltages and Temps raw values in lower level interface
     ADBMS_Read_Voltage(&mainboard.adbms_raw);
     ADBMS_Read_Temps(&mainboard.adbms_raw);
+	//RESTART ADAX
 
     //now parse all data in upper level interface
     ADBMS_2950_Calculate_Values(&mainboard.adbms_raw,&mainboard.adbms_2950);

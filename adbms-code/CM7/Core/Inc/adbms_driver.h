@@ -42,41 +42,27 @@ typedef struct
 } SPI_data_;
 
 //this struct stores all struct of all the bit values coming back from reads
-typedef struct
+typedef struct 
 {
-    //this is moved over to the new struct
-    //uint8_t cell[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
-    //uint8_t scell[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
 
-    uint8_t aux[NUM_CHIPS * CELL_REG_GRP * DATA_LEN]; 
-    uint8_t shunt_temp[NUM_CHIPS * DATA_LEN];
+    uint8_t read_return[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
+    bool read_pec_failure;
 
-} raw_read_return_values_;
+}ADBMS_read_raw_;
+
 
 typedef enum
 {
     C_Channel_Read = 0,
-    S_Channel_Read
+    S_Channel_Read,
+    AUX_Read
 
 }voltage_read_type_;
 
-typedef struct 
-{
-
-    //each is its own raw channel read + own pec failure
-    uint8_t c_channel_raw[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
-    uint8_t s_channel_raw[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
-    
-    bool voltage_read_pec;
-
-}voltages_raw_;
 
 typedef struct
 {
-    //we get rid of this, moved into new struct
-    //bool read_voltage_pec_failure;
-
-    bool read_temp_pec_failure;
+    //i'm not sure if i still need this, assess later
     bool read_open_wire_pec_failure;
 
 } read_failures_;

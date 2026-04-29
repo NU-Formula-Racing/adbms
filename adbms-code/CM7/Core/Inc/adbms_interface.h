@@ -15,8 +15,7 @@ typedef struct
     SPI_data_                           SPI_data;
 
     //read returns
-    raw_read_return_values_             raw_value;
-    voltages_raw_                       raw_voltages;
+    ADBMS_read_raw_                     read_raw;
 
     //read failures
     read_failures_                      read_failure;
@@ -29,7 +28,14 @@ typedef enum
     Channel_Even_On,
     Channel_Off
 
-}Owc_Channel_Mode_;
+}Owc_Mode_;
+
+typedef enum
+{
+    C_Channel = 0,
+    S_Channel
+
+}Owc_Channel_;
 
 
 //
@@ -40,9 +46,8 @@ typedef enum
 void ADBMS_Initialize(adbms_raw_ *adbms, SPI_HandleTypeDef *hspi);
 
 
-//read functions
-void ADBMS_Read_Voltages(voltages_raw_* voltages_raw, voltage_read_type_ type, SPI_HandleTypeDef *hspi,uint8_t *spi_dataBuf);;
-void ADBMS_Read_Temps(adbms_raw_* adbms);
+//read function
+void ADBMS_Read_Voltages(ADBMS_read_raw_* read_raw, voltage_read_type_ type, SPI_HandleTypeDef *hspi,uint8_t *spi_dataBuf);
 
 
 //chip configurations
@@ -51,7 +56,6 @@ void ADBMS_2950_Config(command_parameters_2950_* parameters, config_command_bits
 void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bits_* command_bits);
 
 
-//OWC Config Functions
-void Owc_C_Channel_Config(adbms_raw_* adbms, Owc_Channel_Mode_ mode);
-void Owc_S_Channel_Config(adbms_raw_* adbms, Owc_Channel_Mode_ mode);
+//OWC Config Function
+void ADBMS_Owc_Config(adbms_raw_* adbms, Owc_Channel_ channel, Owc_Mode_ mode);
 

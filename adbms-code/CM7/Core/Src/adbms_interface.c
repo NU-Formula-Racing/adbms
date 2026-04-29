@@ -22,14 +22,14 @@ void ADBMS_Initialize(adbms_raw_* adbms_raw, SPI_HandleTypeDef *hspi)
     ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adcv);
     HAL_Delay(1); // ADCs are updated at their conversion rate of 1ms
     ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adax);
-    HAL_Delay(8); 
+    HAL_Delay(1); 
     ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adsv);
-    HAL_Delay(8);
+    HAL_Delay(1);
     ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adv); //new 2950 command to start V1adc and V2adc
     HAL_Delay(8);
 }
 
-void ADBMS_Read_Voltages(voltages_raw_* voltages_raw, voltage_read_type_ type, SPI_HandleTypeDef *hspi,uint8_t *spi_dataBuf)
+void ADBMS_Read_Voltages(ADBMS_read_raw_* read_raw, voltage_read_type_ type, SPI_HandleTypeDef *hspi,uint8_t *spi_dataBuf)
 {
 
     bool pec = 0;
@@ -39,41 +39,29 @@ void ADBMS_Read_Voltages(voltages_raw_* voltages_raw, voltage_read_type_ type, S
     switch (type)
     {
         case C_Channel_Read:
-            pec |= ADBMS_Read_Data(hspi, RDCVA, (voltages_raw->c_channel_raw + 0 * NUM_CHIPS * DATA_LEN), spi_dataBuf); //read voltages 0-2 for each chip //read current for 2950 chip
-            pec |= ADBMS_Read_Data(hspi, RDCVB, (voltages_raw->c_channel_raw + 1 * NUM_CHIPS * DATA_LEN), spi_dataBuf); //read voltages 3-5 for each chip
-            pec |= ADBMS_Read_Data(hspi, RDCVC, (voltages_raw->c_channel_raw + 2 * NUM_CHIPS * DATA_LEN), spi_dataBuf); //read voltages 6-8 for each chip
-            pec |= ADBMS_Read_Data(hspi, RDCVD, (voltages_raw->c_channel_raw + 3 * NUM_CHIPS * DATA_LEN), spi_dataBuf); //read voltages 9-11 for each chip
+            pec |= ADBMS_Read_Data(hspi, RDCVA, (read_raw->read_return + 0 * NUM_CHIPS * DATA_LEN), spi_dataBuf); //read voltages 0-2 for each chip //read current for 2950 chip
+            pec |= ADBMS_Read_Data(hspi, RDCVB, (read_raw->read_return + 1 * NUM_CHIPS * DATA_LEN), spi_dataBuf); //read voltages 3-5 for each chip
+            pec |= ADBMS_Read_Data(hspi, RDCVC, (read_raw->read_return + 2 * NUM_CHIPS * DATA_LEN), spi_dataBuf); //read voltages 6-8 for each chip
+            pec |= ADBMS_Read_Data(hspi, RDCVD, (read_raw->read_return + 3 * NUM_CHIPS * DATA_LEN), spi_dataBuf); //read voltages 9-11 for each chip
             break;
 
         case S_Channel_Read:
-            pec |= ADBMS_Read_Data(hspi, RDSVA, (voltages_raw->s_channel_raw + 0 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
-            pec |= ADBMS_Read_Data(hspi, RDSVB, (voltages_raw->c_channel_raw + 1 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
-            pec |= ADBMS_Read_Data(hspi, RDSVC, (voltages_raw->c_channel_raw + 2 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
-            pec |= ADBMS_Read_Data(hspi, RDSVD, (voltages_raw->c_channel_raw + 3 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
+            pec |= ADBMS_Read_Data(hspi, RDSVA, (read_raw->read_return + 0 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
+            pec |= ADBMS_Read_Data(hspi, RDSVB, (read_raw->read_return + 1 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
+            pec |= ADBMS_Read_Data(hspi, RDSVC, (read_raw->read_return + 2 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
+            pec |= ADBMS_Read_Data(hspi, RDSVD, (read_raw->read_return + 3 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
             break;
+        
+        case AUX_Read: 
+            pec |= ADBMS_Read_Data(hspi, RDAUXA, (read_raw->read_return + 0 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
+            pec |= ADBMS_Read_Data(hspi, RDAUXB, (read_raw->read_return + 1 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
+            pec |= ADBMS_Read_Data(hspi, RDAUXC, (read_raw->read_return + 2 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
+            pec |= ADBMS_Read_Data(hspi, RDAUXD, (read_raw->read_return + 3 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
             
     }
 
-    voltages_raw -> voltage_read_pec = pec;
+    read_raw->read_pec_failure = pec;
 
-}
-
-void ADBMS_Read_Temps(adbms_raw_* adbms){
-
-    //get temps from ADBMS
-    bool pec = 0;
-    ADBMS_WakeUP_ICs();
-
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDAUXA, (adbms->raw_value.aux + 0 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDAUXB, (adbms->raw_value.aux + 1 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDAUXC, (adbms->raw_value.aux + 2 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
-    pec |= ADBMS_Read_Data(adbms->SPI_data.hspi, RDAUXD, (adbms->raw_value.aux + 3 * NUM_CHIPS * DATA_LEN), adbms->SPI_data.spi_dataBuf);
-
-
-    adbms->read_failure.read_temp_pec_failure = pec;
-
-    //need to start new poll for conversion before next read 
-    ADBMS_Write_CMD(adbms->SPI_data.hspi, adbms->command_bit.adax);
 }
 
 //
@@ -156,56 +144,89 @@ void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bi
 //
 // this also repeats quite a lot, i think i can change this too
 
-void Owc_C_Channel_Config(adbms_raw_* adbms, Owc_Channel_Mode_ mode)
+void ADBMS_Owc_Config(adbms_raw_* adbms, Owc_Channel_ channel, Owc_Mode_ mode)
 {
     ADBMS_WakeUP_ICs();
 
-    switch(mode)
+    switch(channel)
     {
-        case Channel_Off:
-            adbms->command_parameters.parameter_joint.adcv.cont = 1;
-            adbms->command_parameters.parameter_joint.adcv.ow = 0; //Disable OW
-            break;
+        
+        case C_Channel:
+            switch(mode)
+            {
+                case Channel_Off:
+                    adbms->command_parameters.parameter_joint.adcv.cont = 1;
+                    adbms->command_parameters.parameter_joint.adcv.ow = 0; //Disable OW
+                    break;
 
-        case Channel_Even_On:
-            adbms->command_parameters.parameter_joint.adcv.cont = 1;
-            adbms->command_parameters.parameter_joint.adcv.ow = 1; //Enable Even Channel OW
+                case Channel_Even_On:
+                    adbms->command_parameters.parameter_joint.adcv.cont = 1;
+                    adbms->command_parameters.parameter_joint.adcv.ow = 1; //Enable Even Channel OW
+                    break;
+                case Channel_Odd_On:
+                    adbms->command_parameters.parameter_joint.adcv.cont = 1;
+                    adbms->command_parameters.parameter_joint.adcv.ow = 2; //Enable Odd Channel OW
+                    break;
+            }
+        
+            ADBMS_Set_ADCV(adbms->command_parameters.parameter_joint.adcv, &adbms->command_bit.adcv);
+            ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
+            HAL_Delay(1);
             break;
-        case Channel_Odd_On:
-            adbms->command_parameters.parameter_joint.adcv.cont = 1;
-            adbms->command_parameters.parameter_joint.adcv.ow = 2; //Enable Odd Channel OW
+        
+            
+        case S_Channel:
+            switch(mode)
+            {
+                case Channel_Off:
+                adbms->command_parameters.parameter_joint.adsv.cont = 1;
+                adbms->command_parameters.parameter_joint.adsv.ow = 0; //Disable OW 
+                break;
+                case Channel_Even_On:
+                    adbms->command_parameters.parameter_joint.adsv.cont = 1;
+                    adbms->command_parameters.parameter_joint.adsv.ow = 1; // Enable OW on even-channel 
+                    break;
+                case Channel_Odd_On:
+                    adbms->command_parameters.parameter_joint.adsv.cont = 1;
+                    adbms->command_parameters.parameter_joint.adsv.ow = 2; // Enable OW on odd-channel 
+                    break;
+            
+            }
+            ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
+            ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
+            HAL_Delay(1);
             break;
     }
-    
-    ADBMS_Set_ADCV(adbms->command_parameters.parameter_joint.adcv, &adbms->command_bit.adcv);
-    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
-    HAL_Delay(1);
 }
 
-void Owc_S_Channel_Config(adbms_raw_* adbms, Owc_Channel_Mode_ mode)
-{
-    ADBMS_WakeUP_ICs();
 
-    switch(mode)
-    {
-        case Channel_Off:
-            adbms->command_parameters.parameter_joint.adsv.cont = 1;
-            adbms->command_parameters.parameter_joint.adsv.ow = 0; //Disable OW 
-            break;
-        case Channel_Even_On:
-            adbms->command_parameters.parameter_joint.adsv.cont = 1;
-            adbms->command_parameters.parameter_joint.adsv.ow = 1; // Enable OW on even-channel 
-            break;
-        case Channel_Odd_On:
-            adbms->command_parameters.parameter_joint.adsv.cont = 1;
-            adbms->command_parameters.parameter_joint.adsv.ow = 2; // Enable OW on odd-channel 
-            break;
-    }
 
-    ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
-    ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
-    HAL_Delay(1);
-}
+
+
+// void Owc_S_Channel_Config(adbms_raw_* adbms, Owc_Channel_Mode_ mode)
+// {
+//     ADBMS_WakeUP_ICs();
+
+//     switch(mode)
+//     {
+//         case Channel_Off:
+//             adbms->command_parameters.parameter_joint.adsv.cont = 1;
+//             adbms->command_parameters.parameter_joint.adsv.ow = 0; //Disable OW 
+//             break;
+//         case Channel_Even_On:
+//             adbms->command_parameters.parameter_joint.adsv.cont = 1;
+//             adbms->command_parameters.parameter_joint.adsv.ow = 1; // Enable OW on even-channel 
+//             break;
+//         case Channel_Odd_On:
+//             adbms->command_parameters.parameter_joint.adsv.cont = 1;
+//             adbms->command_parameters.parameter_joint.adsv.ow = 2; // Enable OW on odd-channel 
+//             break;
+//     }
+
+//     ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
+//     ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
+//     HAL_Delay(1);
+// }
 
 
 // void Owc_C_Channel_Off(adbms_raw_* adbms)

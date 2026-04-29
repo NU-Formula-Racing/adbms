@@ -18,7 +18,7 @@ typedef struct
     int16_t v7;
     int16_t v9;
 
-}raw_data_2950_;
+}adbms_2950_raw_data_;
 
 typedef struct
 {
@@ -27,7 +27,7 @@ typedef struct
     float pack_temperature_1;
     float pack_temperature_2;
 
-}data_2950_;
+}adbms_2950_data_parsed_;
 
 typedef struct
 {
@@ -37,9 +37,9 @@ typedef struct
 
 typedef struct
 {
-    raw_data_2950_  raw_data;
-    data_2950_      data;
-    adbms_2950_faults_   faults;
+    adbms_2950_raw_data_         raw_data;
+    adbms_2950_data_parsed_      data;
+    adbms_2950_faults_           faults;
 
 }adbms_2950_;
 
