@@ -41,7 +41,7 @@ void in_car(mainboard_ *mainboard)
         {
             float inverter_v = mainboard->Inverter_DC_Voltage;
             //new change to 6830
-            float total_pack_v = mainboard->adbms_6830.data.total_v;
+            float total_pack_v = mainboard->adbms_6830.voltage.total_v;
             float percent_precharged = inverter_v / total_pack_v;
             if(percent_precharged > INVERTER_VOLTAGE_THRESHOLD)
             {
@@ -117,7 +117,7 @@ void charger_control(mainboard_ *mainboard)
                     mainboard->charging_state = charger_precharge;
                     break;
                 case charger_precharge:
-                    float percent_precharged = mainboard->charger_voltage / mainboard->adbms_6830.data.total_v;
+                    float percent_precharged = mainboard->charger_voltage / mainboard->adbms_6830.voltage.total_v;
                     if (percent_precharged > CHARGER_VOLTAGE_THRESHOLD)
                     {
                         HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
