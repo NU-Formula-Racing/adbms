@@ -44,8 +44,10 @@ typedef struct
 //this struct stores all struct of all the bit values coming back from reads
 typedef struct
 {
-    uint8_t cell[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
-    uint8_t scell[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
+    //this is moved over to the new struct
+    //uint8_t cell[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
+    //uint8_t scell[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
+
     uint8_t aux[NUM_CHIPS * CELL_REG_GRP * DATA_LEN]; 
     uint8_t shunt_temp[NUM_CHIPS * DATA_LEN];
 

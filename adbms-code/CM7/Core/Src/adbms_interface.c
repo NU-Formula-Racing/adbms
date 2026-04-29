@@ -17,8 +17,20 @@ void ADBMS_Initialize(adbms_raw_* adbms_raw, SPI_HandleTypeDef *hspi)
 
     //write data and commands
 
-    //this is a change
-    ADBMS_Initialize_Write_Data_Command(adbms_raw);
+    //Write data and commands
+    ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGA, adbms_raw->command_bit.cfg_a, adbms_raw->SPI_data.spi_dataBuf);
+    ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGB, adbms_raw->command_bit.cfg_b, adbms_raw->SPI_data.spi_dataBuf);
+
+    // Turn on sensing
+
+    ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adcv);
+    HAL_Delay(1); // ADCs are updated at their conversion rate of 1ms
+    ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adax);
+    HAL_Delay(8); 
+    ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adsv);
+    HAL_Delay(8);
+    ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adv); //new 2950 command to start V1adc and V2adc
+    HAL_Delay(8);
 }
 
 void ADBMS_Read_Raw_Voltage(voltages_raw_* voltages_raw, voltage_read_type_ type, SPI_HandleTypeDef *hspi,uint8_t *spi_dataBuf)
@@ -158,28 +170,6 @@ void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bi
     parameters->adv.vch = 0; //vch = 0 (this is complicated, for reference check datasheet table 57/58)
 
     ADBMS_Set_ADV(parameters->adv, &command_bits->adv); //set adv
-}
-
-//
-//moved all previous write data and command in initialize over
-//
-void ADBMS_Initialize_Write_Data_Command(adbms_raw_* adbms){
-    
-    //Write data and commands
-
-    ADBMS_Write_Data(adbms->SPI_data.hspi, WRCFGA, adbms->command_bit.cfg_a, adbms->SPI_data.spi_dataBuf);
-    ADBMS_Write_Data(adbms->SPI_data.hspi, WRCFGB, adbms->command_bit.cfg_b, adbms->SPI_data.spi_dataBuf);
-
-    // Turn on sensing
-
-    ADBMS_Write_CMD(adbms->SPI_data.hspi, adbms->command_bit.adcv);
-    HAL_Delay(1); // ADCs are updated at their conversion rate of 1ms
-    ADBMS_Write_CMD(adbms->SPI_data.hspi, adbms->command_bit.adax);
-    HAL_Delay(8); 
-    ADBMS_Write_CMD(adbms->SPI_data.hspi, adbms->command_bit.adsv);
-    HAL_Delay(8);
-    ADBMS_Write_CMD(adbms->SPI_data.hspi, adbms->command_bit.adv); //new 2950 command to start V1adc and V2adc
-    HAL_Delay(8);
 }
 
 

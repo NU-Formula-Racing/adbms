@@ -59,9 +59,6 @@ void ADBMS_6830_Config(command_parameters_6830_* parameters,config_command_bits_
 void ADBMS_2950_Config(command_parameters_2950_* parameters, config_command_bits_* command_bits);
 void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bits_* command_bits);
 
-//Write Data Command
-void ADBMS_Initialize_Write_Data_Command(adbms_raw_* adbms);
-
 
 //OWC Config and Read C Channel
 void Owc_C_Channel_Off(adbms_raw_* adbms);
