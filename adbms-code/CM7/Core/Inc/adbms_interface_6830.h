@@ -62,7 +62,6 @@ typedef struct
 }adbms_6830_;
 
 
-void ADBMS_6830_Calculate_Values(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830);
 
 //Parsers Voltage/Temperature
 void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_parsed_* voltage_parsed);

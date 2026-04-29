@@ -1,11 +1,6 @@
 #include "adbms_interface_6830.h"
 #include <math.h>
 
-void ADBMS_6830_Calculate_Values(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830)
-{
-    ADBMS_6830_Calculate_Voltage(adbms_raw,adbms_6830);
-    ADBMS_6830_Calculate_Temperature(adbms_raw,adbms_6830);
-}
 
 void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_parsed_* voltage_parsed)
 {
@@ -245,34 +240,34 @@ void cell_Balance_Off(adbms_raw_* adbms)
 void Owc_c_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
 {
     //Turn on Even, Read, Update
-    Owc_C_Channel_Config(adbms_raw,Channel_Even_On);
-    ADBMS_Read_Voltages(&adbms_raw->read_raw,C_Channel_Read,&adbms_raw->SPI_data.hspi,adbms_raw->SPI_data.spi_dataBuf);
+    ADBMS_Owc_Config(adbms_raw,C_Channel,Channel_Even_On);
+    ADBMS_Read_Voltages(&adbms_raw->read_raw,C_Channel_Read,adbms_raw->SPI_data.hspi,adbms_raw->SPI_data.spi_dataBuf);
     ADBMS_6830_Parse_Voltage(&adbms_raw->read_raw,&adbms_6830->voltage);
 
     //Turn on Odd, Read, Update
-    Owc_C_Channel_Config(adbms_raw,Channel_Odd_On);
-    ADBMS_Read_Voltages(&adbms_raw->read_raw,C_Channel_Read,&adbms_raw->SPI_data.hspi,adbms_raw->SPI_data.spi_dataBuf);
+    ADBMS_Owc_Config(adbms_raw,C_Channel,Channel_Odd_On);
+    ADBMS_Read_Voltages(&adbms_raw->read_raw,C_Channel_Read,adbms_raw->SPI_data.hspi,adbms_raw->SPI_data.spi_dataBuf);
     ADBMS_6830_Parse_Voltage(&adbms_raw->read_raw,&adbms_6830->voltage);
 
     //Turn Off
-    Owc_C_Channel_Config(adbms_raw,Channel_Off);
+    ADBMS_Owc_Config(adbms_raw,C_Channel,Channel_Off);
 }
 
 void Owc_s_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
 {
 
     //Turn on Even, Read, Update
-    Owc_S_Channel_Config(adbms_raw,Channel_Even_On);
-    ADBMS_Read_Voltages(&adbms_raw->read_raw,S_Channel_Read,&adbms_raw->SPI_data.hspi,adbms_raw->SPI_data.spi_dataBuf);
+    ADBMS_Owc_Config(adbms_raw,S_Channel,Channel_Even_On);
+    ADBMS_Read_Voltages(&adbms_raw->read_raw,S_Channel_Read,adbms_raw->SPI_data.hspi,adbms_raw->SPI_data.spi_dataBuf);
     ADBMS_6830_Parse_Voltage(&adbms_raw->read_raw,&adbms_6830->voltage);
 
     //Turn on Odd, Read, Update
-    Owc_S_Channel_Config(adbms_raw,Channel_Odd_On);
-    ADBMS_Read_Voltages(&adbms_raw->read_raw,S_Channel_Read,&adbms_raw->SPI_data.hspi,adbms_raw->SPI_data.spi_dataBuf);
+    ADBMS_Owc_Config(adbms_raw,S_Channel,Channel_Odd_On);
+    ADBMS_Read_Voltages(&adbms_raw->read_raw,S_Channel_Read,adbms_raw->SPI_data.hspi,adbms_raw->SPI_data.spi_dataBuf);
     ADBMS_6830_Parse_Voltage(&adbms_raw->read_raw,&adbms_6830->voltage);
 
     //Turn off
-    Owc_S_Channel_Off(adbms_raw);
+    ADBMS_Owc_Config(adbms_raw,S_Channel,Channel_Off);
 }
 
 

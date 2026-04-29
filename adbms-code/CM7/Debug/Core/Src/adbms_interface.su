@@ -1,8 +1,6 @@
 ../Core/Src/adbms_interface.c:4:6:ADBMS_Initialize	16	static
-../Core/Src/adbms_interface.c:32:6:ADBMS_Read_Raw_Voltage	32	static
-../Core/Src/adbms_interface.c:61:6:ADBMS_Read_Temps	24	static
-../Core/Src/adbms_interface.c:82:6:ADBMS_6830_Config	24	static
-../Core/Src/adbms_interface.c:102:6:ADBMS_2950_Config	16	static
-../Core/Src/adbms_interface.c:121:6:ADBMS_joint_Config	16	static
-../Core/Src/adbms_interface.c:159:6:Owc_C_Channel_Config	16	static
-../Core/Src/adbms_interface.c:185:6:Owc_S_Channel_Config	16	static
+../Core/Src/adbms_interface.c:32:6:ADBMS_Read_Voltages	32	static
+../Core/Src/adbms_interface.c:70:6:ADBMS_6830_Config	24	static
+../Core/Src/adbms_interface.c:90:6:ADBMS_2950_Config	16	static
+../Core/Src/adbms_interface.c:109:6:ADBMS_joint_Config	16	static
+../Core/Src/adbms_interface.c:147:6:ADBMS_Owc_Config	16	static
