@@ -31,7 +31,7 @@ typedef struct
     // 2950 specific command
     uint16_t adv;
 
-} config_command_bits_;
+}config_command_bits_;
 
 //this struct stores all spi related stuff
 typedef struct
@@ -39,7 +39,7 @@ typedef struct
     SPI_HandleTypeDef *hspi;
     uint8_t spi_dataBuf[DATABUF_LEN];
 
-} SPI_data_;
+}SPI_data_;
 
 //this struct stores all struct of all the bit values coming back from reads
 typedef struct 
@@ -48,7 +48,7 @@ typedef struct
     uint8_t read_return[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
     bool read_pec_failure;
 
-}ADBMS_read_raw_;
+}adbms_read_raw_;
 
 
 typedef enum
@@ -65,7 +65,7 @@ typedef struct
     //i'm not sure if i still need this, assess later
     bool read_open_wire_pec_failure;
 
-} read_failures_;
+}read_failures_;
 
 
 //

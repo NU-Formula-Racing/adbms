@@ -10,6 +10,7 @@
 #define T25                 298.15     
 
 
+
 typedef struct 
 {
     float voltages[NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2)];
@@ -55,7 +56,7 @@ typedef struct
 {
     adbms_6830_voltage_parsed_         voltage;
     adbms_6830_temperature_parsed_     temperature;
-    adbms_6830_faults_                  faults;
+    adbms_6830_faults_                 faults;
 
 }adbms_6830_;
 

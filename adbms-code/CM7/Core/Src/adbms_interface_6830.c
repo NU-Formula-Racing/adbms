@@ -7,6 +7,16 @@ void ADBMS_6830_Calculate_Values(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830)
     ADBMS_6830_Calculate_Temperature(adbms_raw,adbms_6830);
 }
 
+void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_parsed_* voltage_parsed)
+{
+    
+}
+
+void ADBMS_6830_Parse_Temperatrue(adbms_read_raw_* raw_return, adbms_6830_temperature_parsed_* temp_parsed)
+{
+
+}
+
 void ADBMS_6830_Calculate_Voltage(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830)
 {
     // reset current pec failures if there is no current failure
@@ -162,6 +172,8 @@ void ADBMS_6830_Calculate_Temperature(adbms_raw_* adbms_raw,adbms_6830_* adbms_6
 
 }
 
+
+void ADBMS_6830_Calculate_Voltage(voltages_raw_* raw_voltages, voltages_ voltages, )
 
 
 void Update_6830_Owc_Fault(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)

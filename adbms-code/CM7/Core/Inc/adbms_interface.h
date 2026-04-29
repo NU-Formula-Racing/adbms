@@ -15,7 +15,7 @@ typedef struct
     SPI_data_                           SPI_data;
 
     //read returns
-    ADBMS_read_raw_                     read_raw;
+    adbms_read_raw_                     read_raw;
 
     //read failures
     read_failures_                      read_failure;
@@ -47,7 +47,7 @@ void ADBMS_Initialize(adbms_raw_ *adbms, SPI_HandleTypeDef *hspi);
 
 
 //read function
-void ADBMS_Read_Voltages(ADBMS_read_raw_* read_raw, voltage_read_type_ type, SPI_HandleTypeDef *hspi,uint8_t *spi_dataBuf);
+void ADBMS_Read_Voltages(adbms_read_raw_* read_raw, voltage_read_type_ type, SPI_HandleTypeDef *hspi,uint8_t *spi_dataBuf);
 
 
 //chip configurations
