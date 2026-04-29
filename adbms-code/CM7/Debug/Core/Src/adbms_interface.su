@@ -4,9 +4,5 @@
 ../Core/Src/adbms_interface.c:82:6:ADBMS_6830_Config	24	static
 ../Core/Src/adbms_interface.c:102:6:ADBMS_2950_Config	16	static
 ../Core/Src/adbms_interface.c:121:6:ADBMS_joint_Config	16	static
-../Core/Src/adbms_interface.c:159:6:Owc_C_Channel_Off	16	static
-../Core/Src/adbms_interface.c:173:6:Owc_C_Channel_Even_On	16	static
-../Core/Src/adbms_interface.c:186:6:Owc_C_Channel_Odd_On	16	static
-../Core/Src/adbms_interface.c:200:6:Owc_S_Channel_Off	16	static
-../Core/Src/adbms_interface.c:214:6:Owc_S_Channel_Even_On	16	static
-../Core/Src/adbms_interface.c:228:6:Owc_S_Channel_Odd_On	16	static
+../Core/Src/adbms_interface.c:159:6:Owc_C_Channel_Config	16	static
+../Core/Src/adbms_interface.c:185:6:Owc_S_Channel_Config	16	static

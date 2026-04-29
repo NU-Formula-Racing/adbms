@@ -14,10 +14,6 @@ typedef struct
     int32_t i1_raw;
     int32_t i2_raw;
 
-    //post contactor voltages
-    int16_t v1_raw;
-    int16_t v2_raw;
-
     //Shunt Thermistor Voltages
     int16_t v7;
     int16_t v9;
@@ -27,9 +23,7 @@ typedef struct
 typedef struct
 {
     float precontactor_voltage;
-    float current_1;
-    float current_2;
-    float postcontactor_voltage;
+    float current;
     float pack_temperature_1;
     float pack_temperature_2;
 
