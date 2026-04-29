@@ -29,7 +29,7 @@ void ADBMS_Initialize(adbms_raw_* adbms_raw, SPI_HandleTypeDef *hspi)
     HAL_Delay(8);
 }
 
-void ADBMS_Read_Raw_Voltage(voltages_raw_* voltages_raw, voltage_read_type_ type, SPI_HandleTypeDef *hspi,uint8_t *spi_dataBuf)
+void ADBMS_Read_Voltages(voltages_raw_* voltages_raw, voltage_read_type_ type, SPI_HandleTypeDef *hspi,uint8_t *spi_dataBuf)
 {
 
     bool pec = 0;

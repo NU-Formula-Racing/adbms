@@ -99,12 +99,6 @@ void ADBMS_6830_Calculate_Voltage(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830)
 
 }
 
-float ADBMS_6830_Transfer_Voltage(int data)
-{
-    // voltage in Volts
-    float voltage_float = ((data + 10000) * 0.000150);
-    return voltage_float;
-}
 
 void ADBMS_6830_Calculate_Temperature(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830)
 {
@@ -168,32 +162,6 @@ void ADBMS_6830_Calculate_Temperature(adbms_raw_* adbms_raw,adbms_6830_* adbms_6
 
 }
 
-float ADBMS_6830_Transfer_Temp(float raw_temp_voltage, float Vref)
-{
-	// calc thermistor resistance
-	float therm_resistance = (raw_temp_voltage * SeriesResistance) / (Vref - raw_temp_voltage);
-
-	// calc temp from resistance
-	float temp_kelvin = B / log(therm_resistance / (R25 * exp(-B / T25)));
-	return temp_kelvin - 273.15; // Kelvin to Celsius
-}
-
-void Update_6830_InternalFault(adbms_6830_* adbms_6830)
-{
-    // check overvoltage fault
-    adbms_6830->faults.overvoltage_fault = adbms_6830->faults.overvoltage_fault || (adbms_6830->data.max_v > OVERVOLTAGE);
-
-    // check undervoltage fault
-    adbms_6830->faults.undervoltage_fault = adbms_6830->faults.undervoltage_fault || (adbms_6830->data.min_v < UNDERVOLTAGE);
-
-    // check overtemperature fault
-    adbms_6830->faults.overtemperature_fault = adbms_6830->faults.overtemperature_fault || (adbms_6830->data.max_temp > OVERTEMP);
-
-    // check undertemperature fault
-    adbms_6830->faults.undertemperature_fault = adbms_6830->faults.undertemperature_fault || (adbms_6830->data.min_temp < UNDERTEMP);
-
-    // TODO: check status regs for faults - need calcuate status reg values fn that handles status reg pec fualts
-}
 
 
 void Update_6830_Owc_Fault(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
@@ -219,7 +187,7 @@ void Update_6830_Owc_Fault(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
                 {
                     if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_EVEN_CHIP) break;
                     int16_t raw_val = (((uint16_t)adbms_raw->raw_value.scell[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms_raw->raw_value.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
-                    if (ADBMS_getVoltage(raw_val) < 0.5)
+                    if (ADBMS_6830_Transfer_Voltage(raw_val) < 0.5)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
                         adbms_6830->faults.openwire_voltage_fault = 1;
@@ -237,7 +205,7 @@ void Update_6830_Owc_Fault(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
                 {
                     if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_ODD_CHIP) break;
                     int16_t raw_val = (((uint16_t)adbms_raw->raw_value.scell[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | adbms_raw->raw_value.scell[creg_grp * NUM_CHIPS * DATA_LEN + cic * DATA_LEN + cbyte];
-                    if (ADBMS_getVoltage(raw_val) < 0.5)
+                    if (ADBMS_6830_Transfer_Voltage(raw_val) < 0.5)
                     {
                         int c_cell = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
                         adbms_6830->faults.openwire_voltage_fault = 1;
@@ -249,13 +217,32 @@ void Update_6830_Owc_Fault(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
     }
 }
 
-//added because forgot to include since last version
-float ADBMS_getVoltage(int data)
+
+
+void Update_6830_InternalFault(adbms_6830_* adbms_6830)
 {
-    // voltage in Volts
-    float voltage_float = ((data + 10000) * 0.000150);
-    return voltage_float;
+    //all faults are latching
+
+    // check overvoltage fault
+    adbms_6830->faults.overvoltage_fault = adbms_6830->faults.overvoltage_fault || (adbms_6830->data.max_v > OVERVOLTAGE);
+    //adbms_6830->faults.overvoltage_fault = (adbms_6830->data.max_v > OVERVOLTAGE); // non-latching faults
+
+
+    // check undervoltage fault
+    adbms_6830->faults.undervoltage_fault = adbms_6830->faults.undervoltage_fault || (adbms_6830->data.min_v < UNDERVOLTAGE);
+    //adbms_6830->faults.undervoltage_fault = (adbms_6830->data.min_v < UNDERVOLTAGE); // non-latching faults
+
+    // check overtemperature fault
+    adbms_6830->faults.overtemperature_fault = adbms_6830->faults.overtemperature_fault || (adbms_6830->data.max_temp > OVERTEMP);
+    //adbms_6830->faults.overtemperature_fault = (adbms_6830->data.max_temp > OVERTEMP); // non-latching faults
+
+    // check undertemperature fault
+    adbms_6830->faults.undertemperature_fault = adbms_6830->faults.undertemperature_fault || (adbms_6830->data.min_temp < UNDERTEMP);
+    //adbms_6830->faults.undertemperature_fault = (adbms_6830->data.min_temp < UNDERTEMP); // non-latching faults
+
 }
+
+
 
 void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
 {
@@ -323,26 +310,63 @@ void cell_Balance_Off(adbms_raw_* adbms)
 
 void Owc_c_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
 {
-    Owc_C_Channel_Even_On(adbms_raw);
-    Owc_C_Channel_Read(adbms_raw);
+    //Turn on Even, Read, Update
+    Owc_C_Channel_Config(adbms_raw,Channel_Even_On);
+    ADBMS_Read_Voltages();
     Update_6830_Owc_Fault(adbms_raw, adbms_6830);
-    Owc_C_Channel_Odd_On(adbms_raw);
-    Owc_C_Channel_Read(adbms_raw);
+
+    //Turn on Odd, Read, Update
+    Owc_C_Channel_Config(adbms_raw,Channel_Odd_On);
+    ADBMS_Read_Voltages();
     Update_6830_Owc_Fault(adbms_raw, adbms_6830);
-    Owc_C_Channel_Off(adbms_raw);
+
+    //Turn Off
+    Owc_C_Channel_Config(adbms_raw,Channel_Off);
 }
 
 void Owc_s_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
 {
-    Owc_S_Channel_Even_On(adbms_raw);
-    Owc_S_Channel_Read(adbms_raw);
+
+    //Turn on Even, Read, Update
+    Owc_S_Channel_Config(adbms_raw,Channel_Even_On);
+    ADBMS_Read_Voltages();
     Update_6830_Owc_Fault(adbms_raw, adbms_6830);
-    Owc_S_Channel_Odd_On(adbms_raw);
-    Owc_S_Channel_Read(adbms_raw);
+
+    //Turn on Odd, Read, Update
+    Owc_S_Channel_Config(adbms_raw,Channel_Odd_On);
+    ADBMS_Read_Voltages();
     Update_6830_Owc_Fault(adbms_raw, adbms_6830);
+
+    //Turn off
     Owc_S_Channel_Off(adbms_raw);
 }
 
+
+//
+// Transfer Functions
+//
+float ADBMS_6830_Transfer_Voltage(int data)
+{
+    // voltage in Volts
+    float voltage_float = ((data + 10000) * 0.000150);
+    return voltage_float;
+}
+
+float ADBMS_6830_Transfer_Temp(float raw_temp_voltage, float Vref)
+{
+	// calc thermistor resistance
+	float therm_resistance = (raw_temp_voltage * SeriesResistance) / (Vref - raw_temp_voltage);
+
+	// calc temp from resistance
+	float temp_kelvin = B / log(therm_resistance / (R25 * exp(-B / T25)));
+	return temp_kelvin - 273.15; // Kelvin to Celsius
+}
+
+
+
+//
+// Print Vals
+//
 void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
 {
     printf("\nADBMS 6830 Data");

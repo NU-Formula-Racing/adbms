@@ -56,21 +56,27 @@ typedef struct
 
 }adbms_6830_;
 
+
+//Calculate Values
 void ADBMS_6830_Calculate_Values(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830);
 void ADBMS_6830_Calculate_Voltage(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830);
-float ADBMS_6830_Transfer_Voltage(int data);
 void ADBMS_6830_Calculate_Temperature(adbms_raw_* adbms_raw,adbms_6830_* adbms_6830);
-float ADBMS_6830_Transfer_Temp(float raw_temp_voltage, float Vref);
 
-void Update_6830_InternalFault(adbms_6830_* adbms_6830);
+//Upate Faults
 void Update_6830_Owc_Fault(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830);
+void Update_6830_InternalFault(adbms_6830_* adbms_6830);
 
-float ADBMS_getVoltage(int data);
-
+//Cell Balancing On Off
 void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830);
 void cell_Balance_Off(adbms_raw_* adbms);
 
+//Update OWC Loops C/S Channel
 void Owc_c_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830);
 void Owc_s_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830);
 
+//Transfer Functions
+float ADBMS_6830_Transfer_Voltage(int data);
+float ADBMS_6830_Transfer_Temp(float raw_temp_voltage, float Vref);
+
+//Prints
 void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830);

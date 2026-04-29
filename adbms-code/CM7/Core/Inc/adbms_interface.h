@@ -41,7 +41,7 @@ void ADBMS_Initialize(adbms_raw_ *adbms, SPI_HandleTypeDef *hspi);
 
 
 //read functions
-void ADBMS_Read_Raw_Voltage(voltages_raw_* voltages_raw, voltage_read_type_ type, SPI_HandleTypeDef *hspi,uint8_t *spi_dataBuf);;
+void ADBMS_Read_Voltages(voltages_raw_* voltages_raw, voltage_read_type_ type, SPI_HandleTypeDef *hspi,uint8_t *spi_dataBuf);;
 void ADBMS_Read_Temps(adbms_raw_* adbms);
 
 
