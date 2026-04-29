@@ -4,6 +4,25 @@
 #include "bms_system_prams.h"
 #include <float.h>
 
+
+typedef enum
+{
+    C_Channel_Read = 0,
+    S_Channel_Read
+
+}voltage_read_type_;
+
+typedef struct 
+{
+
+    //each is its own raw channel read + own pec failure
+    uint8_t c_channel_raw[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
+    uint8_t s_channel_raw[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
+    
+    bool voltage_read_pec;
+
+}voltages_raw_;
+
 typedef struct 
 {
     //configs
@@ -22,11 +41,16 @@ typedef struct
 }adbms_raw_;
 
 
+
 //interface functions
 void ADBMS_Initialize(adbms_raw_ *adbms, SPI_HandleTypeDef *hspi);
 
-//read raw values
-void ADBMS_Read_Voltage(adbms_raw_ *adbms);
+//new read raw values
+//repleaces all read_voltages and 
+void ADBMS_Read_Raw_Voltage(voltages_raw_* voltages_raw, voltage_read_type_ type, SPI_HandleTypeDef *hspi,uint8_t *spi_dataBuf);;
+
+//replaces by new read raw values function
+//void ADBMS_Read_Voltage(adbms_raw_ *adbms);
 void ADBMS_Read_Temps(adbms_raw_* adbms);
 
 
@@ -43,10 +67,14 @@ void ADBMS_Initialize_Write_Data_Command(adbms_raw_* adbms);
 void Owc_C_Channel_Off(adbms_raw_* adbms);
 void Owc_C_Channel_Even_On(adbms_raw_* adbms);
 void Owc_C_Channel_Odd_On(adbms_raw_* adbms);
-void Owc_C_Channel_Read(adbms_raw_* adbms);
+
+//replaced by new read function
+//void Owc_C_Channel_Read(adbms_raw_* adbms);
 
 //OWC Config and Read S Channel
 void Owc_S_Channel_Off(adbms_raw_* adbms);
 void Owc_S_Channel_Even_On(adbms_raw_* adbms);
 void Owc_S_Channel_Odd_On(adbms_raw_* adbms);
-void Owc_S_Channel_Read(adbms_raw_* adbms);
+
+//replaced by new read function
+//void Owc_S_Channel_Read(adbms_raw_* adbms);
