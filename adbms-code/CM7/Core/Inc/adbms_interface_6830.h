@@ -33,6 +33,7 @@ typedef struct
     float avg_temp;
 
     int pec_counts;
+    bool openwire_temp_fault;
 
 }adbms_6830_temperature_parsed_;
 
