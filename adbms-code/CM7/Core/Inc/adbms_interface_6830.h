@@ -10,7 +10,6 @@
 #define T25                 298.15     
 
 
-
 typedef struct
 {
     float voltages[NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2)]; //0 indexed, even chips (including 0) have 12 voltages, odds have 11
