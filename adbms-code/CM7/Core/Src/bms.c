@@ -50,12 +50,12 @@ void bms_mainboard_loop()
 // Seprate loop that gets ticked to run OWC
 void adbms_owc_loop()
 { 
+	ADBMS_WakeUP_ICs();
+
 	cell_Balance_Off(&mainboard.adbms_raw);
 
 	Owc_c_channel_update(&mainboard.adbms_raw, &mainboard.adbms_6830);
 	Owc_s_channel_update(&mainboard.adbms_raw, &mainboard.adbms_6830);
-    
-	cell_Balance_On(&mainboard.adbms_raw, &mainboard.adbms_6830);
 }
 
 void update_values()

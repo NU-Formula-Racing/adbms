@@ -214,8 +214,7 @@ void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
                     dcc |= 1 << cvoltage;
                 }
             }
-            // adbms->cfb[cic].dcc = dcc;
-            adbms_raw->command_parameters.parameter_6830.cfb6830[cic].dcc = 1 << 0;
+            adbms_raw->command_parameters.parameter_6830.cfb6830[cic].dcc = dcc;
         }
         else //odd chip, 11 voltages
         {
@@ -228,36 +227,27 @@ void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
                     dcc |= 1 << cvoltage;
                 }
             }
-            // adbms->cfb[cic].dcc = dcc;
-            adbms_raw->command_parameters.parameter_6830.cfb6830[cic].dcc = 1 << 1;
+            adbms_raw->command_parameters.parameter_6830.cfb6830[cic].dcc = dcc;
         }
     }
 
-    //i should probably clean this up later
-    command_parameters_6830_ parameters = adbms_raw->command_parameters.parameter_6830;
-    config_command_bits_ command_bits = adbms_raw->command_bit;
-
-    ADBMS_Set_Config_B_6830(parameters.cfb6830,command_bits.cfg_b, NUM_6830, POSITION_6830);
+    ADBMS_Set_Config_B_6830(adbms_raw->command_parameters.parameter_6830.cfb6830, adbms_raw->command_bit.cfg_b, NUM_6830, POSITION_6830);
     ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGB, adbms_raw->command_bit.cfg_b, adbms_raw->SPI_data.spi_dataBuf);
     
 }
 
-void cell_Balance_Off(adbms_raw_* adbms)
+void cell_Balance_Off(adbms_raw_* adbms_raw)
 {
-
-    command_parameters_6830_ parameters = adbms->command_parameters.parameter_6830;
-    config_command_bits_ command_bits = adbms->command_bit;
-
     // Turn off CB indication LED
     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_11, GPIO_PIN_RESET);
 
     for (int cic = 0; cic < (NUM_6830); cic++)
     {
-        parameters.cfb6830[cic].dcc = 0;
+        adbms_raw->command_parameters.parameter_6830.cfb6830[cic].dcc = 0;
     }
 
-    ADBMS_Set_Config_B_6830(parameters.cfb6830,command_bits.cfg_b, NUM_6830, POSITION_6830);
-    ADBMS_Write_Data(adbms->SPI_data.hspi, WRCFGB, adbms->command_bit.cfg_b, adbms->SPI_data.spi_dataBuf);
+    ADBMS_Set_Config_B_6830(adbms_raw->command_parameters.parameter_6830.cfb6830, adbms_raw->command_bit.cfg_b, NUM_6830, POSITION_6830);
+    ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGB, adbms_raw->command_bit.cfg_b, adbms_raw->SPI_data.spi_dataBuf);
 }
 
 void Owc_c_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)

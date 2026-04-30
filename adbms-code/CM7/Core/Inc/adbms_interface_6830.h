@@ -76,7 +76,7 @@ void Update_6830_Owc_Faults(adbms_6830_voltage_parsed_* voltage_owc, adbms_6830_
 
 //Cell Balancing On Off
 void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830);
-void cell_Balance_Off(adbms_raw_* adbms);
+void cell_Balance_Off(adbms_raw_* adbms_raw);
 
 //Update OWC Loops C/S Channel
 void Owc_c_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830);
