@@ -15,7 +15,11 @@ typedef struct
     SPI_data_                           SPI_data;
 
     //read returns
-    adbms_read_raw_                     read_raw;
+    adbms_read_raw_                     read_raw_c;
+    adbms_read_raw_                     read_raw_s;
+    adbms_read_raw_                     read_raw_aux;
+    adbms_read_raw_                     read_raw_c_owc;
+    adbms_read_raw_                     read_raw_s_owc;
 
     //read failures
     read_failures_                      read_failure;

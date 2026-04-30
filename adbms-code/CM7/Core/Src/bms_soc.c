@@ -3,10 +3,10 @@
 void Soc_Initialize(mainboard_ *mainboard)
 {
     //this is a change, this only reads the voltage
-    ADBMS_Read_Voltages(&mainboard->adbms_raw.read_raw, C_Channel_Read, mainboard->adbms_raw.SPI_data.hspi, mainboard->adbms_raw.SPI_data.spi_dataBuf);
+    ADBMS_Read_Voltages(&mainboard->adbms_raw.read_raw_c, C_Channel_Read, mainboard->adbms_raw.SPI_data.hspi, mainboard->adbms_raw.SPI_data.spi_dataBuf);
 
     //now we also need to parse the raw data and put it into the structs
-    ADBMS_6830_Parse_Voltage(&mainboard->adbms_raw.read_raw,&mainboard->adbms_6830.voltage);
+    ADBMS_6830_Parse_Voltage(&mainboard->adbms_raw.read_raw_c, &mainboard->adbms_6830.voltage);
 
     float avg_v = mainboard->adbms_6830.voltage.avg_v;
     int vidx1 = fmax(0, ((int)floor((avg_v - 2.5) * 1000.0 / 4.0)));
