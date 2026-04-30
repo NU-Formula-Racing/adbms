@@ -12,7 +12,7 @@
 #define NUM_CHIPS (NUM_6830+NUM_2950)	/* Number of ICs 					*/
 #define NUM_VOLTAGES_EVEN_CHIP 12		/* Nmber of Cells in even number ICs starting at 0 ending at 8*/
 #define NUM_VOLTAGES_ODD_CHIP  11  	   	/* Nmber of Cells in odd number ICs starting at 1 ending at 9*/
-//#define NUM_VOLTAGES  //add later
+#define NUM_VOLTAGES (NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2))
 #define NUM_TEMPS_CHIP 10				/* Number of Temps to read per IC 	*/
 
 #define OVERVOLTAGE 4.2					/* Overvoltage Threshold 	*/
@@ -22,7 +22,7 @@
 #define OVERCURRENT 135					/* Over Current Threshold 	*/
 
 #define PEC_FAILURE_THRESHOLD 10		/* Number of consecutive PEC failures that can happen before a pec fault occurs*/
-
+#define OWC_VOLTAGE_THRESHOLD 0.5
 #define CB_THRESHOLD 0.01				/* Threshold Away From Lowest Cell to Start Cell Balancing when CB is enabled */
 #define CB_MIN_V_THRESHOLD 3			/* Cells under this threshold will not be balanced even when CB is enabled */
 
@@ -30,8 +30,6 @@
 #define ENABLE_USB_COMMS 1				/* Flag to enable USB comms */
 #define ENABLE_SD_LOGGING_BIN 0			/* Flag to enable logging to SD Card as binary files */
 #define ENABLE_SD_LOGGING_CSV 0			/* Flag to enable logging to SD Card as CSV files (ASCII)*/
-
-#define NUM_CURRENT_OFFSET_CYCLES 10	/* Numbeer of Cycles to get ADC Offset */
 
 #define NUM_DATA_CAN_VOLTAGES_PER_MSG 7 // will break if this is changed. Based on how data can and DBC are set up
 #define NUM_DATA_CAN_VOLTAGE_MSGS (NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2)) / NUM_DATA_CAN_VOLTAGES_PER_MSG
@@ -54,7 +52,6 @@
 #define DATABUF_LEN (CMD_LEN + PEC_LEN) + (DATA_LEN + PEC_LEN)*NUM_CHIPS  /* CMD Msg + PEC and (DATA + PEC) per IC */
 
 #define NUM_TIMERS 2    // will break if this is changed. This will be replaced by RTOS
-#define NUM_CURRENT_OFFSET_CYCLES 10
 
 #define INVERTER_VOLTAGE_THRESHOLD 0.9 
 #define CHARGER_VOLTAGE_THRESHOLD 0.75 

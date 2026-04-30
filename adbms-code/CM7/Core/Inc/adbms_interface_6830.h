@@ -13,7 +13,7 @@
 
 typedef struct 
 {
-    float voltages[NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2)];
+    float voltages[NUM_VOLTAGES];
 
     float total_v;
     float max_v;
@@ -41,6 +41,8 @@ typedef struct
 typedef struct
 {
     bool pec_fault;
+    uint16_t total_pec_failures;
+
     bool openwire_temp_fault;
     bool openwire_voltage_fault;
 
@@ -56,6 +58,7 @@ typedef struct
 typedef struct
 {
     adbms_6830_voltage_parsed_         voltage;
+    adbms_6830_voltage_parsed_         voltage_owc;
     adbms_6830_temperature_parsed_     temperature;
     adbms_6830_faults_                 faults;
 
@@ -69,6 +72,7 @@ void ADBMS_6830_Parse_Temperature(adbms_read_raw_* raw_return, adbms_6830_temper
 
 //Upate Faults
 void Update_6830_InternalFault(adbms_6830_* adbms_6830);
+void Update_6830_Owc_Faults(adbms_6830_voltage_parsed_* voltage_owc, adbms_6830_faults_* faults);
 
 //Cell Balancing On Off
 void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830);
