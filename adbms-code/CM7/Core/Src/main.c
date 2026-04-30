@@ -41,6 +41,10 @@ int _write(int le, char *ptr, int len)
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
+typedef StaticQueue_t osStaticMessageQDef_t;
+typedef StaticTimer_t osStaticTimerDef_t;
+typedef StaticSemaphore_t osStaticMutexDef_t;
+typedef StaticEventGroup_t osStaticEventGroupDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -75,36 +79,96 @@ SD_HandleTypeDef hsd1;
 
 SPI_HandleTypeDef hspi1;
 
-TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim4;
 
 /* Definitions for Faults_Controls */
 osThreadId_t Faults_ControlsHandle;
 const osThreadAttr_t Faults_Controls_attributes = {
   .name = "Faults_Controls",
-  .stack_size = 1024  * 4,
+  .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for AD_Coms */
 osThreadId_t AD_ComsHandle;
 const osThreadAttr_t AD_Coms_attributes = {
   .name = "AD_Coms",
-  .stack_size = 1024  * 4,
+  .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for CAN_Task */
 osThreadId_t CAN_TaskHandle;
 const osThreadAttr_t CAN_Task_attributes = {
   .name = "CAN_Task",
-  .stack_size = 1024  * 4,
+  .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for OWC_Task */
 osThreadId_t OWC_TaskHandle;
 const osThreadAttr_t OWC_Task_attributes = {
   .name = "OWC_Task",
-  .stack_size = 1024  * 4,
+  .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for myQueue01 */
+osMessageQueueId_t myQueue01Handle;
+uint8_t myQueue01Buffer[ 16 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t myQueue01ControlBlock;
+const osMessageQueueAttr_t myQueue01_attributes = {
+  .name = "myQueue01",
+  .cb_mem = &myQueue01ControlBlock,
+  .cb_size = sizeof(myQueue01ControlBlock),
+  .mq_mem = &myQueue01Buffer,
+  .mq_size = sizeof(myQueue01Buffer)
+};
+/* Definitions for myQueue02 */
+osMessageQueueId_t myQueue02Handle;
+const osMessageQueueAttr_t myQueue02_attributes = {
+  .name = "myQueue02"
+};
+/* Definitions for myTimer01 */
+osTimerId_t myTimer01Handle;
+osStaticTimerDef_t myTimer01ControlBlock;
+const osTimerAttr_t myTimer01_attributes = {
+  .name = "myTimer01",
+  .cb_mem = &myTimer01ControlBlock,
+  .cb_size = sizeof(myTimer01ControlBlock),
+};
+/* Definitions for myMutex01 */
+osMutexId_t myMutex01Handle;
+osStaticMutexDef_t myMutex01ControlBlock;
+const osMutexAttr_t myMutex01_attributes = {
+  .name = "myMutex01",
+  .cb_mem = &myMutex01ControlBlock,
+  .cb_size = sizeof(myMutex01ControlBlock),
+};
+/* Definitions for myRecursiveMutex01 */
+osMutexId_t myRecursiveMutex01Handle;
+const osMutexAttr_t myRecursiveMutex01_attributes = {
+  .name = "myRecursiveMutex01",
+  .attr_bits = osMutexRecursive,
+};
+/* Definitions for myBinarySem01 */
+osSemaphoreId_t myBinarySem01Handle;
+const osSemaphoreAttr_t myBinarySem01_attributes = {
+  .name = "myBinarySem01"
+};
+/* Definitions for myCountingSem01 */
+osSemaphoreId_t myCountingSem01Handle;
+const osSemaphoreAttr_t myCountingSem01_attributes = {
+  .name = "myCountingSem01"
+};
+/* Definitions for myEvent01 */
+osEventFlagsId_t myEvent01Handle;
+const osEventFlagsAttr_t myEvent01_attributes = {
+  .name = "myEvent01"
+};
+/* Definitions for myEvent02 */
+osEventFlagsId_t myEvent02Handle;
+osStaticEventGroupDef_t myEvent02ControlBlock;
+const osEventFlagsAttr_t myEvent02_attributes = {
+  .name = "myEvent02",
+  .cb_mem = &myEvent02ControlBlock,
+  .cb_size = sizeof(myEvent02ControlBlock),
 };
 /* USER CODE BEGIN PV */
 
@@ -118,12 +182,12 @@ static void MX_GPIO_Init(void);
 static void MX_SDMMC1_SD_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_FDCAN1_Init(void);
-static void MX_TIM2_Init(void);
 static void MX_TIM4_Init(void);
 void StartFaultsControls(void *argument);
 void StartAD_Coms(void *argument);
 void StartCAN_Task(void *argument);
 void StartOWC_Task(void *argument);
+void Callback01(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -208,7 +272,6 @@ Error_Handler();
   MX_SPI1_Init();
   MX_FDCAN1_Init();
   MX_FATFS_Init();
-  MX_TIM2_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   Bms_Mainbaord_Setup(&hspi1, &hfdcan1);
@@ -218,18 +281,43 @@ Error_Handler();
 
   /* Init scheduler */
   osKernelInitialize();
+  /* Create the mutex(es) */
+  /* creation of myMutex01 */
+  myMutex01Handle = osMutexNew(&myMutex01_attributes);
+
+  /* Create the recursive mutex(es) */
+  /* creation of myRecursiveMutex01 */
+  myRecursiveMutex01Handle = osMutexNew(&myRecursiveMutex01_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
+  /* Create the semaphores(s) */
+  /* creation of myBinarySem01 */
+  myBinarySem01Handle = osSemaphoreNew(1, 1, &myBinarySem01_attributes);
+
+  /* creation of myCountingSem01 */
+  myCountingSem01Handle = osSemaphoreNew(2, 0, &myCountingSem01_attributes);
+
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
 
+  /* Create the timer(s) */
+  /* creation of myTimer01 */
+  myTimer01Handle = osTimerNew(Callback01, osTimerPeriodic, NULL, &myTimer01_attributes);
+
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
+
+  /* Create the queue(s) */
+  /* creation of myQueue01 */
+  myQueue01Handle = osMessageQueueNew (16, sizeof(uint16_t), &myQueue01_attributes);
+
+  /* creation of myQueue02 */
+  myQueue02Handle = osMessageQueueNew (16, sizeof(uint16_t), &myQueue02_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -251,6 +339,12 @@ Error_Handler();
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
+
+  /* creation of myEvent01 */
+  myEvent01Handle = osEventFlagsNew(&myEvent01_attributes);
+
+  /* creation of myEvent02 */
+  myEvent02Handle = osEventFlagsNew(&myEvent02_attributes);
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
@@ -484,51 +578,6 @@ static void MX_SPI1_Init(void)
 }
 
 /**
-  * @brief TIM2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM2_Init(void)
-{
-
-  /* USER CODE BEGIN TIM2_Init 0 */
-
-  /* USER CODE END TIM2_Init 0 */
-
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-  /* USER CODE BEGIN TIM2_Init 1 */
-
-  /* USER CODE END TIM2_Init 1 */
-  htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
-  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 4294967295;
-  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM2_Init 2 */
-
-  /* USER CODE END TIM2_Init 2 */
-
-}
-
-/**
   * @brief TIM4 Initialization Function
   * @param None
   * @retval None
@@ -734,6 +783,14 @@ void StartOWC_Task(void *argument)
   /* USER CODE END StartOWC_Task */
 }
 
+/* Callback01 function */
+void Callback01(void *argument)
+{
+  /* USER CODE BEGIN Callback01 */
+
+  /* USER CODE END Callback01 */
+}
+
  /* MPU Configuration */
 
 void MPU_Config(void)
@@ -780,11 +837,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   {
     HAL_IncTick();
   }
-  else if (htim->Instance == TIM4)
-  {
-    TSSI_Callback(htim);
-  }
-  
   /* USER CODE BEGIN Callback 1 */
 
   /* USER CODE END Callback 1 */
