@@ -1,0 +1,4 @@
+../Core/Src/bms_control.c:6:6:Control_Loop	3
+../Core/Src/bms_control.c:22:6:in_car	8
+../Core/Src/bms_control.c:71:6:check_fault_status	5
+../Core/Src/bms_control.c:98:6:charger_control	10
