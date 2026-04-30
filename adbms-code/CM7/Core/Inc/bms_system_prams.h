@@ -12,7 +12,7 @@
 #define NUM_CHIPS (NUM_6830+NUM_2950)	/* Number of ICs 					*/
 #define NUM_VOLTAGES_EVEN_CHIP 12		/* Nmber of Cells in even number ICs starting at 0 ending at 8*/
 #define NUM_VOLTAGES_ODD_CHIP  11  	   	/* Nmber of Cells in odd number ICs starting at 1 ending at 9*/
-#define NUM_VOLTAGES (NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2))
+#define NUM_VOLTAGES (NUM_6830 * NUM_VOLTAGES_ODD_CHIP + ((NUM_6830 + 1)/2))
 #define NUM_TEMPS_CHIP 10				/* Number of Temps to read per IC 	*/
 
 #define OVERVOLTAGE 4.2					/* Overvoltage Threshold 	*/

@@ -179,9 +179,9 @@ void ADBMS_Owc_Config(adbms_raw_* adbms, Owc_Channel_ channel, Owc_Mode_ mode)
             switch(mode)
             {
                 case Channel_Off:
-                adbms->command_parameters.parameter_joint.adsv.cont = 1;
-                adbms->command_parameters.parameter_joint.adsv.ow = 0; //Disable OW 
-                break;
+                    adbms->command_parameters.parameter_joint.adsv.cont = 1;
+                    adbms->command_parameters.parameter_joint.adsv.ow = 0; //Disable OW 
+                    break;
                 case Channel_Even_On:
                     adbms->command_parameters.parameter_joint.adsv.cont = 1;
                     adbms->command_parameters.parameter_joint.adsv.ow = 1; // Enable OW on even-channel 

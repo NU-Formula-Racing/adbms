@@ -70,7 +70,7 @@ void update_values()
 	//read temp
 	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_aux, AUX_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
 	//RESTART ADAX
-	ADBMS_Set_ADAX(mainboard.adbms_raw.command_parameters.parameter_joint.adax, &mainboard.adbms_raw.command_bit.adax); //set adax
+	ADBMS_Write_CMD(mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.command_bit.adax);
 	//parse 6830 temp
 	ADBMS_6830_Parse_Temperature(&mainboard.adbms_raw.read_raw_aux, &mainboard.adbms_6830.temperature);
 

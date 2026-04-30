@@ -182,7 +182,7 @@ void Update_6830_Owc_Faults(adbms_6830_voltage_parsed_* voltage_owc, adbms_6830_
     {
         faults->pec_fault = true;
     }
-    
+
     // Keep running tally of total pec failures for data collection
     if (voltage_owc->pec_counts) faults->total_pec_failures++;
 
