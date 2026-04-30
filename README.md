@@ -1,5 +1,5 @@
 # NFR adbms
-Northwestern Formula Racing's Custom BMS using the ADBMS chipset.
+Northwestern Formula Racing's Custom BMS using the ADBMS chipset (ADBMS6830, ADBMS2950, and ADBMS6822).
 
 Current Car: `nfr26`
 
