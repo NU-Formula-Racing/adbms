@@ -17,13 +17,12 @@
 
 void Bms_Mainbaord_Setup(FDCAN_HandleTypeDef *hcan);
 
-void Tick_Mainboard_Timers();
-
 void bms_mainboard_loop();
-void adbms_owc_loop();
 
 void update_values();
 void check_faults();
+
+void TSSI_Function();
 
 void send_data_over_printf();
 void send_data_over_USB();

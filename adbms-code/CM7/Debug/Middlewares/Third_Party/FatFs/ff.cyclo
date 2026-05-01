@@ -8,6 +8,8 @@ C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c
 C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:706:6:mem_set	2
 C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:716:5:mem_cmp	3
 C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:729:5:chk_chr	3
+C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:742:5:lock_fs	3
+C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:751:6:unlock_fs	5
 C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:771:9:chk_lock	11
 C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:798:5:enq_lock	3
 C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:808:6:inc_lock	12
@@ -55,9 +57,9 @@ C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c
 C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:2813:9:follow_path	11
 C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:2904:5:get_ldnumber	8
 C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:2965:6:check_fs	9
-C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:2993:9:find_volume	60
-C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:3216:9:validate	7
-C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:3260:9:f_mount	6
+C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:2993:9:find_volume	61
+C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:3216:9:validate	8
+C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:3260:9:f_mount	8
 C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:3308:9:f_open	38
 C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:3511:9:f_read	23
 C:/Users/matia/Documents/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/ff.c:3611:9:f_write	28

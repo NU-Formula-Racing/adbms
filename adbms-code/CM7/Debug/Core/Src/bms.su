@@ -1,10 +1,8 @@
-../Core/Src/bms.c:7:6:Bms_Mainbaord_Setup	64	static
-../Core/Src/bms.c:33:6:Tick_Mainboard_Timers	8	static
-../Core/Src/bms.c:39:6:bms_mainboard_loop	8	static
-../Core/Src/bms.c:48:6:adbms_owc_loop	4	static
-../Core/Src/bms.c:54:6:update_values	8	static
+../Core/Src/bms.c:7:6:Bms_Mainbaord_Setup	16	static
+../Core/Src/bms.c:35:6:bms_mainboard_loop	8	static
+../Core/Src/bms.c:44:6:update_values	8	static
 ../Core/Src/bms.c:78:6:check_faults	24	static
-../Core/Src/bms.c:124:6:HAL_TIM_PeriodElapsedCallback	16	static
-../Core/Src/bms.c:140:6:send_data_over_printf	8	static
-../Core/Src/bms.c:155:6:send_data_over_USB	288	static
-../Core/Src/bms.c:182:6:HAL_HSEM_FreeCallback	16	static
+../Core/Src/bms.c:124:6:TSSI_Function	8	static
+../Core/Src/bms.c:139:6:send_data_over_printf	8	static
+../Core/Src/bms.c:154:6:send_data_over_USB	288	static
+../Core/Src/bms.c:181:6:HAL_HSEM_FreeCallback	16	static

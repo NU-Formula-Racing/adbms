@@ -2,4 +2,5 @@
 ../Core/Src/main.c:161:6:PeriphCommonClock_Config	2
 ../Core/Src/main.c:180:13:MX_SPI1_Init	2
 ../Core/Src/main.c:228:13:MX_GPIO_Init	1
-../Core/Src/main.c:250:6:Error_Handler	1
+../Core/Src/main.c:254:6:HAL_TIM_PeriodElapsedCallback	2
+../Core/Src/main.c:272:6:Error_Handler	1

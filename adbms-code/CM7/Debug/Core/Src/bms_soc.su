@@ -1,2 +1,4 @@
-../Core/Src/bms_soc.c:3:6:Soc_Initialize	48	static
-../Core/Src/bms_soc.c:14:6:Soc_Update	56	static
+../Core/Src/bms_soc.c:13:14:Get_OCV	16	static
+../Core/Src/bms_soc.c:18:14:Get_dOCV_dSOC	16	static
+../Core/Src/bms_soc.c:23:6:Soc_Initialize	48	static
+../Core/Src/bms_soc.c:46:6:Soc_Update	120	static

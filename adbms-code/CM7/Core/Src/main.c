@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "fatfs.h"
 #include "usb_device.h"
 
@@ -40,6 +41,7 @@ int _write(int le, char *ptr, int len)
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
+typedef StaticTask_t osStaticThreadDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -79,9 +81,20 @@ SD_HandleTypeDef hsd1;
 
 SPI_HandleTypeDef hspi1;
 
-TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim4;
 
+/* Definitions for MainTask */
+osThreadId_t MainTaskHandle;
+uint32_t MainTaskBuffer[ 3840 ];
+osStaticThreadDef_t MainTaskControlBlock;
+const osThreadAttr_t MainTask_attributes = {
+  .name = "MainTask",
+  .cb_mem = &MainTaskControlBlock,
+  .cb_size = sizeof(MainTaskControlBlock),
+  .stack_mem = &MainTaskBuffer[0],
+  .stack_size = sizeof(MainTaskBuffer),
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -93,8 +106,9 @@ static void MPU_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SDMMC1_SD_Init(void);
 static void MX_FDCAN1_Init(void);
-static void MX_TIM2_Init(void);
 static void MX_TIM4_Init(void);
+void StartMainTask(void *argument);
+
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -175,10 +189,8 @@ Error_Handler();
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_SDMMC1_SD_Init();
-  MX_USB_DEVICE_Init();
   MX_FDCAN1_Init();
   MX_FATFS_Init();
-  MX_TIM2_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   Bms_Mainbaord_Setup(&hfdcan1);
@@ -192,6 +204,42 @@ Error_Handler();
 
   /* USER CODE END 2 */
 
+  /* Init scheduler */
+  osKernelInitialize();
+
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* creation of MainTask */
+  MainTaskHandle = osThreadNew(StartMainTask, NULL, &MainTask_attributes);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -199,7 +247,6 @@ Error_Handler();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  Tick_Mainboard_Timers();
   }
   /* USER CODE END 3 */
 }
@@ -415,51 +462,6 @@ void MX_SPI1_Init(void)
 }
 
 /**
-  * @brief TIM2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM2_Init(void)
-{
-
-  /* USER CODE BEGIN TIM2_Init 0 */
-
-  /* USER CODE END TIM2_Init 0 */
-
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-  /* USER CODE BEGIN TIM2_Init 1 */
-
-  /* USER CODE END TIM2_Init 1 */
-  htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
-  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 4294967295;
-  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM2_Init 2 */
-
-  /* USER CODE END TIM2_Init 2 */
-
-}
-
-/**
   * @brief TIM4 Initialization Function
   * @param None
   * @retval None
@@ -587,6 +589,27 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE END 4 */
 
+/* USER CODE BEGIN Header_StartMainTask */
+/**
+  * @brief  Function implementing the MainTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartMainTask */
+void StartMainTask(void *argument)
+{
+  /* init code for USB_DEVICE */
+  MX_USB_DEVICE_Init();
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+    bms_mainboard_loop();
+    osDelay(1);
+  }
+  /* USER CODE END 5 */
+}
+
  /* MPU Configuration */
 
 void MPU_Config(void)
@@ -625,6 +648,31 @@ void MPU_Config(void)
   /* Enables the MPU */
   HAL_MPU_Enable(MPU_HFNMI_PRIVDEF);
 
+}
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM7 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM7)
+  {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+	if (htim->Instance == TIM4)
+  {
+    TSSI_Function();
+  }
+  /* USER CODE END Callback 1 */
 }
 
 /**

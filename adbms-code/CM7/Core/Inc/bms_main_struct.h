@@ -46,6 +46,8 @@ typedef struct
 	float dcir;
 	float max_discharge_current;
 	float prev_time;
+	float vr1;          //voltage across RC
+	float P[2][2];      //covariance Matrix
 
 	// timeouts
 	float vcu_last_msg_time;
