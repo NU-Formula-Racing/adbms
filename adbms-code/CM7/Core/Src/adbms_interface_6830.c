@@ -368,7 +368,7 @@ void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
 }
 
 
-void ADBMS_USB_Serial_Print_Vals(adbms_6830_* adbms_6830)
+void ADBMS_6830_USB_Serial_Print_Vals(adbms_6830_* adbms_6830)
 {
     #define BUFFER_SIZE 3500
     char logBuf[BUFFER_SIZE];

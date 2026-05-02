@@ -58,3 +58,4 @@ float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage);
 
 //Prints
 void ADBMS_2950_Print_Vals(adbms_2950_* adbms_2950);
+void ADBMS_2950_USB_Serial_Print_Vals(adbms_2950_* adbms_2950);

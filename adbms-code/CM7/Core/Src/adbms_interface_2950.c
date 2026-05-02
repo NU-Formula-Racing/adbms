@@ -121,6 +121,23 @@ void ADBMS_2950_Print_Vals(adbms_2950_* adbms_2950)
     printf("adbms2950 Current: %f\n\n", adbms_2950->data.current);
 }
 
+void ADBMS_2950_USB_Serial_Print_Vals(adbms_2950_* adbms_2950)
+{
+    #define BUFFER_SIZE 3500
+    char logBuf[BUFFER_SIZE];
+    int len = 0;
+    int remaining = BUFFER_SIZE;
+
+    len += snprintf(logBuf + len, remaining, "ADBMS 2950 Data\n\n");
+    remaining = BUFFER_SIZE - len;
+
+    len += snprintf(logBuf + len, remaining, "adbms2950 Precontactor voltage: %f\n", adbms_2950->data.precontactor_voltage);
+    remaining = BUFFER_SIZE - len;
+
+    len += snprintf(logBuf + len, remaining, "adbms2950 Current: %f\n\n", adbms_2950->data.current);
+    remaining = BUFFER_SIZE - len;
+}
+
 
 
 

@@ -172,16 +172,20 @@ void send_data_over_printf()
     ADBMS_6830_Print_Vals(&mainboard.adbms_6830);
 	ADBMS_2950_Print_Vals(&mainboard.adbms_2950);
 
-
 	// Mainboard Prints
 	printf("Time: %d\n", (int)(HAL_GetTick() - mainboard.start_time));
 	printf("BMS fault: %d\n", mainboard.bms_fault);
 	printf("External fault: %d\n", mainboard.external_fault);
 	
 	// TODO Add more prints as needed
+
 }
 
 void send_data_over_USB()
 {
 	//work on this later because i have more important things to fix right now
+
+	ADBMS_6830_USB_Serial_Print_Vals(&mainboard.adbms_6830);
+	ADBMS_2950_USB_Serial_Print_Vals(&mainboard.adbms_2950);
+
 }

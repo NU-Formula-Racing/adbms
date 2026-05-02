@@ -88,3 +88,4 @@ float ADBMS_6830_Transfer_Temp(float raw_temp_voltage, float Vref);
 
 //Prints
 void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830);
+void ADBMS_6830_USB_Serial_Print_Vals(adbms_6830_* adbms_6830);
