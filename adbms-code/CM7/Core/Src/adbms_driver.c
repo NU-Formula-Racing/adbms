@@ -341,7 +341,7 @@ void ADBMS_Write_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, u
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 }
 
-bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf)
+void ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf, pec_return_* pec_return)
 {
     uint8_t spi_tx_dataBuf[DATABUF_LEN] = {0};
     spi_tx_dataBuf[0] = (uint8_t)(tx_cmd >> 8);
@@ -364,7 +364,9 @@ bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf,
     uint8_t *rx_dataBuf = spi_dataBuf + CMD_LEN + PEC_LEN;
 
     // Move the incoming data from the spi data buffer to the correspoding data buffer array in memory
-    bool pec_error = 0;
+    bool pec_error_6830 = 0;
+    bool pec_error_2950 = 0;
+
     for(uint8_t cic = 0; cic < NUM_CHIPS; cic++)
     {
         for(uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte++)
@@ -373,8 +375,15 @@ bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf,
         }
         uint16_t rx_pec = (uint16_t)(((rx_dataBuf[DATA_LEN + (DATA_LEN+PEC_LEN)*cic] & 0x03) << 8) | rx_dataBuf[DATA_LEN + 1 + (DATA_LEN+PEC_LEN)*cic]);
         uint16_t calc_pec = (uint16_t)Pec10_Calc(true, DATA_LEN, (rx_dataBuf + cic * (DATA_LEN + PEC_LEN)));		// Needs the PEC to calculate the PEC, thus have to pass full buffer
-        pec_error |= (rx_pec != calc_pec);
+        
+        if (cic == NUM_CHIPS-1){
+            pec_error_2950 |= (rx_pec != calc_pec);
+        }
+
+        pec_error_6830 |= (rx_pec != calc_pec);
     }
 
-    return pec_error;
+    pec_return-> pec_6830 = pec_error_6830;
+    pec_return-> pec_2950 = pec_error_2950; 
+    
 }
