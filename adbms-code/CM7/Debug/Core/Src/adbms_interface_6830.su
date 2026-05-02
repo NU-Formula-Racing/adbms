@@ -9,3 +9,4 @@
 ../Core/Src/adbms_interface_6830.c:294:7:ADBMS_6830_Transfer_Voltage	24	static
 ../Core/Src/adbms_interface_6830.c:301:7:ADBMS_6830_Transfer_Temp	24	static
 ../Core/Src/adbms_interface_6830.c:316:6:ADBMS_6830_Print_Vals	40	static
+../Core/Src/adbms_interface_6830.c:371:6:ADBMS_USB_Serial_Print_Vals	3560	static

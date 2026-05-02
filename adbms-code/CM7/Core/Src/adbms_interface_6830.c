@@ -366,3 +366,105 @@ void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
     printf("openwire: %d\t", adbms_6830->faults.openwire_voltage_fault);
     printf("openwire_temp: %d\n", adbms_6830->faults.openwire_temp_fault);
 }
+
+
+void ADBMS_USB_Serial_Print_Vals(adbms_6830_* adbms_6830)
+{
+    #define BUFFER_SIZE 3500
+    char logBuf[BUFFER_SIZE];
+    int len = 0;
+    int remaining = BUFFER_SIZE;
+
+
+    len += snprintf(logBuf + len, remaining, "\nADBMS 6830 Data");
+    remaining = BUFFER_SIZE - len;
+
+    len += snprintf(logBuf + len, remaining, "\nVOLTAGES\n");
+    remaining = BUFFER_SIZE - len;
+
+    len += snprintf(logBuf + len, remaining, "total v: %f\n", adbms_6830->voltage.total_v);
+    remaining = BUFFER_SIZE - len;
+
+    len += snprintf(logBuf + len, remaining, "max v: %f\t", adbms_6830->voltage.max_v);
+    remaining = BUFFER_SIZE - len;
+
+    len += snprintf(logBuf + len, remaining, "min v: %f\t", adbms_6830->voltage.min_v);
+    remaining = BUFFER_SIZE - len;
+
+    len += snprintf(logBuf + len, remaining, "avg v: %f\t", adbms_6830->voltage.avg_v);
+    remaining = BUFFER_SIZE - len;
+
+    len += snprintf(logBuf + len, remaining, "max-min: %f\n", adbms_6830->voltage.max_v - adbms_6830->voltage.min_v);
+    remaining = BUFFER_SIZE - len;
+
+
+    // print every voltage
+    for (int i = 0; i < NUM_6830; i++)
+    {
+        if (i % 2 == 0)
+        {
+            for (int j = 0; j < NUM_VOLTAGES_EVEN_CHIP; j++)
+            {
+                len += snprintf(logBuf + len, remaining, "C%d=%fV\t", ((i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j + 1), adbms_6830->voltage.voltages[(i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j]);
+                remaining = BUFFER_SIZE - len;
+            }
+        }
+        else
+        {
+            for (int j = 0; j < NUM_VOLTAGES_ODD_CHIP; j++)
+            {
+                len += snprintf(logBuf + len, remaining, "C%d=%fV\t", ((i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j + 1), adbms_6830->voltage.voltages[(i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j]);
+                remaining = BUFFER_SIZE - len;
+            }
+        }
+    }
+
+
+    len += snprintf(logBuf + len, remaining, "\n\nTEMPS\n");
+    remaining = BUFFER_SIZE - len;
+
+    len += snprintf(logBuf + len, remaining, "max temp: %f\t", adbms_6830->temperature.max_temp);
+    remaining = BUFFER_SIZE - len;
+
+    len += snprintf(logBuf + len, remaining, "min temp: %f\t", adbms_6830->temperature.min_temp);
+    remaining = BUFFER_SIZE - len;
+    
+    len += snprintf(logBuf + len, remaining, "avg temp: %f\n", adbms_6830->temperature.avg_temp);
+    remaining = BUFFER_SIZE - len;
+
+
+    for (int i = 0; i < NUM_6830; i++)
+    {
+        for (int j = 0; j < NUM_TEMPS_CHIP; j++)
+        {
+            len += snprintf(logBuf + len, remaining, "T%d=%f\t", (i * NUM_TEMPS_CHIP + j + 1), adbms_6830->temperature.temperatures[i * NUM_TEMPS_CHIP + j]);
+            remaining = BUFFER_SIZE - len;
+        }
+
+        len += snprintf(logBuf + len, remaining, "\n");
+        remaining = BUFFER_SIZE - len;
+    }
+
+
+    len += snprintf(logBuf + len, remaining, "\nFaults\n");
+    remaining = BUFFER_SIZE - len;
+
+    len += snprintf(logBuf + len, remaining, "undervoltage: %d\t", adbms_6830->faults.undervoltage_fault);
+    remaining = BUFFER_SIZE - len;
+
+    len += snprintf(logBuf + len, remaining, "overvoltage: %d\t", adbms_6830->faults.overvoltage_fault);
+    remaining = BUFFER_SIZE - len;
+
+    len += snprintf(logBuf + len, remaining, "pec: %d\t", adbms_6830->faults.pec_fault);
+    remaining = BUFFER_SIZE - len;
+
+    len += snprintf(logBuf + len, remaining, "overtemperature: %d\t", adbms_6830->faults.overtemperature_fault);
+    remaining = BUFFER_SIZE - len;
+
+    len += snprintf(logBuf + len, remaining, "openwire: %d\t", adbms_6830->faults.openwire_voltage_fault);
+    remaining = BUFFER_SIZE - len;
+
+    len += snprintf(logBuf + len, remaining, "openwire_temp: %d\n", adbms_6830->faults.openwire_temp_fault);
+    remaining = BUFFER_SIZE - len;
+
+}

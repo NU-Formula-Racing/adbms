@@ -9,3 +9,4 @@
 ../Core/Src/adbms_interface_6830.c:294:7:ADBMS_6830_Transfer_Voltage	1
 ../Core/Src/adbms_interface_6830.c:301:7:ADBMS_6830_Transfer_Temp	1
 ../Core/Src/adbms_interface_6830.c:316:6:ADBMS_6830_Print_Vals	11
+../Core/Src/adbms_interface_6830.c:371:6:ADBMS_USB_Serial_Print_Vals	11

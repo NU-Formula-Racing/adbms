@@ -1,7 +1,7 @@
 Middlewares/Third_Party/FatFs/syscall.o: \
- C:/Users/drake/OneDrive/Desktop/Formula/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/option/syscall.c \
- C:/Users/drake/OneDrive/Desktop/Formula/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/option/../ff.h \
- C:/Users/drake/OneDrive/Desktop/Formula/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/option/../integer.h \
+ /Users/jasperweng/Desktop/Formula/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/option/syscall.c \
+ /Users/jasperweng/Desktop/Formula/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/option/../ff.h \
+ /Users/jasperweng/Desktop/Formula/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/option/../integer.h \
  ../FATFS/Target/ffconf.h ../Core/Inc/main.h \
  ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal.h \
  ../Core/Inc/stm32h7xx_hal_conf.h \
@@ -44,8 +44,8 @@ Middlewares/Third_Party/FatFs/syscall.o: \
  ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_ll_usb.h \
  ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pcd_ex.h \
  ../FATFS/Target/bsp_driver_sd.h ../FATFS/Target/fatfs_platform.h
-C:/Users/drake/OneDrive/Desktop/Formula/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/option/../ff.h:
-C:/Users/drake/OneDrive/Desktop/Formula/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/option/../integer.h:
+/Users/jasperweng/Desktop/Formula/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/option/../ff.h:
+/Users/jasperweng/Desktop/Formula/adbms/adbms-code/Middlewares/Third_Party/FatFs/src/option/../integer.h:
 ../FATFS/Target/ffconf.h:
 ../Core/Inc/main.h:
 ../../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal.h:
