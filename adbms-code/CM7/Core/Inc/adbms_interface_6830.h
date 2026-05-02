@@ -6,7 +6,7 @@
 //for the thermister function
 #define SeriesResistance    10000.0
 #define R25                 10000.0
-#define B                   3435
+#define B                   3984
 #define T25                 298.15     
 
 
