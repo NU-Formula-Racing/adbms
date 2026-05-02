@@ -31,15 +31,18 @@ typedef struct
 
 typedef struct
 {
-    bool overcurrent_fault;
+    bool overcurrent_warning;
 
-}adbms_2950_faults_;
+    bool pec_warning;
+    int pec_warning_count;
+
+}adbms_2950_warnings_;
 
 typedef struct
 {
     adbms_2950_raw_data_         raw_data;
     adbms_2950_data_parsed_      data;
-    adbms_2950_faults_           faults;
+    adbms_2950_warnings_           warnings;
 
 }adbms_2950_;
 
@@ -55,6 +58,10 @@ void ADBMS_2950_Calculate_Shunt_Temp(adbms_raw_* adbms_raw, adbms_2950_* adbms_2
 float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw);
 float ADBMS_2950_Transfer_Current(int32_t data);
 float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage);
+
+//Warning Updates
+bool ADBMS_2950_Pec_Update(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950);
+Update_2950_InternalFault(adbms_2950_* adbms_2950);
 
 //Prints
 void ADBMS_2950_Print_Vals(adbms_2950_* adbms_2950);

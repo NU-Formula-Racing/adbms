@@ -19,7 +19,7 @@
 #define UNDERVOLTAGE 2.5				/* Undervoltage Threshold 	*/
 #define OVERTEMP 90						/* Over Temp Threshold 		*/
 #define UNDERTEMP -40					/* Under Temp Threshold 	*/
-#define OVERCURRENT 135					/* Over Current Threshold 	*/
+#define OVERCURRENT 300					/* Over Current Threshold 	*/
 
 #define PEC_FAILURE_THRESHOLD 10		/* Number of consecutive PEC failures that can happen before a pec fault occurs*/
 #define OWC_VOLTAGE_THRESHOLD 0.5

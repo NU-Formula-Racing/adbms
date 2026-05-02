@@ -3,9 +3,12 @@
 
 void ADBMS_2950_Calculate_Values(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
 {
-    ADBMS_2950_Calculate_Vbat(adbms_raw, adbms_2950);
-    ADBMS_2950_Calculate_Current(adbms_raw, adbms_2950);
-    ADBMS_2950_Calculate_Shunt_Temp(adbms_raw, adbms_2950);
+    if (ADBMS_2950_Pec_Update(adbms_raw, adbms_2950)) //pec needs to be false for us to process
+    {
+        ADBMS_2950_Calculate_Vbat(adbms_raw, adbms_2950);
+        ADBMS_2950_Calculate_Current(adbms_raw, adbms_2950);
+        ADBMS_2950_Calculate_Shunt_Temp(adbms_raw, adbms_2950);
+    }
 }
 
 
@@ -109,6 +112,27 @@ float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage){
 
 }
 
+bool ADBMS_2950_Pec_Update(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
+{
+
+    if (adbms_raw->read_raw_c.read_pec_failure.pec_2950){
+        adbms_2950->warnings.pec_warning_count += 1;
+        return false; // pec true we don't parse this data, 
+    }
+
+    adbms_2950->warnings.pec_warning_count = 0;
+    return true;
+}
+
+
+Update_2950_InternalFault(adbms_2950_* adbms_2950)
+{
+    //latching 2950 warnings
+    adbms_2950->warnings.overcurrent_warning = adbms_2950->warnings.overcurrent_warning || (adbms_2950->data.current > OVERCURRENT);
+    adbms_2950->warnings.pec_warning = adbms_2950->warnings.pec_warning || (adbms_2950->warnings.pec_warning_count > PEC_FAILURE_THRESHOLD);
+
+}
+
 
 //
 //Prints 
@@ -119,6 +143,10 @@ void ADBMS_2950_Print_Vals(adbms_2950_* adbms_2950)
     printf("ADBMS 2950 Data\n\n");
     printf("adbms2950 Precontactor voltage: %f\n", adbms_2950->data.precontactor_voltage);
     printf("adbms2950 Current: %f\n\n", adbms_2950->data.current);
+
+    printf("\n ADBMS 2950 Warnings \n\n");
+    printf("adbms2950 Pec Warning: %d\n", adbms_2950->warnings.pec_warning);
+    pringf("adbms2950 Overcurrent Warning: %d\n\n",adbms_2950->warnings.overcurrent_warning);
 }
 
 
