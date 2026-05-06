@@ -62,7 +62,7 @@
 #define CHARGER_CAN_TIMEOUT 5000
 
 //for SOC calculations
-#define CELL_CAPACITY 4.5
+#define CELL_CAPACITY 5.0
 #define PARALLEL 3
 #define SYSTEM_CAPACITY (CELL_CAPACITY * PARALLEL)
 

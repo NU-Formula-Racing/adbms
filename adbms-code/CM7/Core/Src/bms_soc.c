@@ -7,11 +7,11 @@ void Soc_Initialize(mainboard_ *mainboard)
 
     //now we also need to parse the raw data and put it into the structs
     ADBMS_6830_Parse_Voltage(&mainboard->adbms_raw.read_raw_c, &mainboard->adbms_6830.voltage);
-
     float avg_v = mainboard->adbms_6830.voltage.avg_v;
-    int vidx1 = fmax(0, ((int)floor((avg_v - 2.5) * 1000.0 / 4.0)));
-    int vidx2 = fmin(500, ((int)ceil((avg_v - 2.5) * 1000.0 / 4.0)));
-    float v = (v2a_lookup[vidx2] - v2a_lookup[vidx1]) * ((avg_v - 2.5) * 1000.0 - floor((avg_v - 2.5) * 1000.0)) + v2a_lookup[vidx1];
+
+    int v_idx1 = fmax(0, ((int)floor((avg_v - 2.5) * 1000.0 / 4.0)));
+    int v_idx2 = fmin(500, ((int)ceil((avg_v - 2.5) * 1000.0 / 4.0)));
+    float v = (v2a_lookup[v_idx2] - v2a_lookup[v_idx1]) * ((avg_v - 2.5) * 1000.0 - floor((avg_v - 2.5) * 1000.0)) + v2a_lookup[vidx1];
     mainboard->soc = fmax(0, 4.5 - v / 1000.0) * 3.0 / (SYSTEM_CAPACITY);
     mainboard->prev_time = HAL_GetTick();
 }
@@ -22,7 +22,6 @@ void Soc_Update(mainboard_ *mainboard)
     float delta = (tick - mainboard->prev_time) / 1000.0f / 3600.0f; // convert to hours
     mainboard->prev_time = tick;
 
-    //this needs to change when we use both currents
     mainboard->soc = mainboard->soc - delta * mainboard->adbms_2950.data.current / (SYSTEM_CAPACITY);
     int curridx1 = fmin(fmax(0, (int)floor((SYSTEM_CAPACITY * 1000.0 / 3.0 - (mainboard->soc * SYSTEM_CAPACITY)) * 1000.0 / 3.0 / 6.0)), 4500);
     int curridx2 = fmin(fmax(0, (int)ceil((SYSTEM_CAPACITY * 1000.0 / 3.0 - (mainboard->soc * SYSTEM_CAPACITY)) * 1000.0 / 3.0 / 6.0)), 4500);
