@@ -125,7 +125,7 @@ bool ADBMS_2950_Pec_Update(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
 }
 
 
-Update_2950_InternalFault(adbms_2950_* adbms_2950)
+void Update_2950_InternalFault(adbms_2950_* adbms_2950)
 {
     //latching 2950 warnings
     adbms_2950->warnings.overcurrent_warning = adbms_2950->warnings.overcurrent_warning || (adbms_2950->data.current > OVERCURRENT);
@@ -146,7 +146,7 @@ void ADBMS_2950_Print_Vals(adbms_2950_* adbms_2950)
 
     printf("\n ADBMS 2950 Warnings \n\n");
     printf("adbms2950 Pec Warning: %d\n", adbms_2950->warnings.pec_warning);
-    pringf("adbms2950 Overcurrent Warning: %d\n\n",adbms_2950->warnings.overcurrent_warning);
+    printf("adbms2950 Overcurrent Warning: %d\n\n",adbms_2950->warnings.overcurrent_warning);
 }
 
 

@@ -226,7 +226,7 @@ void populate_bms_faults(uint8_t *data)
 	encodeSignals(data, 8, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]); 				// Pec Failures
 
     //2950 faults
-	populateRawMessage(&signals[6], bms_can.mainboard->adbms_2950.faults.overcurrent_fault, 1, 1, 0);										// overcurrent fault
+	populateRawMessage(&signals[6], bms_can.mainboard->adbms_2950.warnings.overcurrent_warning, 1, 1, 0);										// overcurrent fault
 
 }
 

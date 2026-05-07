@@ -42,7 +42,7 @@ typedef struct
 {
     adbms_2950_raw_data_         raw_data;
     adbms_2950_data_parsed_      data;
-    adbms_2950_warnings_           warnings;
+    adbms_2950_warnings_         warnings;
 
 }adbms_2950_;
 
@@ -61,7 +61,7 @@ float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage);
 
 //Warning Updates
 bool ADBMS_2950_Pec_Update(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950);
-Update_2950_InternalFault(adbms_2950_* adbms_2950);
+void Update_2950_InternalFault(adbms_2950_* adbms_2950);
 
 //Prints
 void ADBMS_2950_Print_Vals(adbms_2950_* adbms_2950);

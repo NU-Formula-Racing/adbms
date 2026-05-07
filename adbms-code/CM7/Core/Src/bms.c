@@ -98,7 +98,7 @@ void update_values()
 	Soc_Update(&mainboard);
 	
     //this should change into both current_1 and 2 when both start working
-	mainboard.adbms_2950.faults.overcurrent_fault = mainboard.adbms_2950.data.current > OVERCURRENT;
+	mainboard.adbms_2950.warnings.overcurrent_warning = mainboard.adbms_2950.data.current > OVERCURRENT;
 
 	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
 	if(ENABLE_USB_COMMS) send_data_over_USB(); 
@@ -116,7 +116,7 @@ void check_faults()
 							|| mainboard.adbms_6830.faults.openwire_voltage_fault
 							|| mainboard.adbms_6830.faults.openwire_temp_fault
 							|| mainboard.adbms_6830.faults.pec_fault
-							|| mainboard.adbms_2950.faults.overcurrent_fault;
+							|| mainboard.adbms_2950.warnings.overcurrent_warning;
 
 	// write BMS_Status - healthy is high
 	HAL_GPIO_WritePin(BMS_STATUS_OUT_GPIO_Port, BMS_STATUS_OUT_Pin, !mainboard.bms_fault);

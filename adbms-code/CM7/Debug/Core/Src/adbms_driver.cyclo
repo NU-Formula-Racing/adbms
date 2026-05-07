@@ -1,0 +1,16 @@
+../Core/Src/adbms_driver.c:47:10:Pec15_Calc	2
+../Core/Src/adbms_driver.c:78:10:Pec10_Calc	7
+../Core/Src/adbms_driver.c:145:10:Set_UnderOver_Voltage_Threshold	1
+../Core/Src/adbms_driver.c:160:6:ADBMS_Set_Config_A_6830	2
+../Core/Src/adbms_driver.c:176:6:ADBMS_Set_Config_B_6830	2
+../Core/Src/adbms_driver.c:196:6:ADBMS_Set_Config_A_2950	2
+../Core/Src/adbms_driver.c:214:6:ADBMS_Set_Config_B_2950	2
+../Core/Src/adbms_driver.c:233:6:ADBMS_Set_ADCV	1
+../Core/Src/adbms_driver.c:244:6:ADBMS_Set_ADSV	1
+../Core/Src/adbms_driver.c:254:6:ADBMS_Set_ADAX	1
+../Core/Src/adbms_driver.c:264:6:ADBMS_Set_ADAX2	1
+../Core/Src/adbms_driver.c:270:6:ADBMS_Set_ADV	1
+../Core/Src/adbms_driver.c:283:6:ADBMS_WakeUP_ICs	2
+../Core/Src/adbms_driver.c:294:6:ADBMS_Write_CMD	1
+../Core/Src/adbms_driver.c:313:6:ADBMS_Write_Data	3
+../Core/Src/adbms_driver.c:344:6:ADBMS_Read_Data	5
