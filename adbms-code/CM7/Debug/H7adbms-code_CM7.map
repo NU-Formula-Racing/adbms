@@ -12734,39 +12734,39 @@ LOAD /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.id
                 0x0800166c      0x114 ./Core/Src/adbms_driver.o
                 0x0800166c                ADBMS_Write_Data
  .text.ADBMS_Read_Data
-                0x08001780      0x1b4 ./Core/Src/adbms_driver.o
+                0x08001780      0x1b8 ./Core/Src/adbms_driver.o
                 0x08001780                ADBMS_Read_Data
  .text.ADBMS_Initialize
-                0x08001934       0xd4 ./Core/Src/adbms_interface.o
-                0x08001934                ADBMS_Initialize
+                0x08001938       0xd4 ./Core/Src/adbms_interface.o
+                0x08001938                ADBMS_Initialize
  .text.ADBMS_Read_Voltages
-                0x08001a08      0x180 ./Core/Src/adbms_interface.o
-                0x08001a08                ADBMS_Read_Voltages
+                0x08001a0c      0x180 ./Core/Src/adbms_interface.o
+                0x08001a0c                ADBMS_Read_Voltages
  .text.ADBMS_6830_Config
-                0x08001b88       0xc0 ./Core/Src/adbms_interface.o
-                0x08001b88                ADBMS_6830_Config
+                0x08001b8c       0xc0 ./Core/Src/adbms_interface.o
+                0x08001b8c                ADBMS_6830_Config
  .text.ADBMS_2950_Config
-                0x08001c48       0x4e ./Core/Src/adbms_interface.o
-                0x08001c48                ADBMS_2950_Config
+                0x08001c4c       0x4e ./Core/Src/adbms_interface.o
+                0x08001c4c                ADBMS_2950_Config
  .text.ADBMS_joint_Config
-                0x08001c96       0x7a ./Core/Src/adbms_interface.o
-                0x08001c96                ADBMS_joint_Config
+                0x08001c9a       0x7a ./Core/Src/adbms_interface.o
+                0x08001c9a                ADBMS_joint_Config
  .text.ADBMS_Owc_Config
-                0x08001d10      0x160 ./Core/Src/adbms_interface.o
-                0x08001d10                ADBMS_Owc_Config
+                0x08001d14      0x160 ./Core/Src/adbms_interface.o
+                0x08001d14                ADBMS_Owc_Config
  .text.ADBMS_2950_Calculate_Values
-                0x08001e70       0x38 ./Core/Src/adbms_interface_2950.o
-                0x08001e70                ADBMS_2950_Calculate_Values
+                0x08001e74       0x38 ./Core/Src/adbms_interface_2950.o
+                0x08001e74                ADBMS_2950_Calculate_Values
  .text.ADBMS_2950_Calculate_Vbat
-                0x08001ea8       0xa4 ./Core/Src/adbms_interface_2950.o
-                0x08001ea8                ADBMS_2950_Calculate_Vbat
+                0x08001eac       0xa4 ./Core/Src/adbms_interface_2950.o
+                0x08001eac                ADBMS_2950_Calculate_Vbat
  .text.ADBMS_2950_Calculate_Current
-                0x08001f4c       0xea ./Core/Src/adbms_interface_2950.o
-                0x08001f4c                ADBMS_2950_Calculate_Current
+                0x08001f50       0xea ./Core/Src/adbms_interface_2950.o
+                0x08001f50                ADBMS_2950_Calculate_Current
  .text.ADBMS_2950_Calculate_Shunt_Temp
-                0x08002036       0x9c ./Core/Src/adbms_interface_2950.o
-                0x08002036                ADBMS_2950_Calculate_Shunt_Temp
- *fill*         0x080020d2        0x6 
+                0x0800203a       0x9c ./Core/Src/adbms_interface_2950.o
+                0x0800203a                ADBMS_2950_Calculate_Shunt_Temp
+ *fill*         0x080020d6        0x2 
  .text.ADBMS_2950_Transfer_Vbat
                 0x080020d8       0x88 ./Core/Src/adbms_interface_2950.o
                 0x080020d8                ADBMS_2950_Transfer_Vbat
@@ -15384,52 +15384,52 @@ LOAD /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.id
  .debug_macro   0x000445c0       0x1c ./USB_DEVICE/App/usbd_desc.o
  .debug_macro   0x000445dc      0x407 ./USB_DEVICE/Target/usbd_conf.o
 
-.debug_line     0x00000000    0x30559
+.debug_line     0x00000000    0x30557
  .debug_line    0x00000000      0xbb4 ./Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.o
- .debug_line    0x00000bb4     0x12c0 ./Core/Src/adbms_driver.o
- .debug_line    0x00001e74      0xbfc ./Core/Src/adbms_interface.o
- .debug_line    0x00002a70      0xceb ./Core/Src/adbms_interface_2950.o
- .debug_line    0x0000375b     0x1159 ./Core/Src/adbms_interface_6830.o
- .debug_line    0x000048b4      0xec3 ./Core/Src/bms.o
- .debug_line    0x00005777      0xfde ./Core/Src/bms_can.o
- .debug_line    0x00006755      0xd42 ./Core/Src/bms_control.o
- .debug_line    0x00007497      0xdb4 ./Core/Src/bms_soc.o
- .debug_line    0x0000824b     0x1087 ./Core/Src/main.o
- .debug_line    0x000092d2      0x65f ./Core/Src/nfr_can_driver.o
- .debug_line    0x00009931      0xb0d ./Core/Src/stm32h7xx_hal_msp.o
- .debug_line    0x0000a43e      0xa69 ./Core/Src/stm32h7xx_it.o
- .debug_line    0x0000aea7      0x85e ./Core/Src/syscalls.o
- .debug_line    0x0000b705      0x53a ./Core/Src/sysmem.o
- .debug_line    0x0000bc3f      0xac2 ./Core/Src/virtual_timer.o
- .debug_line    0x0000c701       0x7b ./Core/Startup/startup_stm32h745zitx.o
- .debug_line    0x0000c77c     0x10c4 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal.o
- .debug_line    0x0000d840      0xf58 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_cortex.o
- .debug_line    0x0000e798     0x29ed ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_fdcan.o
- .debug_line    0x00011185      0xde8 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_gpio.o
- .debug_line    0x00011f6d     0x16c8 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pcd.o
- .debug_line    0x00013635      0xb90 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pcd_ex.o
- .debug_line    0x000141c5     0x122b ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pwr_ex.o
- .debug_line    0x000153f0     0x1609 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_rcc.o
- .debug_line    0x000169f9     0x1f2d ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_rcc_ex.o
- .debug_line    0x00018926     0x2269 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_sd.o
- .debug_line    0x0001ab8f     0x22f4 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_spi.o
- .debug_line    0x0001ce83     0x40bc ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_tim.o
- .debug_line    0x00020f3f     0x1e28 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_tim_ex.o
- .debug_line    0x00022d67     0x13ec ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_ll_sdmmc.o
- .debug_line    0x00024153     0x1f84 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_ll_usb.o
- .debug_line    0x000260d7      0xa46 ./FATFS/App/fatfs.o
- .debug_line    0x00026b1d      0xb59 ./FATFS/Target/bsp_driver_sd.o
- .debug_line    0x00027676      0x974 ./FATFS/Target/fatfs_platform.o
- .debug_line    0x00027fea      0xb39 ./FATFS/Target/sd_diskio.o
- .debug_line    0x00028b23      0xfc0 ./Middlewares/ST/STM32_USB_Device_Library/usbd_cdc.o
- .debug_line    0x00029ae3     0x1060 ./Middlewares/ST/STM32_USB_Device_Library/usbd_core.o
- .debug_line    0x0002ab43     0x125a ./Middlewares/ST/STM32_USB_Device_Library/usbd_ctlreq.o
- .debug_line    0x0002bd9d      0xb76 ./Middlewares/ST/STM32_USB_Device_Library/usbd_ioreq.o
- .debug_line    0x0002c913      0xafe ./Middlewares/Third_Party/FatFs/ff_gen_drv.o
- .debug_line    0x0002d411      0xb18 ./USB_DEVICE/App/usb_device.o
- .debug_line    0x0002df29      0xb68 ./USB_DEVICE/App/usbd_cdc_if.o
- .debug_line    0x0002ea91      0xbbb ./USB_DEVICE/App/usbd_desc.o
- .debug_line    0x0002f64c      0xf0d ./USB_DEVICE/Target/usbd_conf.o
+ .debug_line    0x00000bb4     0x12be ./Core/Src/adbms_driver.o
+ .debug_line    0x00001e72      0xbfc ./Core/Src/adbms_interface.o
+ .debug_line    0x00002a6e      0xceb ./Core/Src/adbms_interface_2950.o
+ .debug_line    0x00003759     0x1159 ./Core/Src/adbms_interface_6830.o
+ .debug_line    0x000048b2      0xec3 ./Core/Src/bms.o
+ .debug_line    0x00005775      0xfde ./Core/Src/bms_can.o
+ .debug_line    0x00006753      0xd42 ./Core/Src/bms_control.o
+ .debug_line    0x00007495      0xdb4 ./Core/Src/bms_soc.o
+ .debug_line    0x00008249     0x1087 ./Core/Src/main.o
+ .debug_line    0x000092d0      0x65f ./Core/Src/nfr_can_driver.o
+ .debug_line    0x0000992f      0xb0d ./Core/Src/stm32h7xx_hal_msp.o
+ .debug_line    0x0000a43c      0xa69 ./Core/Src/stm32h7xx_it.o
+ .debug_line    0x0000aea5      0x85e ./Core/Src/syscalls.o
+ .debug_line    0x0000b703      0x53a ./Core/Src/sysmem.o
+ .debug_line    0x0000bc3d      0xac2 ./Core/Src/virtual_timer.o
+ .debug_line    0x0000c6ff       0x7b ./Core/Startup/startup_stm32h745zitx.o
+ .debug_line    0x0000c77a     0x10c4 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal.o
+ .debug_line    0x0000d83e      0xf58 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_cortex.o
+ .debug_line    0x0000e796     0x29ed ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_fdcan.o
+ .debug_line    0x00011183      0xde8 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_gpio.o
+ .debug_line    0x00011f6b     0x16c8 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pcd.o
+ .debug_line    0x00013633      0xb90 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pcd_ex.o
+ .debug_line    0x000141c3     0x122b ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pwr_ex.o
+ .debug_line    0x000153ee     0x1609 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_rcc.o
+ .debug_line    0x000169f7     0x1f2d ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_rcc_ex.o
+ .debug_line    0x00018924     0x2269 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_sd.o
+ .debug_line    0x0001ab8d     0x22f4 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_spi.o
+ .debug_line    0x0001ce81     0x40bc ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_tim.o
+ .debug_line    0x00020f3d     0x1e28 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_tim_ex.o
+ .debug_line    0x00022d65     0x13ec ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_ll_sdmmc.o
+ .debug_line    0x00024151     0x1f84 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_ll_usb.o
+ .debug_line    0x000260d5      0xa46 ./FATFS/App/fatfs.o
+ .debug_line    0x00026b1b      0xb59 ./FATFS/Target/bsp_driver_sd.o
+ .debug_line    0x00027674      0x974 ./FATFS/Target/fatfs_platform.o
+ .debug_line    0x00027fe8      0xb39 ./FATFS/Target/sd_diskio.o
+ .debug_line    0x00028b21      0xfc0 ./Middlewares/ST/STM32_USB_Device_Library/usbd_cdc.o
+ .debug_line    0x00029ae1     0x1060 ./Middlewares/ST/STM32_USB_Device_Library/usbd_core.o
+ .debug_line    0x0002ab41     0x125a ./Middlewares/ST/STM32_USB_Device_Library/usbd_ctlreq.o
+ .debug_line    0x0002bd9b      0xb76 ./Middlewares/ST/STM32_USB_Device_Library/usbd_ioreq.o
+ .debug_line    0x0002c911      0xafe ./Middlewares/Third_Party/FatFs/ff_gen_drv.o
+ .debug_line    0x0002d40f      0xb18 ./USB_DEVICE/App/usb_device.o
+ .debug_line    0x0002df27      0xb68 ./USB_DEVICE/App/usbd_cdc_if.o
+ .debug_line    0x0002ea8f      0xbbb ./USB_DEVICE/App/usbd_desc.o
+ .debug_line    0x0002f64a      0xf0d ./USB_DEVICE/Target/usbd_conf.o
 
 .debug_str      0x00000000   0x19bc77
  .debug_str     0x00000000   0x19bc77 ./Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.o

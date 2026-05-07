@@ -37,11 +37,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  16 .debug_macro  000449e3  00000000  00000000  0005dd1a  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   00030559  00000000  00000000  000a26fd  2**0
+ 17 .debug_line   00030557  00000000  00000000  000a26fd  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    0019bc77  00000000  00000000  000d2c56  2**0
+ 18 .debug_str    0019bc77  00000000  00000000  000d2c54  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000043  00000000  00000000  0026e8cd  2**0
+ 19 .comment      00000043  00000000  00000000  0026e8cb  2**0
                   CONTENTS, READONLY
  20 .debug_frame  0000a0e0  00000000  00000000  0026e910  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
@@ -2798,7 +2798,7 @@ void ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf,
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
  80017d4:	2200      	movs	r2, #0
  80017d6:	2110      	movs	r1, #16
- 80017d8:	4854      	ldr	r0, [pc, #336]	@ (800192c <ADBMS_Read_Data+0x1ac>)
+ 80017d8:	4855      	ldr	r0, [pc, #340]	@ (8001930 <ADBMS_Read_Data+0x1b0>)
  80017da:	f005 fe45 	bl	8007468 <HAL_GPIO_WritePin>
     if (HAL_SPI_TransmitReceive(hspi, spi_tx_dataBuf, spi_dataBuf, DATABUF_LEN, SPI_TIME_OUT) != HAL_OK)
  80017de:	f107 0114 	add.w	r1, r7, #20
@@ -2814,13 +2814,13 @@ void ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf,
     {
         // TODO: do something if fails
     	printf("spi failed");
- 80017f8:	484d      	ldr	r0, [pc, #308]	@ (8001930 <ADBMS_Read_Data+0x1b0>)
+ 80017f8:	484e      	ldr	r0, [pc, #312]	@ (8001934 <ADBMS_Read_Data+0x1b4>)
  80017fa:	f014 feaf 	bl	801655c <iprintf>
     }
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
  80017fe:	2201      	movs	r2, #1
  8001800:	2110      	movs	r1, #16
- 8001802:	484a      	ldr	r0, [pc, #296]	@ (800192c <ADBMS_Read_Data+0x1ac>)
+ 8001802:	484b      	ldr	r0, [pc, #300]	@ (8001930 <ADBMS_Read_Data+0x1b0>)
  8001804:	f005 fe30 	bl	8007468 <HAL_GPIO_WritePin>
 
     // Discard data received during transmit phase
@@ -2840,7 +2840,7 @@ void ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf,
     for(uint8_t cic = 0; cic < NUM_CHIPS; cic++)
  800181a:	2300      	movs	r3, #0
  800181c:	f887 303d 	strb.w	r3, [r7, #61]	@ 0x3d
- 8001820:	e074      	b.n	800190c <ADBMS_Read_Data+0x18c>
+ 8001820:	e075      	b.n	800190e <ADBMS_Read_Data+0x18e>
     {
         for(uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte++)
  8001822:	2300      	movs	r3, #0
@@ -2916,7 +2916,7 @@ void ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf,
         if (cic == NUM_CHIPS-1){
  80018ba:	f897 303d 	ldrb.w	r3, [r7, #61]	@ 0x3d
  80018be:	2b02      	cmp	r3, #2
- 80018c0:	d10f      	bne.n	80018e2 <ADBMS_Read_Data+0x162>
+ 80018c0:	d110      	bne.n	80018e4 <ADBMS_Read_Data+0x164>
             pec_error_2950 |= (rx_pec != calc_pec);
  80018c2:	f897 303e 	ldrb.w	r3, [r7, #62]	@ 0x3e
  80018c6:	8e79      	ldrh	r1, [r7, #50]	@ 0x32
@@ -2932,1128 +2932,1129 @@ void ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf,
  80018da:	2301      	movne	r3, #1
  80018dc:	2300      	moveq	r3, #0
  80018de:	f887 303e 	strb.w	r3, [r7, #62]	@ 0x3e
+ 80018e2:	e00f      	b.n	8001904 <ADBMS_Read_Data+0x184>
         }
-
-        pec_error_6830 |= (rx_pec != calc_pec);
- 80018e2:	f897 303f 	ldrb.w	r3, [r7, #63]	@ 0x3f
- 80018e6:	8e79      	ldrh	r1, [r7, #50]	@ 0x32
- 80018e8:	8e3a      	ldrh	r2, [r7, #48]	@ 0x30
- 80018ea:	4291      	cmp	r1, r2
- 80018ec:	bf14      	ite	ne
- 80018ee:	2201      	movne	r2, #1
- 80018f0:	2200      	moveq	r2, #0
- 80018f2:	b2d2      	uxtb	r2, r2
- 80018f4:	4313      	orrs	r3, r2
- 80018f6:	2b00      	cmp	r3, #0
- 80018f8:	bf14      	ite	ne
- 80018fa:	2301      	movne	r3, #1
- 80018fc:	2300      	moveq	r3, #0
- 80018fe:	f887 303f 	strb.w	r3, [r7, #63]	@ 0x3f
+        else{
+            pec_error_6830 |= (rx_pec != calc_pec);
+ 80018e4:	f897 303f 	ldrb.w	r3, [r7, #63]	@ 0x3f
+ 80018e8:	8e79      	ldrh	r1, [r7, #50]	@ 0x32
+ 80018ea:	8e3a      	ldrh	r2, [r7, #48]	@ 0x30
+ 80018ec:	4291      	cmp	r1, r2
+ 80018ee:	bf14      	ite	ne
+ 80018f0:	2201      	movne	r2, #1
+ 80018f2:	2200      	moveq	r2, #0
+ 80018f4:	b2d2      	uxtb	r2, r2
+ 80018f6:	4313      	orrs	r3, r2
+ 80018f8:	2b00      	cmp	r3, #0
+ 80018fa:	bf14      	ite	ne
+ 80018fc:	2301      	movne	r3, #1
+ 80018fe:	2300      	moveq	r3, #0
+ 8001900:	f887 303f 	strb.w	r3, [r7, #63]	@ 0x3f
     for(uint8_t cic = 0; cic < NUM_CHIPS; cic++)
- 8001902:	f897 303d 	ldrb.w	r3, [r7, #61]	@ 0x3d
- 8001906:	3301      	adds	r3, #1
- 8001908:	f887 303d 	strb.w	r3, [r7, #61]	@ 0x3d
- 800190c:	f897 303d 	ldrb.w	r3, [r7, #61]	@ 0x3d
- 8001910:	2b02      	cmp	r3, #2
- 8001912:	d986      	bls.n	8001822 <ADBMS_Read_Data+0xa2>
+ 8001904:	f897 303d 	ldrb.w	r3, [r7, #61]	@ 0x3d
+ 8001908:	3301      	adds	r3, #1
+ 800190a:	f887 303d 	strb.w	r3, [r7, #61]	@ 0x3d
+ 800190e:	f897 303d 	ldrb.w	r3, [r7, #61]	@ 0x3d
+ 8001912:	2b02      	cmp	r3, #2
+ 8001914:	d985      	bls.n	8001822 <ADBMS_Read_Data+0xa2>
+        }
     }
 
     pec_return-> pec_6830 = pec_error_6830;
- 8001914:	6cbb      	ldr	r3, [r7, #72]	@ 0x48
- 8001916:	f897 203f 	ldrb.w	r2, [r7, #63]	@ 0x3f
- 800191a:	705a      	strb	r2, [r3, #1]
+ 8001916:	6cbb      	ldr	r3, [r7, #72]	@ 0x48
+ 8001918:	f897 203f 	ldrb.w	r2, [r7, #63]	@ 0x3f
+ 800191c:	705a      	strb	r2, [r3, #1]
     pec_return-> pec_2950 = pec_error_2950; 
- 800191c:	6cbb      	ldr	r3, [r7, #72]	@ 0x48
- 800191e:	f897 203e 	ldrb.w	r2, [r7, #62]	@ 0x3e
- 8001922:	701a      	strb	r2, [r3, #0]
+ 800191e:	6cbb      	ldr	r3, [r7, #72]	@ 0x48
+ 8001920:	f897 203e 	ldrb.w	r2, [r7, #62]	@ 0x3e
+ 8001924:	701a      	strb	r2, [r3, #0]
     
 }
- 8001924:	bf00      	nop
- 8001926:	3740      	adds	r7, #64	@ 0x40
- 8001928:	46bd      	mov	sp, r7
- 800192a:	bd80      	pop	{r7, pc}
- 800192c:	58020000 	.word	0x58020000
- 8001930:	080194f8 	.word	0x080194f8
+ 8001926:	bf00      	nop
+ 8001928:	3740      	adds	r7, #64	@ 0x40
+ 800192a:	46bd      	mov	sp, r7
+ 800192c:	bd80      	pop	{r7, pc}
+ 800192e:	bf00      	nop
+ 8001930:	58020000 	.word	0x58020000
+ 8001934:	080194f8 	.word	0x080194f8
 
-08001934 <ADBMS_Initialize>:
+08001938 <ADBMS_Initialize>:
 #include "adbms_interface.h"
 
 
 void ADBMS_Initialize(adbms_raw_* adbms_raw, SPI_HandleTypeDef *hspi)
 {
- 8001934:	b580      	push	{r7, lr}
- 8001936:	b082      	sub	sp, #8
- 8001938:	af00      	add	r7, sp, #0
- 800193a:	6078      	str	r0, [r7, #4]
- 800193c:	6039      	str	r1, [r7, #0]
+ 8001938:	b580      	push	{r7, lr}
+ 800193a:	b082      	sub	sp, #8
+ 800193c:	af00      	add	r7, sp, #0
+ 800193e:	6078      	str	r0, [r7, #4]
+ 8001940:	6039      	str	r1, [r7, #0]
     adbms_raw->SPI_data.hspi = hspi;
- 800193e:	687b      	ldr	r3, [r7, #4]
- 8001940:	683a      	ldr	r2, [r7, #0]
- 8001942:	65da      	str	r2, [r3, #92]	@ 0x5c
+ 8001942:	687b      	ldr	r3, [r7, #4]
+ 8001944:	683a      	ldr	r2, [r7, #0]
+ 8001946:	65da      	str	r2, [r3, #92]	@ 0x5c
 
     //configuration parameter place
     ADBMS_6830_Config(&adbms_raw->command_parameters.parameter_6830,&adbms_raw->command_bit);
- 8001944:	687b      	ldr	r3, [r7, #4]
- 8001946:	332e      	adds	r3, #46	@ 0x2e
- 8001948:	687a      	ldr	r2, [r7, #4]
- 800194a:	4611      	mov	r1, r2
- 800194c:	4618      	mov	r0, r3
- 800194e:	f000 f91b 	bl	8001b88 <ADBMS_6830_Config>
+ 8001948:	687b      	ldr	r3, [r7, #4]
+ 800194a:	332e      	adds	r3, #46	@ 0x2e
+ 800194c:	687a      	ldr	r2, [r7, #4]
+ 800194e:	4611      	mov	r1, r2
+ 8001950:	4618      	mov	r0, r3
+ 8001952:	f000 f91b 	bl	8001b8c <ADBMS_6830_Config>
     ADBMS_2950_Config(&adbms_raw->command_parameters.parameter_2950,&adbms_raw->command_bit);
- 8001952:	687b      	ldr	r3, [r7, #4]
- 8001954:	334a      	adds	r3, #74	@ 0x4a
- 8001956:	687a      	ldr	r2, [r7, #4]
- 8001958:	4611      	mov	r1, r2
- 800195a:	4618      	mov	r0, r3
- 800195c:	f000 f974 	bl	8001c48 <ADBMS_2950_Config>
+ 8001956:	687b      	ldr	r3, [r7, #4]
+ 8001958:	334a      	adds	r3, #74	@ 0x4a
+ 800195a:	687a      	ldr	r2, [r7, #4]
+ 800195c:	4611      	mov	r1, r2
+ 800195e:	4618      	mov	r0, r3
+ 8001960:	f000 f974 	bl	8001c4c <ADBMS_2950_Config>
     ADBMS_joint_Config(&adbms_raw->command_parameters.parameter_joint,&adbms_raw->command_bit);
- 8001960:	687b      	ldr	r3, [r7, #4]
- 8001962:	3356      	adds	r3, #86	@ 0x56
- 8001964:	687a      	ldr	r2, [r7, #4]
- 8001966:	4611      	mov	r1, r2
- 8001968:	4618      	mov	r0, r3
- 800196a:	f000 f994 	bl	8001c96 <ADBMS_joint_Config>
+ 8001964:	687b      	ldr	r3, [r7, #4]
+ 8001966:	3356      	adds	r3, #86	@ 0x56
+ 8001968:	687a      	ldr	r2, [r7, #4]
+ 800196a:	4611      	mov	r1, r2
+ 800196c:	4618      	mov	r0, r3
+ 800196e:	f000 f994 	bl	8001c9a <ADBMS_joint_Config>
 
     //wakeup IC
     ADBMS_WakeUP_ICs();
- 800196e:	f7ff fe23 	bl	80015b8 <ADBMS_WakeUP_ICs>
-    ADBMS_WakeUP_ICs();
  8001972:	f7ff fe21 	bl	80015b8 <ADBMS_WakeUP_ICs>
+    ADBMS_WakeUP_ICs();
+ 8001976:	f7ff fe1f 	bl	80015b8 <ADBMS_WakeUP_ICs>
 
     //write data and commands
     ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGA, adbms_raw->command_bit.cfg_a, adbms_raw->SPI_data.spi_dataBuf);
- 8001976:	687b      	ldr	r3, [r7, #4]
- 8001978:	6dd8      	ldr	r0, [r3, #92]	@ 0x5c
- 800197a:	4b21      	ldr	r3, [pc, #132]	@ (8001a00 <ADBMS_Initialize+0xcc>)
- 800197c:	8819      	ldrh	r1, [r3, #0]
- 800197e:	687a      	ldr	r2, [r7, #4]
- 8001980:	687b      	ldr	r3, [r7, #4]
- 8001982:	3360      	adds	r3, #96	@ 0x60
- 8001984:	f7ff fe72 	bl	800166c <ADBMS_Write_Data>
+ 800197a:	687b      	ldr	r3, [r7, #4]
+ 800197c:	6dd8      	ldr	r0, [r3, #92]	@ 0x5c
+ 800197e:	4b21      	ldr	r3, [pc, #132]	@ (8001a04 <ADBMS_Initialize+0xcc>)
+ 8001980:	8819      	ldrh	r1, [r3, #0]
+ 8001982:	687a      	ldr	r2, [r7, #4]
+ 8001984:	687b      	ldr	r3, [r7, #4]
+ 8001986:	3360      	adds	r3, #96	@ 0x60
+ 8001988:	f7ff fe70 	bl	800166c <ADBMS_Write_Data>
     ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGB, adbms_raw->command_bit.cfg_b, adbms_raw->SPI_data.spi_dataBuf);
- 8001988:	687b      	ldr	r3, [r7, #4]
- 800198a:	6dd8      	ldr	r0, [r3, #92]	@ 0x5c
- 800198c:	4b1d      	ldr	r3, [pc, #116]	@ (8001a04 <ADBMS_Initialize+0xd0>)
- 800198e:	8819      	ldrh	r1, [r3, #0]
- 8001990:	687b      	ldr	r3, [r7, #4]
- 8001992:	f103 0212 	add.w	r2, r3, #18
- 8001996:	687b      	ldr	r3, [r7, #4]
- 8001998:	3360      	adds	r3, #96	@ 0x60
- 800199a:	f7ff fe67 	bl	800166c <ADBMS_Write_Data>
+ 800198c:	687b      	ldr	r3, [r7, #4]
+ 800198e:	6dd8      	ldr	r0, [r3, #92]	@ 0x5c
+ 8001990:	4b1d      	ldr	r3, [pc, #116]	@ (8001a08 <ADBMS_Initialize+0xd0>)
+ 8001992:	8819      	ldrh	r1, [r3, #0]
+ 8001994:	687b      	ldr	r3, [r7, #4]
+ 8001996:	f103 0212 	add.w	r2, r3, #18
+ 800199a:	687b      	ldr	r3, [r7, #4]
+ 800199c:	3360      	adds	r3, #96	@ 0x60
+ 800199e:	f7ff fe65 	bl	800166c <ADBMS_Write_Data>
 
     // Turn on sensing
     ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adcv);
- 800199e:	687b      	ldr	r3, [r7, #4]
- 80019a0:	6dda      	ldr	r2, [r3, #92]	@ 0x5c
  80019a2:	687b      	ldr	r3, [r7, #4]
- 80019a4:	8c9b      	ldrh	r3, [r3, #36]	@ 0x24
- 80019a6:	4619      	mov	r1, r3
- 80019a8:	4610      	mov	r0, r2
- 80019aa:	f7ff fe29 	bl	8001600 <ADBMS_Write_CMD>
+ 80019a4:	6dda      	ldr	r2, [r3, #92]	@ 0x5c
+ 80019a6:	687b      	ldr	r3, [r7, #4]
+ 80019a8:	8c9b      	ldrh	r3, [r3, #36]	@ 0x24
+ 80019aa:	4619      	mov	r1, r3
+ 80019ac:	4610      	mov	r0, r2
+ 80019ae:	f7ff fe27 	bl	8001600 <ADBMS_Write_CMD>
     HAL_Delay(1); // ADCs are updated at their conversion rate of 1ms
- 80019ae:	2001      	movs	r0, #1
- 80019b0:	f004 f84c 	bl	8005a4c <HAL_Delay>
+ 80019b2:	2001      	movs	r0, #1
+ 80019b4:	f004 f84a 	bl	8005a4c <HAL_Delay>
     ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adax);
- 80019b4:	687b      	ldr	r3, [r7, #4]
- 80019b6:	6dda      	ldr	r2, [r3, #92]	@ 0x5c
  80019b8:	687b      	ldr	r3, [r7, #4]
- 80019ba:	8d1b      	ldrh	r3, [r3, #40]	@ 0x28
- 80019bc:	4619      	mov	r1, r3
- 80019be:	4610      	mov	r0, r2
- 80019c0:	f7ff fe1e 	bl	8001600 <ADBMS_Write_CMD>
+ 80019ba:	6dda      	ldr	r2, [r3, #92]	@ 0x5c
+ 80019bc:	687b      	ldr	r3, [r7, #4]
+ 80019be:	8d1b      	ldrh	r3, [r3, #40]	@ 0x28
+ 80019c0:	4619      	mov	r1, r3
+ 80019c2:	4610      	mov	r0, r2
+ 80019c4:	f7ff fe1c 	bl	8001600 <ADBMS_Write_CMD>
     HAL_Delay(1); 
- 80019c4:	2001      	movs	r0, #1
- 80019c6:	f004 f841 	bl	8005a4c <HAL_Delay>
+ 80019c8:	2001      	movs	r0, #1
+ 80019ca:	f004 f83f 	bl	8005a4c <HAL_Delay>
     ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adsv);
- 80019ca:	687b      	ldr	r3, [r7, #4]
- 80019cc:	6dda      	ldr	r2, [r3, #92]	@ 0x5c
  80019ce:	687b      	ldr	r3, [r7, #4]
- 80019d0:	8cdb      	ldrh	r3, [r3, #38]	@ 0x26
- 80019d2:	4619      	mov	r1, r3
- 80019d4:	4610      	mov	r0, r2
- 80019d6:	f7ff fe13 	bl	8001600 <ADBMS_Write_CMD>
+ 80019d0:	6dda      	ldr	r2, [r3, #92]	@ 0x5c
+ 80019d2:	687b      	ldr	r3, [r7, #4]
+ 80019d4:	8cdb      	ldrh	r3, [r3, #38]	@ 0x26
+ 80019d6:	4619      	mov	r1, r3
+ 80019d8:	4610      	mov	r0, r2
+ 80019da:	f7ff fe11 	bl	8001600 <ADBMS_Write_CMD>
     HAL_Delay(1);
- 80019da:	2001      	movs	r0, #1
- 80019dc:	f004 f836 	bl	8005a4c <HAL_Delay>
+ 80019de:	2001      	movs	r0, #1
+ 80019e0:	f004 f834 	bl	8005a4c <HAL_Delay>
     ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adv); //new 2950 command to start V1adc and V2adc
- 80019e0:	687b      	ldr	r3, [r7, #4]
- 80019e2:	6dda      	ldr	r2, [r3, #92]	@ 0x5c
  80019e4:	687b      	ldr	r3, [r7, #4]
- 80019e6:	8d9b      	ldrh	r3, [r3, #44]	@ 0x2c
- 80019e8:	4619      	mov	r1, r3
- 80019ea:	4610      	mov	r0, r2
- 80019ec:	f7ff fe08 	bl	8001600 <ADBMS_Write_CMD>
+ 80019e6:	6dda      	ldr	r2, [r3, #92]	@ 0x5c
+ 80019e8:	687b      	ldr	r3, [r7, #4]
+ 80019ea:	8d9b      	ldrh	r3, [r3, #44]	@ 0x2c
+ 80019ec:	4619      	mov	r1, r3
+ 80019ee:	4610      	mov	r0, r2
+ 80019f0:	f7ff fe06 	bl	8001600 <ADBMS_Write_CMD>
     HAL_Delay(8);
- 80019f0:	2008      	movs	r0, #8
- 80019f2:	f004 f82b 	bl	8005a4c <HAL_Delay>
+ 80019f4:	2008      	movs	r0, #8
+ 80019f6:	f004 f829 	bl	8005a4c <HAL_Delay>
 }
- 80019f6:	bf00      	nop
- 80019f8:	3708      	adds	r7, #8
- 80019fa:	46bd      	mov	sp, r7
- 80019fc:	bd80      	pop	{r7, pc}
- 80019fe:	bf00      	nop
- 8001a00:	24000008 	.word	0x24000008
- 8001a04:	2400000a 	.word	0x2400000a
+ 80019fa:	bf00      	nop
+ 80019fc:	3708      	adds	r7, #8
+ 80019fe:	46bd      	mov	sp, r7
+ 8001a00:	bd80      	pop	{r7, pc}
+ 8001a02:	bf00      	nop
+ 8001a04:	24000008 	.word	0x24000008
+ 8001a08:	2400000a 	.word	0x2400000a
 
-08001a08 <ADBMS_Read_Voltages>:
+08001a0c <ADBMS_Read_Voltages>:
 
 void ADBMS_Read_Voltages(adbms_read_raw_* read_raw, voltage_read_type_ type, SPI_HandleTypeDef *hspi,uint8_t *spi_dataBuf)
 {
- 8001a08:	b580      	push	{r7, lr}
- 8001a0a:	b088      	sub	sp, #32
- 8001a0c:	af02      	add	r7, sp, #8
- 8001a0e:	60f8      	str	r0, [r7, #12]
- 8001a10:	607a      	str	r2, [r7, #4]
- 8001a12:	603b      	str	r3, [r7, #0]
- 8001a14:	460b      	mov	r3, r1
- 8001a16:	72fb      	strb	r3, [r7, #11]
+ 8001a0c:	b580      	push	{r7, lr}
+ 8001a0e:	b088      	sub	sp, #32
+ 8001a10:	af02      	add	r7, sp, #8
+ 8001a12:	60f8      	str	r0, [r7, #12]
+ 8001a14:	607a      	str	r2, [r7, #4]
+ 8001a16:	603b      	str	r3, [r7, #0]
+ 8001a18:	460b      	mov	r3, r1
+ 8001a1a:	72fb      	strb	r3, [r7, #11]
 
     bool pec = 0;
- 8001a18:	2300      	movs	r3, #0
- 8001a1a:	75fb      	strb	r3, [r7, #23]
+ 8001a1c:	2300      	movs	r3, #0
+ 8001a1e:	75fb      	strb	r3, [r7, #23]
 
     ADBMS_WakeUP_ICs();
- 8001a1c:	f7ff fdcc 	bl	80015b8 <ADBMS_WakeUP_ICs>
+ 8001a20:	f7ff fdca 	bl	80015b8 <ADBMS_WakeUP_ICs>
 
     switch (type)
- 8001a20:	7afb      	ldrb	r3, [r7, #11]
- 8001a22:	2b02      	cmp	r3, #2
- 8001a24:	d065      	beq.n	8001af2 <ADBMS_Read_Voltages+0xea>
+ 8001a24:	7afb      	ldrb	r3, [r7, #11]
  8001a26:	2b02      	cmp	r3, #2
- 8001a28:	f300 8092 	bgt.w	8001b50 <ADBMS_Read_Voltages+0x148>
- 8001a2c:	2b00      	cmp	r3, #0
- 8001a2e:	d002      	beq.n	8001a36 <ADBMS_Read_Voltages+0x2e>
- 8001a30:	2b01      	cmp	r3, #1
- 8001a32:	d02f      	beq.n	8001a94 <ADBMS_Read_Voltages+0x8c>
+ 8001a28:	d065      	beq.n	8001af6 <ADBMS_Read_Voltages+0xea>
+ 8001a2a:	2b02      	cmp	r3, #2
+ 8001a2c:	f300 8092 	bgt.w	8001b54 <ADBMS_Read_Voltages+0x148>
+ 8001a30:	2b00      	cmp	r3, #0
+ 8001a32:	d002      	beq.n	8001a3a <ADBMS_Read_Voltages+0x2e>
+ 8001a34:	2b01      	cmp	r3, #1
+ 8001a36:	d02f      	beq.n	8001a98 <ADBMS_Read_Voltages+0x8c>
             ADBMS_Read_Data(hspi, RDAUXC, (read_raw->read_return + 2 * NUM_CHIPS * DATA_LEN), spi_dataBuf,&read_raw->read_pec_failure);
             ADBMS_Read_Data(hspi, RDAUXD, (read_raw->read_return + 3 * NUM_CHIPS * DATA_LEN), spi_dataBuf,&read_raw->read_pec_failure);
             
     }
 
 }
- 8001a34:	e08c      	b.n	8001b50 <ADBMS_Read_Voltages+0x148>
+ 8001a38:	e08c      	b.n	8001b54 <ADBMS_Read_Voltages+0x148>
             ADBMS_Read_Data(hspi, RDCVA, (read_raw->read_return + 0 * NUM_CHIPS * DATA_LEN), spi_dataBuf,&read_raw->read_pec_failure); //read voltages 0-2 for each chip //read current for 2950 chip
- 8001a36:	4b48      	ldr	r3, [pc, #288]	@ (8001b58 <ADBMS_Read_Voltages+0x150>)
- 8001a38:	8819      	ldrh	r1, [r3, #0]
- 8001a3a:	68fa      	ldr	r2, [r7, #12]
- 8001a3c:	68fb      	ldr	r3, [r7, #12]
- 8001a3e:	336c      	adds	r3, #108	@ 0x6c
- 8001a40:	9300      	str	r3, [sp, #0]
- 8001a42:	683b      	ldr	r3, [r7, #0]
- 8001a44:	6878      	ldr	r0, [r7, #4]
- 8001a46:	f7ff fe9b 	bl	8001780 <ADBMS_Read_Data>
+ 8001a3a:	4b48      	ldr	r3, [pc, #288]	@ (8001b5c <ADBMS_Read_Voltages+0x150>)
+ 8001a3c:	8819      	ldrh	r1, [r3, #0]
+ 8001a3e:	68fa      	ldr	r2, [r7, #12]
+ 8001a40:	68fb      	ldr	r3, [r7, #12]
+ 8001a42:	336c      	adds	r3, #108	@ 0x6c
+ 8001a44:	9300      	str	r3, [sp, #0]
+ 8001a46:	683b      	ldr	r3, [r7, #0]
+ 8001a48:	6878      	ldr	r0, [r7, #4]
+ 8001a4a:	f7ff fe99 	bl	8001780 <ADBMS_Read_Data>
             ADBMS_Read_Data(hspi, RDCVB, (read_raw->read_return + 1 * NUM_CHIPS * DATA_LEN), spi_dataBuf,&read_raw->read_pec_failure); //read voltages 3-5 for each chip
- 8001a4a:	4b44      	ldr	r3, [pc, #272]	@ (8001b5c <ADBMS_Read_Voltages+0x154>)
- 8001a4c:	8819      	ldrh	r1, [r3, #0]
- 8001a4e:	68fb      	ldr	r3, [r7, #12]
- 8001a50:	f103 0212 	add.w	r2, r3, #18
- 8001a54:	68fb      	ldr	r3, [r7, #12]
- 8001a56:	336c      	adds	r3, #108	@ 0x6c
- 8001a58:	9300      	str	r3, [sp, #0]
- 8001a5a:	683b      	ldr	r3, [r7, #0]
- 8001a5c:	6878      	ldr	r0, [r7, #4]
- 8001a5e:	f7ff fe8f 	bl	8001780 <ADBMS_Read_Data>
+ 8001a4e:	4b44      	ldr	r3, [pc, #272]	@ (8001b60 <ADBMS_Read_Voltages+0x154>)
+ 8001a50:	8819      	ldrh	r1, [r3, #0]
+ 8001a52:	68fb      	ldr	r3, [r7, #12]
+ 8001a54:	f103 0212 	add.w	r2, r3, #18
+ 8001a58:	68fb      	ldr	r3, [r7, #12]
+ 8001a5a:	336c      	adds	r3, #108	@ 0x6c
+ 8001a5c:	9300      	str	r3, [sp, #0]
+ 8001a5e:	683b      	ldr	r3, [r7, #0]
+ 8001a60:	6878      	ldr	r0, [r7, #4]
+ 8001a62:	f7ff fe8d 	bl	8001780 <ADBMS_Read_Data>
             ADBMS_Read_Data(hspi, RDCVC, (read_raw->read_return + 2 * NUM_CHIPS * DATA_LEN), spi_dataBuf,&read_raw->read_pec_failure); //read voltages 6-8 for each chip
- 8001a62:	4b3f      	ldr	r3, [pc, #252]	@ (8001b60 <ADBMS_Read_Voltages+0x158>)
- 8001a64:	8819      	ldrh	r1, [r3, #0]
- 8001a66:	68fb      	ldr	r3, [r7, #12]
- 8001a68:	f103 0224 	add.w	r2, r3, #36	@ 0x24
- 8001a6c:	68fb      	ldr	r3, [r7, #12]
- 8001a6e:	336c      	adds	r3, #108	@ 0x6c
- 8001a70:	9300      	str	r3, [sp, #0]
- 8001a72:	683b      	ldr	r3, [r7, #0]
- 8001a74:	6878      	ldr	r0, [r7, #4]
- 8001a76:	f7ff fe83 	bl	8001780 <ADBMS_Read_Data>
+ 8001a66:	4b3f      	ldr	r3, [pc, #252]	@ (8001b64 <ADBMS_Read_Voltages+0x158>)
+ 8001a68:	8819      	ldrh	r1, [r3, #0]
+ 8001a6a:	68fb      	ldr	r3, [r7, #12]
+ 8001a6c:	f103 0224 	add.w	r2, r3, #36	@ 0x24
+ 8001a70:	68fb      	ldr	r3, [r7, #12]
+ 8001a72:	336c      	adds	r3, #108	@ 0x6c
+ 8001a74:	9300      	str	r3, [sp, #0]
+ 8001a76:	683b      	ldr	r3, [r7, #0]
+ 8001a78:	6878      	ldr	r0, [r7, #4]
+ 8001a7a:	f7ff fe81 	bl	8001780 <ADBMS_Read_Data>
             ADBMS_Read_Data(hspi, RDCVD, (read_raw->read_return + 3 * NUM_CHIPS * DATA_LEN), spi_dataBuf,&read_raw->read_pec_failure); //read voltages 9-11 for each chip
- 8001a7a:	4b3a      	ldr	r3, [pc, #232]	@ (8001b64 <ADBMS_Read_Voltages+0x15c>)
- 8001a7c:	8819      	ldrh	r1, [r3, #0]
- 8001a7e:	68fb      	ldr	r3, [r7, #12]
- 8001a80:	f103 0236 	add.w	r2, r3, #54	@ 0x36
- 8001a84:	68fb      	ldr	r3, [r7, #12]
- 8001a86:	336c      	adds	r3, #108	@ 0x6c
- 8001a88:	9300      	str	r3, [sp, #0]
- 8001a8a:	683b      	ldr	r3, [r7, #0]
- 8001a8c:	6878      	ldr	r0, [r7, #4]
- 8001a8e:	f7ff fe77 	bl	8001780 <ADBMS_Read_Data>
+ 8001a7e:	4b3a      	ldr	r3, [pc, #232]	@ (8001b68 <ADBMS_Read_Voltages+0x15c>)
+ 8001a80:	8819      	ldrh	r1, [r3, #0]
+ 8001a82:	68fb      	ldr	r3, [r7, #12]
+ 8001a84:	f103 0236 	add.w	r2, r3, #54	@ 0x36
+ 8001a88:	68fb      	ldr	r3, [r7, #12]
+ 8001a8a:	336c      	adds	r3, #108	@ 0x6c
+ 8001a8c:	9300      	str	r3, [sp, #0]
+ 8001a8e:	683b      	ldr	r3, [r7, #0]
+ 8001a90:	6878      	ldr	r0, [r7, #4]
+ 8001a92:	f7ff fe75 	bl	8001780 <ADBMS_Read_Data>
             break;
- 8001a92:	e05d      	b.n	8001b50 <ADBMS_Read_Voltages+0x148>
+ 8001a96:	e05d      	b.n	8001b54 <ADBMS_Read_Voltages+0x148>
             ADBMS_Read_Data(hspi, RDSVA, (read_raw->read_return + 0 * NUM_CHIPS * DATA_LEN), spi_dataBuf,&read_raw->read_pec_failure);
- 8001a94:	4b34      	ldr	r3, [pc, #208]	@ (8001b68 <ADBMS_Read_Voltages+0x160>)
- 8001a96:	8819      	ldrh	r1, [r3, #0]
- 8001a98:	68fa      	ldr	r2, [r7, #12]
- 8001a9a:	68fb      	ldr	r3, [r7, #12]
- 8001a9c:	336c      	adds	r3, #108	@ 0x6c
- 8001a9e:	9300      	str	r3, [sp, #0]
- 8001aa0:	683b      	ldr	r3, [r7, #0]
- 8001aa2:	6878      	ldr	r0, [r7, #4]
- 8001aa4:	f7ff fe6c 	bl	8001780 <ADBMS_Read_Data>
+ 8001a98:	4b34      	ldr	r3, [pc, #208]	@ (8001b6c <ADBMS_Read_Voltages+0x160>)
+ 8001a9a:	8819      	ldrh	r1, [r3, #0]
+ 8001a9c:	68fa      	ldr	r2, [r7, #12]
+ 8001a9e:	68fb      	ldr	r3, [r7, #12]
+ 8001aa0:	336c      	adds	r3, #108	@ 0x6c
+ 8001aa2:	9300      	str	r3, [sp, #0]
+ 8001aa4:	683b      	ldr	r3, [r7, #0]
+ 8001aa6:	6878      	ldr	r0, [r7, #4]
+ 8001aa8:	f7ff fe6a 	bl	8001780 <ADBMS_Read_Data>
             ADBMS_Read_Data(hspi, RDSVB, (read_raw->read_return + 1 * NUM_CHIPS * DATA_LEN), spi_dataBuf,&read_raw->read_pec_failure);
- 8001aa8:	4b30      	ldr	r3, [pc, #192]	@ (8001b6c <ADBMS_Read_Voltages+0x164>)
- 8001aaa:	8819      	ldrh	r1, [r3, #0]
- 8001aac:	68fb      	ldr	r3, [r7, #12]
- 8001aae:	f103 0212 	add.w	r2, r3, #18
- 8001ab2:	68fb      	ldr	r3, [r7, #12]
- 8001ab4:	336c      	adds	r3, #108	@ 0x6c
- 8001ab6:	9300      	str	r3, [sp, #0]
- 8001ab8:	683b      	ldr	r3, [r7, #0]
- 8001aba:	6878      	ldr	r0, [r7, #4]
- 8001abc:	f7ff fe60 	bl	8001780 <ADBMS_Read_Data>
+ 8001aac:	4b30      	ldr	r3, [pc, #192]	@ (8001b70 <ADBMS_Read_Voltages+0x164>)
+ 8001aae:	8819      	ldrh	r1, [r3, #0]
+ 8001ab0:	68fb      	ldr	r3, [r7, #12]
+ 8001ab2:	f103 0212 	add.w	r2, r3, #18
+ 8001ab6:	68fb      	ldr	r3, [r7, #12]
+ 8001ab8:	336c      	adds	r3, #108	@ 0x6c
+ 8001aba:	9300      	str	r3, [sp, #0]
+ 8001abc:	683b      	ldr	r3, [r7, #0]
+ 8001abe:	6878      	ldr	r0, [r7, #4]
+ 8001ac0:	f7ff fe5e 	bl	8001780 <ADBMS_Read_Data>
             ADBMS_Read_Data(hspi, RDSVC, (read_raw->read_return + 2 * NUM_CHIPS * DATA_LEN), spi_dataBuf,&read_raw->read_pec_failure);
- 8001ac0:	4b2b      	ldr	r3, [pc, #172]	@ (8001b70 <ADBMS_Read_Voltages+0x168>)
- 8001ac2:	8819      	ldrh	r1, [r3, #0]
- 8001ac4:	68fb      	ldr	r3, [r7, #12]
- 8001ac6:	f103 0224 	add.w	r2, r3, #36	@ 0x24
- 8001aca:	68fb      	ldr	r3, [r7, #12]
- 8001acc:	336c      	adds	r3, #108	@ 0x6c
- 8001ace:	9300      	str	r3, [sp, #0]
- 8001ad0:	683b      	ldr	r3, [r7, #0]
- 8001ad2:	6878      	ldr	r0, [r7, #4]
- 8001ad4:	f7ff fe54 	bl	8001780 <ADBMS_Read_Data>
+ 8001ac4:	4b2b      	ldr	r3, [pc, #172]	@ (8001b74 <ADBMS_Read_Voltages+0x168>)
+ 8001ac6:	8819      	ldrh	r1, [r3, #0]
+ 8001ac8:	68fb      	ldr	r3, [r7, #12]
+ 8001aca:	f103 0224 	add.w	r2, r3, #36	@ 0x24
+ 8001ace:	68fb      	ldr	r3, [r7, #12]
+ 8001ad0:	336c      	adds	r3, #108	@ 0x6c
+ 8001ad2:	9300      	str	r3, [sp, #0]
+ 8001ad4:	683b      	ldr	r3, [r7, #0]
+ 8001ad6:	6878      	ldr	r0, [r7, #4]
+ 8001ad8:	f7ff fe52 	bl	8001780 <ADBMS_Read_Data>
             ADBMS_Read_Data(hspi, RDSVD, (read_raw->read_return + 3 * NUM_CHIPS * DATA_LEN), spi_dataBuf,&read_raw->read_pec_failure);
- 8001ad8:	4b26      	ldr	r3, [pc, #152]	@ (8001b74 <ADBMS_Read_Voltages+0x16c>)
- 8001ada:	8819      	ldrh	r1, [r3, #0]
- 8001adc:	68fb      	ldr	r3, [r7, #12]
- 8001ade:	f103 0236 	add.w	r2, r3, #54	@ 0x36
- 8001ae2:	68fb      	ldr	r3, [r7, #12]
- 8001ae4:	336c      	adds	r3, #108	@ 0x6c
- 8001ae6:	9300      	str	r3, [sp, #0]
- 8001ae8:	683b      	ldr	r3, [r7, #0]
- 8001aea:	6878      	ldr	r0, [r7, #4]
- 8001aec:	f7ff fe48 	bl	8001780 <ADBMS_Read_Data>
+ 8001adc:	4b26      	ldr	r3, [pc, #152]	@ (8001b78 <ADBMS_Read_Voltages+0x16c>)
+ 8001ade:	8819      	ldrh	r1, [r3, #0]
+ 8001ae0:	68fb      	ldr	r3, [r7, #12]
+ 8001ae2:	f103 0236 	add.w	r2, r3, #54	@ 0x36
+ 8001ae6:	68fb      	ldr	r3, [r7, #12]
+ 8001ae8:	336c      	adds	r3, #108	@ 0x6c
+ 8001aea:	9300      	str	r3, [sp, #0]
+ 8001aec:	683b      	ldr	r3, [r7, #0]
+ 8001aee:	6878      	ldr	r0, [r7, #4]
+ 8001af0:	f7ff fe46 	bl	8001780 <ADBMS_Read_Data>
             break;
- 8001af0:	e02e      	b.n	8001b50 <ADBMS_Read_Voltages+0x148>
+ 8001af4:	e02e      	b.n	8001b54 <ADBMS_Read_Voltages+0x148>
             ADBMS_Read_Data(hspi, RDAUXA, (read_raw->read_return + 0 * NUM_CHIPS * DATA_LEN), spi_dataBuf,&read_raw->read_pec_failure);
- 8001af2:	4b21      	ldr	r3, [pc, #132]	@ (8001b78 <ADBMS_Read_Voltages+0x170>)
- 8001af4:	8819      	ldrh	r1, [r3, #0]
- 8001af6:	68fa      	ldr	r2, [r7, #12]
- 8001af8:	68fb      	ldr	r3, [r7, #12]
- 8001afa:	336c      	adds	r3, #108	@ 0x6c
- 8001afc:	9300      	str	r3, [sp, #0]
- 8001afe:	683b      	ldr	r3, [r7, #0]
- 8001b00:	6878      	ldr	r0, [r7, #4]
- 8001b02:	f7ff fe3d 	bl	8001780 <ADBMS_Read_Data>
+ 8001af6:	4b21      	ldr	r3, [pc, #132]	@ (8001b7c <ADBMS_Read_Voltages+0x170>)
+ 8001af8:	8819      	ldrh	r1, [r3, #0]
+ 8001afa:	68fa      	ldr	r2, [r7, #12]
+ 8001afc:	68fb      	ldr	r3, [r7, #12]
+ 8001afe:	336c      	adds	r3, #108	@ 0x6c
+ 8001b00:	9300      	str	r3, [sp, #0]
+ 8001b02:	683b      	ldr	r3, [r7, #0]
+ 8001b04:	6878      	ldr	r0, [r7, #4]
+ 8001b06:	f7ff fe3b 	bl	8001780 <ADBMS_Read_Data>
             ADBMS_Read_Data(hspi, RDAUXB, (read_raw->read_return + 1 * NUM_CHIPS * DATA_LEN), spi_dataBuf,&read_raw->read_pec_failure);
- 8001b06:	4b1d      	ldr	r3, [pc, #116]	@ (8001b7c <ADBMS_Read_Voltages+0x174>)
- 8001b08:	8819      	ldrh	r1, [r3, #0]
- 8001b0a:	68fb      	ldr	r3, [r7, #12]
- 8001b0c:	f103 0212 	add.w	r2, r3, #18
- 8001b10:	68fb      	ldr	r3, [r7, #12]
- 8001b12:	336c      	adds	r3, #108	@ 0x6c
- 8001b14:	9300      	str	r3, [sp, #0]
- 8001b16:	683b      	ldr	r3, [r7, #0]
- 8001b18:	6878      	ldr	r0, [r7, #4]
- 8001b1a:	f7ff fe31 	bl	8001780 <ADBMS_Read_Data>
+ 8001b0a:	4b1d      	ldr	r3, [pc, #116]	@ (8001b80 <ADBMS_Read_Voltages+0x174>)
+ 8001b0c:	8819      	ldrh	r1, [r3, #0]
+ 8001b0e:	68fb      	ldr	r3, [r7, #12]
+ 8001b10:	f103 0212 	add.w	r2, r3, #18
+ 8001b14:	68fb      	ldr	r3, [r7, #12]
+ 8001b16:	336c      	adds	r3, #108	@ 0x6c
+ 8001b18:	9300      	str	r3, [sp, #0]
+ 8001b1a:	683b      	ldr	r3, [r7, #0]
+ 8001b1c:	6878      	ldr	r0, [r7, #4]
+ 8001b1e:	f7ff fe2f 	bl	8001780 <ADBMS_Read_Data>
             ADBMS_Read_Data(hspi, RDAUXC, (read_raw->read_return + 2 * NUM_CHIPS * DATA_LEN), spi_dataBuf,&read_raw->read_pec_failure);
- 8001b1e:	4b18      	ldr	r3, [pc, #96]	@ (8001b80 <ADBMS_Read_Voltages+0x178>)
- 8001b20:	8819      	ldrh	r1, [r3, #0]
- 8001b22:	68fb      	ldr	r3, [r7, #12]
- 8001b24:	f103 0224 	add.w	r2, r3, #36	@ 0x24
- 8001b28:	68fb      	ldr	r3, [r7, #12]
- 8001b2a:	336c      	adds	r3, #108	@ 0x6c
- 8001b2c:	9300      	str	r3, [sp, #0]
- 8001b2e:	683b      	ldr	r3, [r7, #0]
- 8001b30:	6878      	ldr	r0, [r7, #4]
- 8001b32:	f7ff fe25 	bl	8001780 <ADBMS_Read_Data>
+ 8001b22:	4b18      	ldr	r3, [pc, #96]	@ (8001b84 <ADBMS_Read_Voltages+0x178>)
+ 8001b24:	8819      	ldrh	r1, [r3, #0]
+ 8001b26:	68fb      	ldr	r3, [r7, #12]
+ 8001b28:	f103 0224 	add.w	r2, r3, #36	@ 0x24
+ 8001b2c:	68fb      	ldr	r3, [r7, #12]
+ 8001b2e:	336c      	adds	r3, #108	@ 0x6c
+ 8001b30:	9300      	str	r3, [sp, #0]
+ 8001b32:	683b      	ldr	r3, [r7, #0]
+ 8001b34:	6878      	ldr	r0, [r7, #4]
+ 8001b36:	f7ff fe23 	bl	8001780 <ADBMS_Read_Data>
             ADBMS_Read_Data(hspi, RDAUXD, (read_raw->read_return + 3 * NUM_CHIPS * DATA_LEN), spi_dataBuf,&read_raw->read_pec_failure);
- 8001b36:	4b13      	ldr	r3, [pc, #76]	@ (8001b84 <ADBMS_Read_Voltages+0x17c>)
- 8001b38:	8819      	ldrh	r1, [r3, #0]
- 8001b3a:	68fb      	ldr	r3, [r7, #12]
- 8001b3c:	f103 0236 	add.w	r2, r3, #54	@ 0x36
- 8001b40:	68fb      	ldr	r3, [r7, #12]
- 8001b42:	336c      	adds	r3, #108	@ 0x6c
- 8001b44:	9300      	str	r3, [sp, #0]
- 8001b46:	683b      	ldr	r3, [r7, #0]
- 8001b48:	6878      	ldr	r0, [r7, #4]
- 8001b4a:	f7ff fe19 	bl	8001780 <ADBMS_Read_Data>
+ 8001b3a:	4b13      	ldr	r3, [pc, #76]	@ (8001b88 <ADBMS_Read_Voltages+0x17c>)
+ 8001b3c:	8819      	ldrh	r1, [r3, #0]
+ 8001b3e:	68fb      	ldr	r3, [r7, #12]
+ 8001b40:	f103 0236 	add.w	r2, r3, #54	@ 0x36
+ 8001b44:	68fb      	ldr	r3, [r7, #12]
+ 8001b46:	336c      	adds	r3, #108	@ 0x6c
+ 8001b48:	9300      	str	r3, [sp, #0]
+ 8001b4a:	683b      	ldr	r3, [r7, #0]
+ 8001b4c:	6878      	ldr	r0, [r7, #4]
+ 8001b4e:	f7ff fe17 	bl	8001780 <ADBMS_Read_Data>
 }
- 8001b4e:	e7ff      	b.n	8001b50 <ADBMS_Read_Voltages+0x148>
- 8001b50:	bf00      	nop
- 8001b52:	3718      	adds	r7, #24
- 8001b54:	46bd      	mov	sp, r7
- 8001b56:	bd80      	pop	{r7, pc}
- 8001b58:	2400000c 	.word	0x2400000c
- 8001b5c:	2400000e 	.word	0x2400000e
- 8001b60:	24000010 	.word	0x24000010
- 8001b64:	24000012 	.word	0x24000012
- 8001b68:	24000014 	.word	0x24000014
- 8001b6c:	24000016 	.word	0x24000016
- 8001b70:	24000018 	.word	0x24000018
- 8001b74:	2400001a 	.word	0x2400001a
- 8001b78:	2400001c 	.word	0x2400001c
- 8001b7c:	2400001e 	.word	0x2400001e
- 8001b80:	24000020 	.word	0x24000020
- 8001b84:	24000022 	.word	0x24000022
+ 8001b52:	e7ff      	b.n	8001b54 <ADBMS_Read_Voltages+0x148>
+ 8001b54:	bf00      	nop
+ 8001b56:	3718      	adds	r7, #24
+ 8001b58:	46bd      	mov	sp, r7
+ 8001b5a:	bd80      	pop	{r7, pc}
+ 8001b5c:	2400000c 	.word	0x2400000c
+ 8001b60:	2400000e 	.word	0x2400000e
+ 8001b64:	24000010 	.word	0x24000010
+ 8001b68:	24000012 	.word	0x24000012
+ 8001b6c:	24000014 	.word	0x24000014
+ 8001b70:	24000016 	.word	0x24000016
+ 8001b74:	24000018 	.word	0x24000018
+ 8001b78:	2400001a 	.word	0x2400001a
+ 8001b7c:	2400001c 	.word	0x2400001c
+ 8001b80:	2400001e 	.word	0x2400001e
+ 8001b84:	24000020 	.word	0x24000020
+ 8001b88:	24000022 	.word	0x24000022
 
-08001b88 <ADBMS_6830_Config>:
+08001b8c <ADBMS_6830_Config>:
 
 //
 // Chip Configurations
 //
 void ADBMS_6830_Config(command_parameters_6830_* parameters,config_command_bits_* command_bits){
- 8001b88:	b580      	push	{r7, lr}
- 8001b8a:	b084      	sub	sp, #16
- 8001b8c:	af00      	add	r7, sp, #0
- 8001b8e:	6078      	str	r0, [r7, #4]
- 8001b90:	6039      	str	r1, [r7, #0]
+ 8001b8c:	b580      	push	{r7, lr}
+ 8001b8e:	b084      	sub	sp, #16
+ 8001b90:	af00      	add	r7, sp, #0
+ 8001b92:	6078      	str	r0, [r7, #4]
+ 8001b94:	6039      	str	r1, [r7, #0]
 
     // Set initial configurations
     for (uint8_t cic = 0; cic < (NUM_6830); cic++)
- 8001b92:	2300      	movs	r3, #0
- 8001b94:	73fb      	strb	r3, [r7, #15]
- 8001b96:	e03e      	b.n	8001c16 <ADBMS_6830_Config+0x8e>
+ 8001b96:	2300      	movs	r3, #0
+ 8001b98:	73fb      	strb	r3, [r7, #15]
+ 8001b9a:	e03e      	b.n	8001c1a <ADBMS_6830_Config+0x8e>
     {
         // Init config A
         parameters->cfa6830[cic].refon = 1;
- 8001b98:	7bfa      	ldrb	r2, [r7, #15]
- 8001b9a:	6879      	ldr	r1, [r7, #4]
- 8001b9c:	4613      	mov	r3, r2
- 8001b9e:	005b      	lsls	r3, r3, #1
- 8001ba0:	4413      	add	r3, r2
+ 8001b9c:	7bfa      	ldrb	r2, [r7, #15]
+ 8001b9e:	6879      	ldr	r1, [r7, #4]
+ 8001ba0:	4613      	mov	r3, r2
  8001ba2:	005b      	lsls	r3, r3, #1
- 8001ba4:	18ca      	adds	r2, r1, r3
- 8001ba6:	7813      	ldrb	r3, [r2, #0]
- 8001ba8:	f043 0301 	orr.w	r3, r3, #1
- 8001bac:	7013      	strb	r3, [r2, #0]
+ 8001ba4:	4413      	add	r3, r2
+ 8001ba6:	005b      	lsls	r3, r3, #1
+ 8001ba8:	18ca      	adds	r2, r1, r3
+ 8001baa:	7813      	ldrb	r3, [r2, #0]
+ 8001bac:	f043 0301 	orr.w	r3, r3, #1
+ 8001bb0:	7013      	strb	r3, [r2, #0]
         parameters->cfa6830[cic].gpo = 0x3FF;  // all gpo tunred on
- 8001bae:	7bfa      	ldrb	r2, [r7, #15]
- 8001bb0:	6879      	ldr	r1, [r7, #4]
- 8001bb2:	4613      	mov	r3, r2
- 8001bb4:	005b      	lsls	r3, r3, #1
- 8001bb6:	4413      	add	r3, r2
+ 8001bb2:	7bfa      	ldrb	r2, [r7, #15]
+ 8001bb4:	6879      	ldr	r1, [r7, #4]
+ 8001bb6:	4613      	mov	r3, r2
  8001bb8:	005b      	lsls	r3, r3, #1
- 8001bba:	18ca      	adds	r2, r1, r3
- 8001bbc:	8853      	ldrh	r3, [r2, #2]
- 8001bbe:	f240 31ff 	movw	r1, #1023	@ 0x3ff
- 8001bc2:	f361 134e 	bfi	r3, r1, #5, #10
- 8001bc6:	8053      	strh	r3, [r2, #2]
+ 8001bba:	4413      	add	r3, r2
+ 8001bbc:	005b      	lsls	r3, r3, #1
+ 8001bbe:	18ca      	adds	r2, r1, r3
+ 8001bc0:	8853      	ldrh	r3, [r2, #2]
+ 8001bc2:	f240 31ff 	movw	r1, #1023	@ 0x3ff
+ 8001bc6:	f361 134e 	bfi	r3, r1, #5, #10
+ 8001bca:	8053      	strh	r3, [r2, #2]
 
         // Init config B
         parameters->cfb6830[cic].vuv = Set_UnderOver_Voltage_Threshold(UNDERVOLTAGE);
- 8001bc8:	eeb0 0a04 	vmov.f32	s0, #4	@ 0x40200000  2.5
- 8001bcc:	f7fe ff5c 	bl	8000a88 <Set_UnderOver_Voltage_Threshold>
- 8001bd0:	4603      	mov	r3, r0
- 8001bd2:	461a      	mov	r2, r3
- 8001bd4:	7bfb      	ldrb	r3, [r7, #15]
- 8001bd6:	f3c2 020b 	ubfx	r2, r2, #0, #12
- 8001bda:	b291      	uxth	r1, r2
- 8001bdc:	687a      	ldr	r2, [r7, #4]
- 8001bde:	3301      	adds	r3, #1
- 8001be0:	00db      	lsls	r3, r3, #3
- 8001be2:	4413      	add	r3, r2
- 8001be4:	889a      	ldrh	r2, [r3, #4]
- 8001be6:	f361 020b 	bfi	r2, r1, #0, #12
- 8001bea:	809a      	strh	r2, [r3, #4]
+ 8001bcc:	eeb0 0a04 	vmov.f32	s0, #4	@ 0x40200000  2.5
+ 8001bd0:	f7fe ff5a 	bl	8000a88 <Set_UnderOver_Voltage_Threshold>
+ 8001bd4:	4603      	mov	r3, r0
+ 8001bd6:	461a      	mov	r2, r3
+ 8001bd8:	7bfb      	ldrb	r3, [r7, #15]
+ 8001bda:	f3c2 020b 	ubfx	r2, r2, #0, #12
+ 8001bde:	b291      	uxth	r1, r2
+ 8001be0:	687a      	ldr	r2, [r7, #4]
+ 8001be2:	3301      	adds	r3, #1
+ 8001be4:	00db      	lsls	r3, r3, #3
+ 8001be6:	4413      	add	r3, r2
+ 8001be8:	889a      	ldrh	r2, [r3, #4]
+ 8001bea:	f361 020b 	bfi	r2, r1, #0, #12
+ 8001bee:	809a      	strh	r2, [r3, #4]
         parameters->cfb6830[cic].vov = Set_UnderOver_Voltage_Threshold(OVERVOLTAGE);
- 8001bec:	ed9f 0a15 	vldr	s0, [pc, #84]	@ 8001c44 <ADBMS_6830_Config+0xbc>
- 8001bf0:	f7fe ff4a 	bl	8000a88 <Set_UnderOver_Voltage_Threshold>
- 8001bf4:	4603      	mov	r3, r0
- 8001bf6:	461a      	mov	r2, r3
- 8001bf8:	7bfb      	ldrb	r3, [r7, #15]
- 8001bfa:	f3c2 020b 	ubfx	r2, r2, #0, #12
- 8001bfe:	b291      	uxth	r1, r2
- 8001c00:	687a      	ldr	r2, [r7, #4]
- 8001c02:	3301      	adds	r3, #1
- 8001c04:	00db      	lsls	r3, r3, #3
- 8001c06:	4413      	add	r3, r2
- 8001c08:	88da      	ldrh	r2, [r3, #6]
- 8001c0a:	f361 020b 	bfi	r2, r1, #0, #12
- 8001c0e:	80da      	strh	r2, [r3, #6]
+ 8001bf0:	ed9f 0a15 	vldr	s0, [pc, #84]	@ 8001c48 <ADBMS_6830_Config+0xbc>
+ 8001bf4:	f7fe ff48 	bl	8000a88 <Set_UnderOver_Voltage_Threshold>
+ 8001bf8:	4603      	mov	r3, r0
+ 8001bfa:	461a      	mov	r2, r3
+ 8001bfc:	7bfb      	ldrb	r3, [r7, #15]
+ 8001bfe:	f3c2 020b 	ubfx	r2, r2, #0, #12
+ 8001c02:	b291      	uxth	r1, r2
+ 8001c04:	687a      	ldr	r2, [r7, #4]
+ 8001c06:	3301      	adds	r3, #1
+ 8001c08:	00db      	lsls	r3, r3, #3
+ 8001c0a:	4413      	add	r3, r2
+ 8001c0c:	88da      	ldrh	r2, [r3, #6]
+ 8001c0e:	f361 020b 	bfi	r2, r1, #0, #12
+ 8001c12:	80da      	strh	r2, [r3, #6]
     for (uint8_t cic = 0; cic < (NUM_6830); cic++)
- 8001c10:	7bfb      	ldrb	r3, [r7, #15]
- 8001c12:	3301      	adds	r3, #1
- 8001c14:	73fb      	strb	r3, [r7, #15]
- 8001c16:	7bfb      	ldrb	r3, [r7, #15]
- 8001c18:	2b01      	cmp	r3, #1
- 8001c1a:	d9bd      	bls.n	8001b98 <ADBMS_6830_Config+0x10>
+ 8001c14:	7bfb      	ldrb	r3, [r7, #15]
+ 8001c16:	3301      	adds	r3, #1
+ 8001c18:	73fb      	strb	r3, [r7, #15]
+ 8001c1a:	7bfb      	ldrb	r3, [r7, #15]
+ 8001c1c:	2b01      	cmp	r3, #1
+ 8001c1e:	d9bd      	bls.n	8001b9c <ADBMS_6830_Config+0x10>
         
     }
 
     ADBMS_Set_Config_A_6830(parameters->cfa6830,command_bits->cfg_a, NUM_6830, POSITION_6830); //sets for all 6830
- 8001c1c:	6878      	ldr	r0, [r7, #4]
- 8001c1e:	6839      	ldr	r1, [r7, #0]
- 8001c20:	2300      	movs	r3, #0
- 8001c22:	2202      	movs	r2, #2
- 8001c24:	f7fe ff6c 	bl	8000b00 <ADBMS_Set_Config_A_6830>
+ 8001c20:	6878      	ldr	r0, [r7, #4]
+ 8001c22:	6839      	ldr	r1, [r7, #0]
+ 8001c24:	2300      	movs	r3, #0
+ 8001c26:	2202      	movs	r2, #2
+ 8001c28:	f7fe ff6a 	bl	8000b00 <ADBMS_Set_Config_A_6830>
     ADBMS_Set_Config_B_6830(parameters->cfb6830,command_bits->cfg_b, NUM_6830, POSITION_6830); // sets for all 6830
- 8001c28:	687b      	ldr	r3, [r7, #4]
- 8001c2a:	f103 000c 	add.w	r0, r3, #12
- 8001c2e:	683b      	ldr	r3, [r7, #0]
- 8001c30:	f103 0112 	add.w	r1, r3, #18
- 8001c34:	2300      	movs	r3, #0
- 8001c36:	2202      	movs	r2, #2
- 8001c38:	f7ff f882 	bl	8000d40 <ADBMS_Set_Config_B_6830>
+ 8001c2c:	687b      	ldr	r3, [r7, #4]
+ 8001c2e:	f103 000c 	add.w	r0, r3, #12
+ 8001c32:	683b      	ldr	r3, [r7, #0]
+ 8001c34:	f103 0112 	add.w	r1, r3, #18
+ 8001c38:	2300      	movs	r3, #0
+ 8001c3a:	2202      	movs	r2, #2
+ 8001c3c:	f7ff f880 	bl	8000d40 <ADBMS_Set_Config_B_6830>
     
 }
- 8001c3c:	bf00      	nop
- 8001c3e:	3710      	adds	r7, #16
- 8001c40:	46bd      	mov	sp, r7
- 8001c42:	bd80      	pop	{r7, pc}
- 8001c44:	40866666 	.word	0x40866666
+ 8001c40:	bf00      	nop
+ 8001c42:	3710      	adds	r7, #16
+ 8001c44:	46bd      	mov	sp, r7
+ 8001c46:	bd80      	pop	{r7, pc}
+ 8001c48:	40866666 	.word	0x40866666
 
-08001c48 <ADBMS_2950_Config>:
+08001c4c <ADBMS_2950_Config>:
 
 void ADBMS_2950_Config(command_parameters_2950_* parameters, config_command_bits_* command_bits){
- 8001c48:	b580      	push	{r7, lr}
- 8001c4a:	b082      	sub	sp, #8
- 8001c4c:	af00      	add	r7, sp, #0
- 8001c4e:	6078      	str	r0, [r7, #4]
- 8001c50:	6039      	str	r1, [r7, #0]
+ 8001c4c:	b580      	push	{r7, lr}
+ 8001c4e:	b082      	sub	sp, #8
+ 8001c50:	af00      	add	r7, sp, #0
+ 8001c52:	6078      	str	r0, [r7, #4]
+ 8001c54:	6039      	str	r1, [r7, #0]
 
     //
     //cfa configs
     //
     parameters->cfa2950.refup = 1; //refup to 1
- 8001c52:	687a      	ldr	r2, [r7, #4]
- 8001c54:	7953      	ldrb	r3, [r2, #5]
- 8001c56:	f043 0304 	orr.w	r3, r3, #4
- 8001c5a:	7153      	strb	r3, [r2, #5]
+ 8001c56:	687a      	ldr	r2, [r7, #4]
+ 8001c58:	7953      	ldrb	r3, [r2, #5]
+ 8001c5a:	f043 0304 	orr.w	r3, r3, #4
+ 8001c5e:	7153      	strb	r3, [r2, #5]
     parameters->cfa2950.gpo1c = 1; //for opening the mosfet for vbat
- 8001c5c:	687a      	ldr	r2, [r7, #4]
- 8001c5e:	78d3      	ldrb	r3, [r2, #3]
- 8001c60:	f043 0340 	orr.w	r3, r3, #64	@ 0x40
- 8001c64:	70d3      	strb	r3, [r2, #3]
+ 8001c60:	687a      	ldr	r2, [r7, #4]
+ 8001c62:	78d3      	ldrb	r3, [r2, #3]
+ 8001c64:	f043 0340 	orr.w	r3, r3, #64	@ 0x40
+ 8001c68:	70d3      	strb	r3, [r2, #3]
     parameters->cfa2950.gpo1od = 0; //for opening the mosfet for vbat
- 8001c66:	687a      	ldr	r2, [r7, #4]
- 8001c68:	7913      	ldrb	r3, [r2, #4]
- 8001c6a:	f023 0340 	bic.w	r3, r3, #64	@ 0x40
- 8001c6e:	7113      	strb	r3, [r2, #4]
+ 8001c6a:	687a      	ldr	r2, [r7, #4]
+ 8001c6c:	7913      	ldrb	r3, [r2, #4]
+ 8001c6e:	f023 0340 	bic.w	r3, r3, #64	@ 0x40
+ 8001c72:	7113      	strb	r3, [r2, #4]
 
     ADBMS_Set_Config_A_2950(&parameters->cfa2950,command_bits->cfg_a, NUM_2950,POSITION_2950); //2950 is the last chip on the daisychain
- 8001c70:	6878      	ldr	r0, [r7, #4]
- 8001c72:	6839      	ldr	r1, [r7, #0]
- 8001c74:	2301      	movs	r3, #1
- 8001c76:	2201      	movs	r2, #1
- 8001c78:	f7ff f926 	bl	8000ec8 <ADBMS_Set_Config_A_2950>
+ 8001c74:	6878      	ldr	r0, [r7, #4]
+ 8001c76:	6839      	ldr	r1, [r7, #0]
+ 8001c78:	2301      	movs	r3, #1
+ 8001c7a:	2201      	movs	r2, #1
+ 8001c7c:	f7ff f924 	bl	8000ec8 <ADBMS_Set_Config_A_2950>
 
     //
     //no cfb configs for now
     //
     ADBMS_Set_Config_B_2950(&parameters->cfb2950,command_bits->cfg_b, NUM_2950,POSITION_2950); //2950 is the last chip on the daisychain
- 8001c7c:	687b      	ldr	r3, [r7, #4]
- 8001c7e:	1d98      	adds	r0, r3, #6
- 8001c80:	683b      	ldr	r3, [r7, #0]
- 8001c82:	f103 0112 	add.w	r1, r3, #18
- 8001c86:	2301      	movs	r3, #1
- 8001c88:	2201      	movs	r2, #1
- 8001c8a:	f7ff fac0 	bl	800120e <ADBMS_Set_Config_B_2950>
+ 8001c80:	687b      	ldr	r3, [r7, #4]
+ 8001c82:	1d98      	adds	r0, r3, #6
+ 8001c84:	683b      	ldr	r3, [r7, #0]
+ 8001c86:	f103 0112 	add.w	r1, r3, #18
+ 8001c8a:	2301      	movs	r3, #1
+ 8001c8c:	2201      	movs	r2, #1
+ 8001c8e:	f7ff fabe 	bl	800120e <ADBMS_Set_Config_B_2950>
 
     
 }
- 8001c8e:	bf00      	nop
- 8001c90:	3708      	adds	r7, #8
- 8001c92:	46bd      	mov	sp, r7
- 8001c94:	bd80      	pop	{r7, pc}
+ 8001c92:	bf00      	nop
+ 8001c94:	3708      	adds	r7, #8
+ 8001c96:	46bd      	mov	sp, r7
+ 8001c98:	bd80      	pop	{r7, pc}
 
-08001c96 <ADBMS_joint_Config>:
+08001c9a <ADBMS_joint_Config>:
 
 void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bits_* command_bits){
- 8001c96:	b580      	push	{r7, lr}
- 8001c98:	b082      	sub	sp, #8
- 8001c9a:	af00      	add	r7, sp, #0
- 8001c9c:	6078      	str	r0, [r7, #4]
- 8001c9e:	6039      	str	r1, [r7, #0]
+ 8001c9a:	b580      	push	{r7, lr}
+ 8001c9c:	b082      	sub	sp, #8
+ 8001c9e:	af00      	add	r7, sp, #0
+ 8001ca0:	6078      	str	r0, [r7, #4]
+ 8001ca2:	6039      	str	r1, [r7, #0]
 
     //
     //adcv configs
     //
     parameters->adcv.cont = 1; //Init sensing cmd
- 8001ca0:	687a      	ldr	r2, [r7, #4]
- 8001ca2:	7813      	ldrb	r3, [r2, #0]
- 8001ca4:	f043 0302 	orr.w	r3, r3, #2
- 8001ca8:	7013      	strb	r3, [r2, #0]
+ 8001ca4:	687a      	ldr	r2, [r7, #4]
+ 8001ca6:	7813      	ldrb	r3, [r2, #0]
+ 8001ca8:	f043 0302 	orr.w	r3, r3, #2
+ 8001cac:	7013      	strb	r3, [r2, #0]
 
     ADBMS_Set_ADCV(parameters->adcv, &command_bits->adcv); // set adcv
- 8001caa:	683b      	ldr	r3, [r7, #0]
- 8001cac:	f103 0224 	add.w	r2, r3, #36	@ 0x24
- 8001cb0:	687b      	ldr	r3, [r7, #4]
- 8001cb2:	4611      	mov	r1, r2
- 8001cb4:	7818      	ldrb	r0, [r3, #0]
- 8001cb6:	f7ff fb9f 	bl	80013f8 <ADBMS_Set_ADCV>
+ 8001cae:	683b      	ldr	r3, [r7, #0]
+ 8001cb0:	f103 0224 	add.w	r2, r3, #36	@ 0x24
+ 8001cb4:	687b      	ldr	r3, [r7, #4]
+ 8001cb6:	4611      	mov	r1, r2
+ 8001cb8:	7818      	ldrb	r0, [r3, #0]
+ 8001cba:	f7ff fb9d 	bl	80013f8 <ADBMS_Set_ADCV>
 
 
     //
     //adsv configs
     //
     parameters->adsv.cont = 1; // for 2950 measurements
- 8001cba:	687a      	ldr	r2, [r7, #4]
- 8001cbc:	7853      	ldrb	r3, [r2, #1]
- 8001cbe:	f043 0301 	orr.w	r3, r3, #1
- 8001cc2:	7053      	strb	r3, [r2, #1]
+ 8001cbe:	687a      	ldr	r2, [r7, #4]
+ 8001cc0:	7853      	ldrb	r3, [r2, #1]
+ 8001cc2:	f043 0301 	orr.w	r3, r3, #1
+ 8001cc6:	7053      	strb	r3, [r2, #1]
 
     ADBMS_Set_ADSV(parameters->adsv, &command_bits->adsv); //set adsv
- 8001cc4:	683b      	ldr	r3, [r7, #0]
- 8001cc6:	f103 0226 	add.w	r2, r3, #38	@ 0x26
- 8001cca:	687b      	ldr	r3, [r7, #4]
- 8001ccc:	4611      	mov	r1, r2
- 8001cce:	7858      	ldrb	r0, [r3, #1]
- 8001cd0:	f7ff fbdd 	bl	800148e <ADBMS_Set_ADSV>
+ 8001cc8:	683b      	ldr	r3, [r7, #0]
+ 8001cca:	f103 0226 	add.w	r2, r3, #38	@ 0x26
+ 8001cce:	687b      	ldr	r3, [r7, #4]
+ 8001cd0:	4611      	mov	r1, r2
+ 8001cd2:	7858      	ldrb	r0, [r3, #1]
+ 8001cd4:	f7ff fbdb 	bl	800148e <ADBMS_Set_ADSV>
 
     //
     //adax configs
     //
     ADBMS_Set_ADAX(parameters->adax,&command_bits->adax); //set adax
- 8001cd4:	683b      	ldr	r3, [r7, #0]
- 8001cd6:	f103 0228 	add.w	r2, r3, #40	@ 0x28
- 8001cda:	687b      	ldr	r3, [r7, #4]
- 8001cdc:	4611      	mov	r1, r2
- 8001cde:	7898      	ldrb	r0, [r3, #2]
- 8001ce0:	f7ff fc08 	bl	80014f4 <ADBMS_Set_ADAX>
+ 8001cd8:	683b      	ldr	r3, [r7, #0]
+ 8001cda:	f103 0228 	add.w	r2, r3, #40	@ 0x28
+ 8001cde:	687b      	ldr	r3, [r7, #4]
+ 8001ce0:	4611      	mov	r1, r2
+ 8001ce2:	7898      	ldrb	r0, [r3, #2]
+ 8001ce4:	f7ff fc06 	bl	80014f4 <ADBMS_Set_ADAX>
 
 
     //
     //adv configs
     //
     parameters->adv.ow = 0;  //open_wire source off
- 8001ce4:	687a      	ldr	r2, [r7, #4]
- 8001ce6:	7913      	ldrb	r3, [r2, #4]
- 8001ce8:	f023 0303 	bic.w	r3, r3, #3
- 8001cec:	7113      	strb	r3, [r2, #4]
+ 8001ce8:	687a      	ldr	r2, [r7, #4]
+ 8001cea:	7913      	ldrb	r3, [r2, #4]
+ 8001cec:	f023 0303 	bic.w	r3, r3, #3
+ 8001cf0:	7113      	strb	r3, [r2, #4]
     parameters->adv.vch = 0; //vch = 0 (this is complicated, for reference check datasheet table 57/58)
- 8001cee:	687a      	ldr	r2, [r7, #4]
- 8001cf0:	7913      	ldrb	r3, [r2, #4]
- 8001cf2:	f023 033c 	bic.w	r3, r3, #60	@ 0x3c
- 8001cf6:	7113      	strb	r3, [r2, #4]
+ 8001cf2:	687a      	ldr	r2, [r7, #4]
+ 8001cf4:	7913      	ldrb	r3, [r2, #4]
+ 8001cf6:	f023 033c 	bic.w	r3, r3, #60	@ 0x3c
+ 8001cfa:	7113      	strb	r3, [r2, #4]
 
     ADBMS_Set_ADV(parameters->adv, &command_bits->adv); //set adv
- 8001cf8:	683b      	ldr	r3, [r7, #0]
- 8001cfa:	f103 022c 	add.w	r2, r3, #44	@ 0x2c
- 8001cfe:	687b      	ldr	r3, [r7, #4]
- 8001d00:	4611      	mov	r1, r2
- 8001d02:	7918      	ldrb	r0, [r3, #4]
- 8001d04:	f7ff fc35 	bl	8001572 <ADBMS_Set_ADV>
+ 8001cfc:	683b      	ldr	r3, [r7, #0]
+ 8001cfe:	f103 022c 	add.w	r2, r3, #44	@ 0x2c
+ 8001d02:	687b      	ldr	r3, [r7, #4]
+ 8001d04:	4611      	mov	r1, r2
+ 8001d06:	7918      	ldrb	r0, [r3, #4]
+ 8001d08:	f7ff fc33 	bl	8001572 <ADBMS_Set_ADV>
 }
- 8001d08:	bf00      	nop
- 8001d0a:	3708      	adds	r7, #8
- 8001d0c:	46bd      	mov	sp, r7
- 8001d0e:	bd80      	pop	{r7, pc}
+ 8001d0c:	bf00      	nop
+ 8001d0e:	3708      	adds	r7, #8
+ 8001d10:	46bd      	mov	sp, r7
+ 8001d12:	bd80      	pop	{r7, pc}
 
-08001d10 <ADBMS_Owc_Config>:
+08001d14 <ADBMS_Owc_Config>:
 // these are all configuration or reads for open-wire checks
 //
 // this also repeats quite a lot, i think i can change this too
 
 void ADBMS_Owc_Config(adbms_raw_* adbms, Owc_Channel_ channel, Owc_Mode_ mode)
 {
- 8001d10:	b580      	push	{r7, lr}
- 8001d12:	b082      	sub	sp, #8
- 8001d14:	af00      	add	r7, sp, #0
- 8001d16:	6078      	str	r0, [r7, #4]
- 8001d18:	460b      	mov	r3, r1
- 8001d1a:	70fb      	strb	r3, [r7, #3]
- 8001d1c:	4613      	mov	r3, r2
- 8001d1e:	70bb      	strb	r3, [r7, #2]
+ 8001d14:	b580      	push	{r7, lr}
+ 8001d16:	b082      	sub	sp, #8
+ 8001d18:	af00      	add	r7, sp, #0
+ 8001d1a:	6078      	str	r0, [r7, #4]
+ 8001d1c:	460b      	mov	r3, r1
+ 8001d1e:	70fb      	strb	r3, [r7, #3]
+ 8001d20:	4613      	mov	r3, r2
+ 8001d22:	70bb      	strb	r3, [r7, #2]
     ADBMS_WakeUP_ICs();
- 8001d20:	f7ff fc4a 	bl	80015b8 <ADBMS_WakeUP_ICs>
+ 8001d24:	f7ff fc48 	bl	80015b8 <ADBMS_WakeUP_ICs>
 
     switch(channel)
- 8001d24:	78fb      	ldrb	r3, [r7, #3]
- 8001d26:	2b00      	cmp	r3, #0
- 8001d28:	d002      	beq.n	8001d30 <ADBMS_Owc_Config+0x20>
- 8001d2a:	2b01      	cmp	r3, #1
- 8001d2c:	d04e      	beq.n	8001dcc <ADBMS_Owc_Config+0xbc>
+ 8001d28:	78fb      	ldrb	r3, [r7, #3]
+ 8001d2a:	2b00      	cmp	r3, #0
+ 8001d2c:	d002      	beq.n	8001d34 <ADBMS_Owc_Config+0x20>
+ 8001d2e:	2b01      	cmp	r3, #1
+ 8001d30:	d04e      	beq.n	8001dd0 <ADBMS_Owc_Config+0xbc>
             ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
             ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
             HAL_Delay(1);
             break;
     }
 }
- 8001d2e:	e09b      	b.n	8001e68 <ADBMS_Owc_Config+0x158>
+ 8001d32:	e09b      	b.n	8001e6c <ADBMS_Owc_Config+0x158>
             switch(mode)
- 8001d30:	78bb      	ldrb	r3, [r7, #2]
- 8001d32:	2b02      	cmp	r3, #2
- 8001d34:	d006      	beq.n	8001d44 <ADBMS_Owc_Config+0x34>
+ 8001d34:	78bb      	ldrb	r3, [r7, #2]
  8001d36:	2b02      	cmp	r3, #2
- 8001d38:	dc33      	bgt.n	8001da2 <ADBMS_Owc_Config+0x92>
- 8001d3a:	2b00      	cmp	r3, #0
- 8001d3c:	d021      	beq.n	8001d82 <ADBMS_Owc_Config+0x72>
- 8001d3e:	2b01      	cmp	r3, #1
- 8001d40:	d00f      	beq.n	8001d62 <ADBMS_Owc_Config+0x52>
- 8001d42:	e02e      	b.n	8001da2 <ADBMS_Owc_Config+0x92>
+ 8001d38:	d006      	beq.n	8001d48 <ADBMS_Owc_Config+0x34>
+ 8001d3a:	2b02      	cmp	r3, #2
+ 8001d3c:	dc33      	bgt.n	8001da6 <ADBMS_Owc_Config+0x92>
+ 8001d3e:	2b00      	cmp	r3, #0
+ 8001d40:	d021      	beq.n	8001d86 <ADBMS_Owc_Config+0x72>
+ 8001d42:	2b01      	cmp	r3, #1
+ 8001d44:	d00f      	beq.n	8001d66 <ADBMS_Owc_Config+0x52>
+ 8001d46:	e02e      	b.n	8001da6 <ADBMS_Owc_Config+0x92>
                     adbms->command_parameters.parameter_joint.adcv.cont = 1;
- 8001d44:	687a      	ldr	r2, [r7, #4]
- 8001d46:	f892 3056 	ldrb.w	r3, [r2, #86]	@ 0x56
- 8001d4a:	f043 0302 	orr.w	r3, r3, #2
- 8001d4e:	f882 3056 	strb.w	r3, [r2, #86]	@ 0x56
+ 8001d48:	687a      	ldr	r2, [r7, #4]
+ 8001d4a:	f892 3056 	ldrb.w	r3, [r2, #86]	@ 0x56
+ 8001d4e:	f043 0302 	orr.w	r3, r3, #2
+ 8001d52:	f882 3056 	strb.w	r3, [r2, #86]	@ 0x56
                     adbms->command_parameters.parameter_joint.adcv.ow = 0; //Disable OW
- 8001d52:	687a      	ldr	r2, [r7, #4]
- 8001d54:	f892 3056 	ldrb.w	r3, [r2, #86]	@ 0x56
- 8001d58:	f023 0330 	bic.w	r3, r3, #48	@ 0x30
- 8001d5c:	f882 3056 	strb.w	r3, [r2, #86]	@ 0x56
+ 8001d56:	687a      	ldr	r2, [r7, #4]
+ 8001d58:	f892 3056 	ldrb.w	r3, [r2, #86]	@ 0x56
+ 8001d5c:	f023 0330 	bic.w	r3, r3, #48	@ 0x30
+ 8001d60:	f882 3056 	strb.w	r3, [r2, #86]	@ 0x56
                     break;
- 8001d60:	e01f      	b.n	8001da2 <ADBMS_Owc_Config+0x92>
+ 8001d64:	e01f      	b.n	8001da6 <ADBMS_Owc_Config+0x92>
                     adbms->command_parameters.parameter_joint.adcv.cont = 1;
- 8001d62:	687a      	ldr	r2, [r7, #4]
- 8001d64:	f892 3056 	ldrb.w	r3, [r2, #86]	@ 0x56
- 8001d68:	f043 0302 	orr.w	r3, r3, #2
- 8001d6c:	f882 3056 	strb.w	r3, [r2, #86]	@ 0x56
+ 8001d66:	687a      	ldr	r2, [r7, #4]
+ 8001d68:	f892 3056 	ldrb.w	r3, [r2, #86]	@ 0x56
+ 8001d6c:	f043 0302 	orr.w	r3, r3, #2
+ 8001d70:	f882 3056 	strb.w	r3, [r2, #86]	@ 0x56
                     adbms->command_parameters.parameter_joint.adcv.ow = 1; //Enable Even Channel OW
- 8001d70:	687a      	ldr	r2, [r7, #4]
- 8001d72:	f892 3056 	ldrb.w	r3, [r2, #86]	@ 0x56
- 8001d76:	2101      	movs	r1, #1
- 8001d78:	f361 1305 	bfi	r3, r1, #4, #2
- 8001d7c:	f882 3056 	strb.w	r3, [r2, #86]	@ 0x56
+ 8001d74:	687a      	ldr	r2, [r7, #4]
+ 8001d76:	f892 3056 	ldrb.w	r3, [r2, #86]	@ 0x56
+ 8001d7a:	2101      	movs	r1, #1
+ 8001d7c:	f361 1305 	bfi	r3, r1, #4, #2
+ 8001d80:	f882 3056 	strb.w	r3, [r2, #86]	@ 0x56
                     break;
- 8001d80:	e00f      	b.n	8001da2 <ADBMS_Owc_Config+0x92>
+ 8001d84:	e00f      	b.n	8001da6 <ADBMS_Owc_Config+0x92>
                     adbms->command_parameters.parameter_joint.adcv.cont = 1;
- 8001d82:	687a      	ldr	r2, [r7, #4]
- 8001d84:	f892 3056 	ldrb.w	r3, [r2, #86]	@ 0x56
- 8001d88:	f043 0302 	orr.w	r3, r3, #2
- 8001d8c:	f882 3056 	strb.w	r3, [r2, #86]	@ 0x56
+ 8001d86:	687a      	ldr	r2, [r7, #4]
+ 8001d88:	f892 3056 	ldrb.w	r3, [r2, #86]	@ 0x56
+ 8001d8c:	f043 0302 	orr.w	r3, r3, #2
+ 8001d90:	f882 3056 	strb.w	r3, [r2, #86]	@ 0x56
                     adbms->command_parameters.parameter_joint.adcv.ow = 2; //Enable Odd Channel OW
- 8001d90:	687a      	ldr	r2, [r7, #4]
- 8001d92:	f892 3056 	ldrb.w	r3, [r2, #86]	@ 0x56
- 8001d96:	2102      	movs	r1, #2
- 8001d98:	f361 1305 	bfi	r3, r1, #4, #2
- 8001d9c:	f882 3056 	strb.w	r3, [r2, #86]	@ 0x56
+ 8001d94:	687a      	ldr	r2, [r7, #4]
+ 8001d96:	f892 3056 	ldrb.w	r3, [r2, #86]	@ 0x56
+ 8001d9a:	2102      	movs	r1, #2
+ 8001d9c:	f361 1305 	bfi	r3, r1, #4, #2
+ 8001da0:	f882 3056 	strb.w	r3, [r2, #86]	@ 0x56
                     break;
- 8001da0:	bf00      	nop
+ 8001da4:	bf00      	nop
             ADBMS_Set_ADCV(adbms->command_parameters.parameter_joint.adcv, &adbms->command_bit.adcv);
- 8001da2:	687b      	ldr	r3, [r7, #4]
- 8001da4:	f103 0224 	add.w	r2, r3, #36	@ 0x24
- 8001da8:	687b      	ldr	r3, [r7, #4]
- 8001daa:	4611      	mov	r1, r2
- 8001dac:	f893 0056 	ldrb.w	r0, [r3, #86]	@ 0x56
- 8001db0:	f7ff fb22 	bl	80013f8 <ADBMS_Set_ADCV>
+ 8001da6:	687b      	ldr	r3, [r7, #4]
+ 8001da8:	f103 0224 	add.w	r2, r3, #36	@ 0x24
+ 8001dac:	687b      	ldr	r3, [r7, #4]
+ 8001dae:	4611      	mov	r1, r2
+ 8001db0:	f893 0056 	ldrb.w	r0, [r3, #86]	@ 0x56
+ 8001db4:	f7ff fb20 	bl	80013f8 <ADBMS_Set_ADCV>
             ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
- 8001db4:	687b      	ldr	r3, [r7, #4]
- 8001db6:	6dda      	ldr	r2, [r3, #92]	@ 0x5c
  8001db8:	687b      	ldr	r3, [r7, #4]
- 8001dba:	8c9b      	ldrh	r3, [r3, #36]	@ 0x24
- 8001dbc:	4619      	mov	r1, r3
- 8001dbe:	4610      	mov	r0, r2
- 8001dc0:	f7ff fc1e 	bl	8001600 <ADBMS_Write_CMD>
+ 8001dba:	6dda      	ldr	r2, [r3, #92]	@ 0x5c
+ 8001dbc:	687b      	ldr	r3, [r7, #4]
+ 8001dbe:	8c9b      	ldrh	r3, [r3, #36]	@ 0x24
+ 8001dc0:	4619      	mov	r1, r3
+ 8001dc2:	4610      	mov	r0, r2
+ 8001dc4:	f7ff fc1c 	bl	8001600 <ADBMS_Write_CMD>
             HAL_Delay(1);
- 8001dc4:	2001      	movs	r0, #1
- 8001dc6:	f003 fe41 	bl	8005a4c <HAL_Delay>
+ 8001dc8:	2001      	movs	r0, #1
+ 8001dca:	f003 fe3f 	bl	8005a4c <HAL_Delay>
             break;
- 8001dca:	e04d      	b.n	8001e68 <ADBMS_Owc_Config+0x158>
+ 8001dce:	e04d      	b.n	8001e6c <ADBMS_Owc_Config+0x158>
             switch(mode)
- 8001dcc:	78bb      	ldrb	r3, [r7, #2]
- 8001dce:	2b02      	cmp	r3, #2
- 8001dd0:	d006      	beq.n	8001de0 <ADBMS_Owc_Config+0xd0>
+ 8001dd0:	78bb      	ldrb	r3, [r7, #2]
  8001dd2:	2b02      	cmp	r3, #2
- 8001dd4:	dc33      	bgt.n	8001e3e <ADBMS_Owc_Config+0x12e>
- 8001dd6:	2b00      	cmp	r3, #0
- 8001dd8:	d021      	beq.n	8001e1e <ADBMS_Owc_Config+0x10e>
- 8001dda:	2b01      	cmp	r3, #1
- 8001ddc:	d00f      	beq.n	8001dfe <ADBMS_Owc_Config+0xee>
- 8001dde:	e02e      	b.n	8001e3e <ADBMS_Owc_Config+0x12e>
+ 8001dd4:	d006      	beq.n	8001de4 <ADBMS_Owc_Config+0xd0>
+ 8001dd6:	2b02      	cmp	r3, #2
+ 8001dd8:	dc33      	bgt.n	8001e42 <ADBMS_Owc_Config+0x12e>
+ 8001dda:	2b00      	cmp	r3, #0
+ 8001ddc:	d021      	beq.n	8001e22 <ADBMS_Owc_Config+0x10e>
+ 8001dde:	2b01      	cmp	r3, #1
+ 8001de0:	d00f      	beq.n	8001e02 <ADBMS_Owc_Config+0xee>
+ 8001de2:	e02e      	b.n	8001e42 <ADBMS_Owc_Config+0x12e>
                     adbms->command_parameters.parameter_joint.adsv.cont = 1;
- 8001de0:	687a      	ldr	r2, [r7, #4]
- 8001de2:	f892 3057 	ldrb.w	r3, [r2, #87]	@ 0x57
- 8001de6:	f043 0301 	orr.w	r3, r3, #1
- 8001dea:	f882 3057 	strb.w	r3, [r2, #87]	@ 0x57
+ 8001de4:	687a      	ldr	r2, [r7, #4]
+ 8001de6:	f892 3057 	ldrb.w	r3, [r2, #87]	@ 0x57
+ 8001dea:	f043 0301 	orr.w	r3, r3, #1
+ 8001dee:	f882 3057 	strb.w	r3, [r2, #87]	@ 0x57
                     adbms->command_parameters.parameter_joint.adsv.ow = 0; //Disable OW 
- 8001dee:	687a      	ldr	r2, [r7, #4]
- 8001df0:	f892 3057 	ldrb.w	r3, [r2, #87]	@ 0x57
- 8001df4:	f023 030c 	bic.w	r3, r3, #12
- 8001df8:	f882 3057 	strb.w	r3, [r2, #87]	@ 0x57
+ 8001df2:	687a      	ldr	r2, [r7, #4]
+ 8001df4:	f892 3057 	ldrb.w	r3, [r2, #87]	@ 0x57
+ 8001df8:	f023 030c 	bic.w	r3, r3, #12
+ 8001dfc:	f882 3057 	strb.w	r3, [r2, #87]	@ 0x57
                     break;
- 8001dfc:	e01f      	b.n	8001e3e <ADBMS_Owc_Config+0x12e>
+ 8001e00:	e01f      	b.n	8001e42 <ADBMS_Owc_Config+0x12e>
                     adbms->command_parameters.parameter_joint.adsv.cont = 1;
- 8001dfe:	687a      	ldr	r2, [r7, #4]
- 8001e00:	f892 3057 	ldrb.w	r3, [r2, #87]	@ 0x57
- 8001e04:	f043 0301 	orr.w	r3, r3, #1
- 8001e08:	f882 3057 	strb.w	r3, [r2, #87]	@ 0x57
+ 8001e02:	687a      	ldr	r2, [r7, #4]
+ 8001e04:	f892 3057 	ldrb.w	r3, [r2, #87]	@ 0x57
+ 8001e08:	f043 0301 	orr.w	r3, r3, #1
+ 8001e0c:	f882 3057 	strb.w	r3, [r2, #87]	@ 0x57
                     adbms->command_parameters.parameter_joint.adsv.ow = 1; // Enable OW on even-channel 
- 8001e0c:	687a      	ldr	r2, [r7, #4]
- 8001e0e:	f892 3057 	ldrb.w	r3, [r2, #87]	@ 0x57
- 8001e12:	2101      	movs	r1, #1
- 8001e14:	f361 0383 	bfi	r3, r1, #2, #2
- 8001e18:	f882 3057 	strb.w	r3, [r2, #87]	@ 0x57
+ 8001e10:	687a      	ldr	r2, [r7, #4]
+ 8001e12:	f892 3057 	ldrb.w	r3, [r2, #87]	@ 0x57
+ 8001e16:	2101      	movs	r1, #1
+ 8001e18:	f361 0383 	bfi	r3, r1, #2, #2
+ 8001e1c:	f882 3057 	strb.w	r3, [r2, #87]	@ 0x57
                     break;
- 8001e1c:	e00f      	b.n	8001e3e <ADBMS_Owc_Config+0x12e>
+ 8001e20:	e00f      	b.n	8001e42 <ADBMS_Owc_Config+0x12e>
                     adbms->command_parameters.parameter_joint.adsv.cont = 1;
- 8001e1e:	687a      	ldr	r2, [r7, #4]
- 8001e20:	f892 3057 	ldrb.w	r3, [r2, #87]	@ 0x57
- 8001e24:	f043 0301 	orr.w	r3, r3, #1
- 8001e28:	f882 3057 	strb.w	r3, [r2, #87]	@ 0x57
+ 8001e22:	687a      	ldr	r2, [r7, #4]
+ 8001e24:	f892 3057 	ldrb.w	r3, [r2, #87]	@ 0x57
+ 8001e28:	f043 0301 	orr.w	r3, r3, #1
+ 8001e2c:	f882 3057 	strb.w	r3, [r2, #87]	@ 0x57
                     adbms->command_parameters.parameter_joint.adsv.ow = 2; // Enable OW on odd-channel 
- 8001e2c:	687a      	ldr	r2, [r7, #4]
- 8001e2e:	f892 3057 	ldrb.w	r3, [r2, #87]	@ 0x57
- 8001e32:	2102      	movs	r1, #2
- 8001e34:	f361 0383 	bfi	r3, r1, #2, #2
- 8001e38:	f882 3057 	strb.w	r3, [r2, #87]	@ 0x57
+ 8001e30:	687a      	ldr	r2, [r7, #4]
+ 8001e32:	f892 3057 	ldrb.w	r3, [r2, #87]	@ 0x57
+ 8001e36:	2102      	movs	r1, #2
+ 8001e38:	f361 0383 	bfi	r3, r1, #2, #2
+ 8001e3c:	f882 3057 	strb.w	r3, [r2, #87]	@ 0x57
                     break;
- 8001e3c:	bf00      	nop
+ 8001e40:	bf00      	nop
             ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
- 8001e3e:	687b      	ldr	r3, [r7, #4]
- 8001e40:	f103 0226 	add.w	r2, r3, #38	@ 0x26
- 8001e44:	687b      	ldr	r3, [r7, #4]
- 8001e46:	4611      	mov	r1, r2
- 8001e48:	f893 0057 	ldrb.w	r0, [r3, #87]	@ 0x57
- 8001e4c:	f7ff fb1f 	bl	800148e <ADBMS_Set_ADSV>
+ 8001e42:	687b      	ldr	r3, [r7, #4]
+ 8001e44:	f103 0226 	add.w	r2, r3, #38	@ 0x26
+ 8001e48:	687b      	ldr	r3, [r7, #4]
+ 8001e4a:	4611      	mov	r1, r2
+ 8001e4c:	f893 0057 	ldrb.w	r0, [r3, #87]	@ 0x57
+ 8001e50:	f7ff fb1d 	bl	800148e <ADBMS_Set_ADSV>
             ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
- 8001e50:	687b      	ldr	r3, [r7, #4]
- 8001e52:	6dda      	ldr	r2, [r3, #92]	@ 0x5c
  8001e54:	687b      	ldr	r3, [r7, #4]
- 8001e56:	8cdb      	ldrh	r3, [r3, #38]	@ 0x26
- 8001e58:	4619      	mov	r1, r3
- 8001e5a:	4610      	mov	r0, r2
- 8001e5c:	f7ff fbd0 	bl	8001600 <ADBMS_Write_CMD>
+ 8001e56:	6dda      	ldr	r2, [r3, #92]	@ 0x5c
+ 8001e58:	687b      	ldr	r3, [r7, #4]
+ 8001e5a:	8cdb      	ldrh	r3, [r3, #38]	@ 0x26
+ 8001e5c:	4619      	mov	r1, r3
+ 8001e5e:	4610      	mov	r0, r2
+ 8001e60:	f7ff fbce 	bl	8001600 <ADBMS_Write_CMD>
             HAL_Delay(1);
- 8001e60:	2001      	movs	r0, #1
- 8001e62:	f003 fdf3 	bl	8005a4c <HAL_Delay>
+ 8001e64:	2001      	movs	r0, #1
+ 8001e66:	f003 fdf1 	bl	8005a4c <HAL_Delay>
             break;
- 8001e66:	bf00      	nop
+ 8001e6a:	bf00      	nop
 }
- 8001e68:	bf00      	nop
- 8001e6a:	3708      	adds	r7, #8
- 8001e6c:	46bd      	mov	sp, r7
- 8001e6e:	bd80      	pop	{r7, pc}
+ 8001e6c:	bf00      	nop
+ 8001e6e:	3708      	adds	r7, #8
+ 8001e70:	46bd      	mov	sp, r7
+ 8001e72:	bd80      	pop	{r7, pc}
 
-08001e70 <ADBMS_2950_Calculate_Values>:
+08001e74 <ADBMS_2950_Calculate_Values>:
 #include "adbms_interface_2950.h"
 
 
 void ADBMS_2950_Calculate_Values(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
 {
- 8001e70:	b580      	push	{r7, lr}
- 8001e72:	b082      	sub	sp, #8
- 8001e74:	af00      	add	r7, sp, #0
- 8001e76:	6078      	str	r0, [r7, #4]
- 8001e78:	6039      	str	r1, [r7, #0]
+ 8001e74:	b580      	push	{r7, lr}
+ 8001e76:	b082      	sub	sp, #8
+ 8001e78:	af00      	add	r7, sp, #0
+ 8001e7a:	6078      	str	r0, [r7, #4]
+ 8001e7c:	6039      	str	r1, [r7, #0]
     if (ADBMS_2950_Pec_Update(adbms_raw, adbms_2950)) //pec needs to be false for us to process
- 8001e7a:	6839      	ldr	r1, [r7, #0]
- 8001e7c:	6878      	ldr	r0, [r7, #4]
- 8001e7e:	f000 f998 	bl	80021b2 <ADBMS_2950_Pec_Update>
- 8001e82:	4603      	mov	r3, r0
- 8001e84:	2b00      	cmp	r3, #0
- 8001e86:	d00b      	beq.n	8001ea0 <ADBMS_2950_Calculate_Values+0x30>
+ 8001e7e:	6839      	ldr	r1, [r7, #0]
+ 8001e80:	6878      	ldr	r0, [r7, #4]
+ 8001e82:	f000 f996 	bl	80021b2 <ADBMS_2950_Pec_Update>
+ 8001e86:	4603      	mov	r3, r0
+ 8001e88:	2b00      	cmp	r3, #0
+ 8001e8a:	d00b      	beq.n	8001ea4 <ADBMS_2950_Calculate_Values+0x30>
     {
         ADBMS_2950_Calculate_Vbat(adbms_raw, adbms_2950);
- 8001e88:	6839      	ldr	r1, [r7, #0]
- 8001e8a:	6878      	ldr	r0, [r7, #4]
- 8001e8c:	f000 f80c 	bl	8001ea8 <ADBMS_2950_Calculate_Vbat>
+ 8001e8c:	6839      	ldr	r1, [r7, #0]
+ 8001e8e:	6878      	ldr	r0, [r7, #4]
+ 8001e90:	f000 f80c 	bl	8001eac <ADBMS_2950_Calculate_Vbat>
         ADBMS_2950_Calculate_Current(adbms_raw, adbms_2950);
- 8001e90:	6839      	ldr	r1, [r7, #0]
- 8001e92:	6878      	ldr	r0, [r7, #4]
- 8001e94:	f000 f85a 	bl	8001f4c <ADBMS_2950_Calculate_Current>
+ 8001e94:	6839      	ldr	r1, [r7, #0]
+ 8001e96:	6878      	ldr	r0, [r7, #4]
+ 8001e98:	f000 f85a 	bl	8001f50 <ADBMS_2950_Calculate_Current>
         ADBMS_2950_Calculate_Shunt_Temp(adbms_raw, adbms_2950);
- 8001e98:	6839      	ldr	r1, [r7, #0]
- 8001e9a:	6878      	ldr	r0, [r7, #4]
- 8001e9c:	f000 f8cb 	bl	8002036 <ADBMS_2950_Calculate_Shunt_Temp>
+ 8001e9c:	6839      	ldr	r1, [r7, #0]
+ 8001e9e:	6878      	ldr	r0, [r7, #4]
+ 8001ea0:	f000 f8cb 	bl	800203a <ADBMS_2950_Calculate_Shunt_Temp>
     }
 }
- 8001ea0:	bf00      	nop
- 8001ea2:	3708      	adds	r7, #8
- 8001ea4:	46bd      	mov	sp, r7
- 8001ea6:	bd80      	pop	{r7, pc}
+ 8001ea4:	bf00      	nop
+ 8001ea6:	3708      	adds	r7, #8
+ 8001ea8:	46bd      	mov	sp, r7
+ 8001eaa:	bd80      	pop	{r7, pc}
 
-08001ea8 <ADBMS_2950_Calculate_Vbat>:
+08001eac <ADBMS_2950_Calculate_Vbat>:
 
 //
 //Calculate Values
 //
 void ADBMS_2950_Calculate_Vbat(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
 {
- 8001ea8:	b580      	push	{r7, lr}
- 8001eaa:	b084      	sub	sp, #16
- 8001eac:	af00      	add	r7, sp, #0
- 8001eae:	6078      	str	r0, [r7, #4]
- 8001eb0:	6039      	str	r1, [r7, #0]
+ 8001eac:	b580      	push	{r7, lr}
+ 8001eae:	b084      	sub	sp, #16
+ 8001eb0:	af00      	add	r7, sp, #0
+ 8001eb2:	6078      	str	r0, [r7, #4]
+ 8001eb4:	6039      	str	r1, [r7, #0]
     //initialize values
     adbms_2950->raw_data.vbat1_raw = 0;
- 8001eb2:	683b      	ldr	r3, [r7, #0]
- 8001eb4:	2200      	movs	r2, #0
- 8001eb6:	801a      	strh	r2, [r3, #0]
+ 8001eb6:	683b      	ldr	r3, [r7, #0]
+ 8001eb8:	2200      	movs	r2, #0
+ 8001eba:	801a      	strh	r2, [r3, #0]
     adbms_2950->raw_data.vbat2_raw = 0;
- 8001eb8:	683b      	ldr	r3, [r7, #0]
- 8001eba:	2200      	movs	r2, #0
- 8001ebc:	805a      	strh	r2, [r3, #2]
+ 8001ebc:	683b      	ldr	r3, [r7, #0]
+ 8001ebe:	2200      	movs	r2, #0
+ 8001ec0:	805a      	strh	r2, [r3, #2]
 
     //offset because RDCVB is the second command sent
     int command_offset = NUM_CHIPS * DATA_LEN;
- 8001ebe:	2312      	movs	r3, #18
- 8001ec0:	60fb      	str	r3, [r7, #12]
+ 8001ec2:	2312      	movs	r3, #18
+ 8001ec4:	60fb      	str	r3, [r7, #12]
     //offset because 2950 is the last chip on the daisy chain
     int offset = (NUM_6830) * DATA_LEN;
- 8001ec2:	230c      	movs	r3, #12
- 8001ec4:	60bb      	str	r3, [r7, #8]
+ 8001ec6:	230c      	movs	r3, #12
+ 8001ec8:	60bb      	str	r3, [r7, #8]
 
     //take raw bit values from adbms and place into raw_data in adbms_2950
     adbms_2950->raw_data.vbat1_raw = ((int16_t)(adbms_raw->read_raw_c.read_return[3 + command_offset + offset]) << 8) | (int16_t)(adbms_raw->read_raw_c.read_return[2 + command_offset + offset]);
- 8001ec6:	68fb      	ldr	r3, [r7, #12]
- 8001ec8:	1cda      	adds	r2, r3, #3
- 8001eca:	68bb      	ldr	r3, [r7, #8]
- 8001ecc:	4413      	add	r3, r2
- 8001ece:	687a      	ldr	r2, [r7, #4]
+ 8001eca:	68fb      	ldr	r3, [r7, #12]
+ 8001ecc:	1cda      	adds	r2, r3, #3
+ 8001ece:	68bb      	ldr	r3, [r7, #8]
  8001ed0:	4413      	add	r3, r2
- 8001ed2:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
- 8001ed6:	b21b      	sxth	r3, r3
- 8001ed8:	021b      	lsls	r3, r3, #8
- 8001eda:	b21a      	sxth	r2, r3
- 8001edc:	68fb      	ldr	r3, [r7, #12]
- 8001ede:	1c99      	adds	r1, r3, #2
- 8001ee0:	68bb      	ldr	r3, [r7, #8]
- 8001ee2:	440b      	add	r3, r1
- 8001ee4:	6879      	ldr	r1, [r7, #4]
+ 8001ed2:	687a      	ldr	r2, [r7, #4]
+ 8001ed4:	4413      	add	r3, r2
+ 8001ed6:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
+ 8001eda:	b21b      	sxth	r3, r3
+ 8001edc:	021b      	lsls	r3, r3, #8
+ 8001ede:	b21a      	sxth	r2, r3
+ 8001ee0:	68fb      	ldr	r3, [r7, #12]
+ 8001ee2:	1c99      	adds	r1, r3, #2
+ 8001ee4:	68bb      	ldr	r3, [r7, #8]
  8001ee6:	440b      	add	r3, r1
- 8001ee8:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
- 8001eec:	b21b      	sxth	r3, r3
- 8001eee:	4313      	orrs	r3, r2
- 8001ef0:	b21a      	sxth	r2, r3
- 8001ef2:	683b      	ldr	r3, [r7, #0]
- 8001ef4:	801a      	strh	r2, [r3, #0]
+ 8001ee8:	6879      	ldr	r1, [r7, #4]
+ 8001eea:	440b      	add	r3, r1
+ 8001eec:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
+ 8001ef0:	b21b      	sxth	r3, r3
+ 8001ef2:	4313      	orrs	r3, r2
+ 8001ef4:	b21a      	sxth	r2, r3
+ 8001ef6:	683b      	ldr	r3, [r7, #0]
+ 8001ef8:	801a      	strh	r2, [r3, #0]
     adbms_2950->raw_data.vbat2_raw = ((int16_t)(adbms_raw->read_raw_c.read_return[5 + command_offset + offset]) << 8) | (int16_t)(adbms_raw->read_raw_c.read_return[4 + command_offset + offset]);
- 8001ef6:	68fb      	ldr	r3, [r7, #12]
- 8001ef8:	1d5a      	adds	r2, r3, #5
- 8001efa:	68bb      	ldr	r3, [r7, #8]
- 8001efc:	4413      	add	r3, r2
- 8001efe:	687a      	ldr	r2, [r7, #4]
+ 8001efa:	68fb      	ldr	r3, [r7, #12]
+ 8001efc:	1d5a      	adds	r2, r3, #5
+ 8001efe:	68bb      	ldr	r3, [r7, #8]
  8001f00:	4413      	add	r3, r2
- 8001f02:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
- 8001f06:	b21b      	sxth	r3, r3
- 8001f08:	021b      	lsls	r3, r3, #8
- 8001f0a:	b21a      	sxth	r2, r3
- 8001f0c:	68fb      	ldr	r3, [r7, #12]
- 8001f0e:	1d19      	adds	r1, r3, #4
- 8001f10:	68bb      	ldr	r3, [r7, #8]
- 8001f12:	440b      	add	r3, r1
- 8001f14:	6879      	ldr	r1, [r7, #4]
+ 8001f02:	687a      	ldr	r2, [r7, #4]
+ 8001f04:	4413      	add	r3, r2
+ 8001f06:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
+ 8001f0a:	b21b      	sxth	r3, r3
+ 8001f0c:	021b      	lsls	r3, r3, #8
+ 8001f0e:	b21a      	sxth	r2, r3
+ 8001f10:	68fb      	ldr	r3, [r7, #12]
+ 8001f12:	1d19      	adds	r1, r3, #4
+ 8001f14:	68bb      	ldr	r3, [r7, #8]
  8001f16:	440b      	add	r3, r1
- 8001f18:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
- 8001f1c:	b21b      	sxth	r3, r3
- 8001f1e:	4313      	orrs	r3, r2
- 8001f20:	b21a      	sxth	r2, r3
- 8001f22:	683b      	ldr	r3, [r7, #0]
- 8001f24:	805a      	strh	r2, [r3, #2]
+ 8001f18:	6879      	ldr	r1, [r7, #4]
+ 8001f1a:	440b      	add	r3, r1
+ 8001f1c:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
+ 8001f20:	b21b      	sxth	r3, r3
+ 8001f22:	4313      	orrs	r3, r2
+ 8001f24:	b21a      	sxth	r2, r3
+ 8001f26:	683b      	ldr	r3, [r7, #0]
+ 8001f28:	805a      	strh	r2, [r3, #2]
 
     adbms_2950->data.precontactor_voltage = ADBMS_2950_Transfer_Vbat(adbms_2950->raw_data.vbat1_raw,adbms_2950->raw_data.vbat2_raw);
- 8001f26:	683b      	ldr	r3, [r7, #0]
- 8001f28:	f9b3 2000 	ldrsh.w	r2, [r3]
- 8001f2c:	683b      	ldr	r3, [r7, #0]
- 8001f2e:	f9b3 3002 	ldrsh.w	r3, [r3, #2]
- 8001f32:	4619      	mov	r1, r3
- 8001f34:	4610      	mov	r0, r2
- 8001f36:	f000 f8cf 	bl	80020d8 <ADBMS_2950_Transfer_Vbat>
- 8001f3a:	eef0 7a40 	vmov.f32	s15, s0
- 8001f3e:	683b      	ldr	r3, [r7, #0]
- 8001f40:	edc3 7a04 	vstr	s15, [r3, #16]
+ 8001f2a:	683b      	ldr	r3, [r7, #0]
+ 8001f2c:	f9b3 2000 	ldrsh.w	r2, [r3]
+ 8001f30:	683b      	ldr	r3, [r7, #0]
+ 8001f32:	f9b3 3002 	ldrsh.w	r3, [r3, #2]
+ 8001f36:	4619      	mov	r1, r3
+ 8001f38:	4610      	mov	r0, r2
+ 8001f3a:	f000 f8cd 	bl	80020d8 <ADBMS_2950_Transfer_Vbat>
+ 8001f3e:	eef0 7a40 	vmov.f32	s15, s0
+ 8001f42:	683b      	ldr	r3, [r7, #0]
+ 8001f44:	edc3 7a04 	vstr	s15, [r3, #16]
 
 }
- 8001f44:	bf00      	nop
- 8001f46:	3710      	adds	r7, #16
- 8001f48:	46bd      	mov	sp, r7
- 8001f4a:	bd80      	pop	{r7, pc}
+ 8001f48:	bf00      	nop
+ 8001f4a:	3710      	adds	r7, #16
+ 8001f4c:	46bd      	mov	sp, r7
+ 8001f4e:	bd80      	pop	{r7, pc}
 
-08001f4c <ADBMS_2950_Calculate_Current>:
+08001f50 <ADBMS_2950_Calculate_Current>:
 
 
 void ADBMS_2950_Calculate_Current(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
 {
- 8001f4c:	b580      	push	{r7, lr}
- 8001f4e:	ed2d 8b02 	vpush	{d8}
- 8001f52:	b084      	sub	sp, #16
- 8001f54:	af00      	add	r7, sp, #0
- 8001f56:	6078      	str	r0, [r7, #4]
- 8001f58:	6039      	str	r1, [r7, #0]
+ 8001f50:	b580      	push	{r7, lr}
+ 8001f52:	ed2d 8b02 	vpush	{d8}
+ 8001f56:	b084      	sub	sp, #16
+ 8001f58:	af00      	add	r7, sp, #0
+ 8001f5a:	6078      	str	r0, [r7, #4]
+ 8001f5c:	6039      	str	r1, [r7, #0]
     //initialize values
     adbms_2950->raw_data.i1_raw = 0;
- 8001f5a:	683b      	ldr	r3, [r7, #0]
- 8001f5c:	2200      	movs	r2, #0
- 8001f5e:	605a      	str	r2, [r3, #4]
+ 8001f5e:	683b      	ldr	r3, [r7, #0]
+ 8001f60:	2200      	movs	r2, #0
+ 8001f62:	605a      	str	r2, [r3, #4]
     adbms_2950->raw_data.i2_raw = 0;
- 8001f60:	683b      	ldr	r3, [r7, #0]
- 8001f62:	2200      	movs	r2, #0
- 8001f64:	609a      	str	r2, [r3, #8]
+ 8001f64:	683b      	ldr	r3, [r7, #0]
+ 8001f66:	2200      	movs	r2, #0
+ 8001f68:	609a      	str	r2, [r3, #8]
 
     //offset because 2950 is the last chip on the daisy chain
     int offset =  (NUM_6830) * DATA_LEN;
- 8001f66:	230c      	movs	r3, #12
- 8001f68:	60fb      	str	r3, [r7, #12]
+ 8001f6a:	230c      	movs	r3, #12
+ 8001f6c:	60fb      	str	r3, [r7, #12]
 
     //getting raw data from cell readings and putting it in adbms_2950 
     adbms_2950->raw_data.i1_raw = ((int32_t)(adbms_raw->read_raw_c.read_return[2 + offset]) << 16) | ((int32_t)(adbms_raw->read_raw_c.read_return[1 + offset]) << 8) | adbms_raw->read_raw_c.read_return[0 + offset];
- 8001f6a:	68fb      	ldr	r3, [r7, #12]
- 8001f6c:	3302      	adds	r3, #2
- 8001f6e:	687a      	ldr	r2, [r7, #4]
- 8001f70:	4413      	add	r3, r2
- 8001f72:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
- 8001f76:	041a      	lsls	r2, r3, #16
- 8001f78:	68fb      	ldr	r3, [r7, #12]
- 8001f7a:	3301      	adds	r3, #1
- 8001f7c:	6879      	ldr	r1, [r7, #4]
- 8001f7e:	440b      	add	r3, r1
- 8001f80:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
- 8001f84:	021b      	lsls	r3, r3, #8
- 8001f86:	4313      	orrs	r3, r2
- 8001f88:	6879      	ldr	r1, [r7, #4]
- 8001f8a:	68fa      	ldr	r2, [r7, #12]
- 8001f8c:	440a      	add	r2, r1
- 8001f8e:	327c      	adds	r2, #124	@ 0x7c
- 8001f90:	7812      	ldrb	r2, [r2, #0]
- 8001f92:	431a      	orrs	r2, r3
- 8001f94:	683b      	ldr	r3, [r7, #0]
- 8001f96:	605a      	str	r2, [r3, #4]
+ 8001f6e:	68fb      	ldr	r3, [r7, #12]
+ 8001f70:	3302      	adds	r3, #2
+ 8001f72:	687a      	ldr	r2, [r7, #4]
+ 8001f74:	4413      	add	r3, r2
+ 8001f76:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
+ 8001f7a:	041a      	lsls	r2, r3, #16
+ 8001f7c:	68fb      	ldr	r3, [r7, #12]
+ 8001f7e:	3301      	adds	r3, #1
+ 8001f80:	6879      	ldr	r1, [r7, #4]
+ 8001f82:	440b      	add	r3, r1
+ 8001f84:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
+ 8001f88:	021b      	lsls	r3, r3, #8
+ 8001f8a:	4313      	orrs	r3, r2
+ 8001f8c:	6879      	ldr	r1, [r7, #4]
+ 8001f8e:	68fa      	ldr	r2, [r7, #12]
+ 8001f90:	440a      	add	r2, r1
+ 8001f92:	327c      	adds	r2, #124	@ 0x7c
+ 8001f94:	7812      	ldrb	r2, [r2, #0]
+ 8001f96:	431a      	orrs	r2, r3
+ 8001f98:	683b      	ldr	r3, [r7, #0]
+ 8001f9a:	605a      	str	r2, [r3, #4]
     adbms_2950->raw_data.i2_raw = ((int32_t)(adbms_raw->read_raw_c.read_return[5 + offset]) << 16) | ((int32_t)(adbms_raw->read_raw_c.read_return[4 + offset]) << 8) | adbms_raw->read_raw_c.read_return[3 + offset];
- 8001f98:	68fb      	ldr	r3, [r7, #12]
- 8001f9a:	3305      	adds	r3, #5
- 8001f9c:	687a      	ldr	r2, [r7, #4]
- 8001f9e:	4413      	add	r3, r2
- 8001fa0:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
- 8001fa4:	041a      	lsls	r2, r3, #16
- 8001fa6:	68fb      	ldr	r3, [r7, #12]
- 8001fa8:	3304      	adds	r3, #4
- 8001faa:	6879      	ldr	r1, [r7, #4]
- 8001fac:	440b      	add	r3, r1
- 8001fae:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
- 8001fb2:	021b      	lsls	r3, r3, #8
- 8001fb4:	4313      	orrs	r3, r2
- 8001fb6:	68fa      	ldr	r2, [r7, #12]
- 8001fb8:	3203      	adds	r2, #3
- 8001fba:	6879      	ldr	r1, [r7, #4]
- 8001fbc:	440a      	add	r2, r1
- 8001fbe:	f892 207c 	ldrb.w	r2, [r2, #124]	@ 0x7c
- 8001fc2:	431a      	orrs	r2, r3
- 8001fc4:	683b      	ldr	r3, [r7, #0]
- 8001fc6:	609a      	str	r2, [r3, #8]
+ 8001f9c:	68fb      	ldr	r3, [r7, #12]
+ 8001f9e:	3305      	adds	r3, #5
+ 8001fa0:	687a      	ldr	r2, [r7, #4]
+ 8001fa2:	4413      	add	r3, r2
+ 8001fa4:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
+ 8001fa8:	041a      	lsls	r2, r3, #16
+ 8001faa:	68fb      	ldr	r3, [r7, #12]
+ 8001fac:	3304      	adds	r3, #4
+ 8001fae:	6879      	ldr	r1, [r7, #4]
+ 8001fb0:	440b      	add	r3, r1
+ 8001fb2:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
+ 8001fb6:	021b      	lsls	r3, r3, #8
+ 8001fb8:	4313      	orrs	r3, r2
+ 8001fba:	68fa      	ldr	r2, [r7, #12]
+ 8001fbc:	3203      	adds	r2, #3
+ 8001fbe:	6879      	ldr	r1, [r7, #4]
+ 8001fc0:	440a      	add	r2, r1
+ 8001fc2:	f892 207c 	ldrb.w	r2, [r2, #124]	@ 0x7c
+ 8001fc6:	431a      	orrs	r2, r3
+ 8001fc8:	683b      	ldr	r3, [r7, #0]
+ 8001fca:	609a      	str	r2, [r3, #8]
 
     //sign extend because it is a 24 bit number but stored int32
     if (adbms_2950->raw_data.i1_raw & 0x00800000) {     
- 8001fc8:	683b      	ldr	r3, [r7, #0]
- 8001fca:	685b      	ldr	r3, [r3, #4]
- 8001fcc:	f403 0300 	and.w	r3, r3, #8388608	@ 0x800000
- 8001fd0:	2b00      	cmp	r3, #0
- 8001fd2:	d006      	beq.n	8001fe2 <ADBMS_2950_Calculate_Current+0x96>
+ 8001fcc:	683b      	ldr	r3, [r7, #0]
+ 8001fce:	685b      	ldr	r3, [r3, #4]
+ 8001fd0:	f403 0300 	and.w	r3, r3, #8388608	@ 0x800000
+ 8001fd4:	2b00      	cmp	r3, #0
+ 8001fd6:	d006      	beq.n	8001fe6 <ADBMS_2950_Calculate_Current+0x96>
         adbms_2950->raw_data.i1_raw |= 0xFF000000;      
- 8001fd4:	683b      	ldr	r3, [r7, #0]
- 8001fd6:	685b      	ldr	r3, [r3, #4]
- 8001fd8:	f043 437f 	orr.w	r3, r3, #4278190080	@ 0xff000000
- 8001fdc:	461a      	mov	r2, r3
- 8001fde:	683b      	ldr	r3, [r7, #0]
- 8001fe0:	605a      	str	r2, [r3, #4]
+ 8001fd8:	683b      	ldr	r3, [r7, #0]
+ 8001fda:	685b      	ldr	r3, [r3, #4]
+ 8001fdc:	f043 437f 	orr.w	r3, r3, #4278190080	@ 0xff000000
+ 8001fe0:	461a      	mov	r2, r3
+ 8001fe2:	683b      	ldr	r3, [r7, #0]
+ 8001fe4:	605a      	str	r2, [r3, #4]
     }
 
     if(adbms_2950->raw_data.i2_raw & 0x00800000){
- 8001fe2:	683b      	ldr	r3, [r7, #0]
- 8001fe4:	689b      	ldr	r3, [r3, #8]
- 8001fe6:	f403 0300 	and.w	r3, r3, #8388608	@ 0x800000
- 8001fea:	2b00      	cmp	r3, #0
- 8001fec:	d006      	beq.n	8001ffc <ADBMS_2950_Calculate_Current+0xb0>
+ 8001fe6:	683b      	ldr	r3, [r7, #0]
+ 8001fe8:	689b      	ldr	r3, [r3, #8]
+ 8001fea:	f403 0300 	and.w	r3, r3, #8388608	@ 0x800000
+ 8001fee:	2b00      	cmp	r3, #0
+ 8001ff0:	d006      	beq.n	8002000 <ADBMS_2950_Calculate_Current+0xb0>
         adbms_2950->raw_data.i2_raw |= 0xFF000000;
- 8001fee:	683b      	ldr	r3, [r7, #0]
- 8001ff0:	689b      	ldr	r3, [r3, #8]
- 8001ff2:	f043 437f 	orr.w	r3, r3, #4278190080	@ 0xff000000
- 8001ff6:	461a      	mov	r2, r3
- 8001ff8:	683b      	ldr	r3, [r7, #0]
- 8001ffa:	609a      	str	r2, [r3, #8]
+ 8001ff2:	683b      	ldr	r3, [r7, #0]
+ 8001ff4:	689b      	ldr	r3, [r3, #8]
+ 8001ff6:	f043 437f 	orr.w	r3, r3, #4278190080	@ 0xff000000
+ 8001ffa:	461a      	mov	r2, r3
+ 8001ffc:	683b      	ldr	r3, [r7, #0]
+ 8001ffe:	609a      	str	r2, [r3, #8]
     }
 
     //average the two
     adbms_2950->data.current = (-ADBMS_2950_Transfer_Current(adbms_2950->raw_data.i1_raw) + ADBMS_2950_Transfer_Current(adbms_2950->raw_data.i2_raw)) / 2 ;
- 8001ffc:	683b      	ldr	r3, [r7, #0]
- 8001ffe:	689b      	ldr	r3, [r3, #8]
- 8002000:	4618      	mov	r0, r3
- 8002002:	f000 f8ad 	bl	8002160 <ADBMS_2950_Transfer_Current>
- 8002006:	eeb0 8a40 	vmov.f32	s16, s0
- 800200a:	683b      	ldr	r3, [r7, #0]
- 800200c:	685b      	ldr	r3, [r3, #4]
- 800200e:	4618      	mov	r0, r3
- 8002010:	f000 f8a6 	bl	8002160 <ADBMS_2950_Transfer_Current>
- 8002014:	eef0 7a40 	vmov.f32	s15, s0
- 8002018:	ee38 7a67 	vsub.f32	s14, s16, s15
- 800201c:	eef0 6a00 	vmov.f32	s13, #0	@ 0x40000000  2.0
- 8002020:	eec7 7a26 	vdiv.f32	s15, s14, s13
- 8002024:	683b      	ldr	r3, [r7, #0]
- 8002026:	edc3 7a05 	vstr	s15, [r3, #20]
+ 8002000:	683b      	ldr	r3, [r7, #0]
+ 8002002:	689b      	ldr	r3, [r3, #8]
+ 8002004:	4618      	mov	r0, r3
+ 8002006:	f000 f8ab 	bl	8002160 <ADBMS_2950_Transfer_Current>
+ 800200a:	eeb0 8a40 	vmov.f32	s16, s0
+ 800200e:	683b      	ldr	r3, [r7, #0]
+ 8002010:	685b      	ldr	r3, [r3, #4]
+ 8002012:	4618      	mov	r0, r3
+ 8002014:	f000 f8a4 	bl	8002160 <ADBMS_2950_Transfer_Current>
+ 8002018:	eef0 7a40 	vmov.f32	s15, s0
+ 800201c:	ee38 7a67 	vsub.f32	s14, s16, s15
+ 8002020:	eef0 6a00 	vmov.f32	s13, #0	@ 0x40000000  2.0
+ 8002024:	eec7 7a26 	vdiv.f32	s15, s14, s13
+ 8002028:	683b      	ldr	r3, [r7, #0]
+ 800202a:	edc3 7a05 	vstr	s15, [r3, #20]
 }
- 800202a:	bf00      	nop
- 800202c:	3710      	adds	r7, #16
- 800202e:	46bd      	mov	sp, r7
- 8002030:	ecbd 8b02 	vpop	{d8}
- 8002034:	bd80      	pop	{r7, pc}
+ 800202e:	bf00      	nop
+ 8002030:	3710      	adds	r7, #16
+ 8002032:	46bd      	mov	sp, r7
+ 8002034:	ecbd 8b02 	vpop	{d8}
+ 8002038:	bd80      	pop	{r7, pc}
 
-08002036 <ADBMS_2950_Calculate_Shunt_Temp>:
+0800203a <ADBMS_2950_Calculate_Shunt_Temp>:
 
 
 void ADBMS_2950_Calculate_Shunt_Temp(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
 {
- 8002036:	b580      	push	{r7, lr}
- 8002038:	b084      	sub	sp, #16
- 800203a:	af00      	add	r7, sp, #0
- 800203c:	6078      	str	r0, [r7, #4]
- 800203e:	6039      	str	r1, [r7, #0]
+ 800203a:	b580      	push	{r7, lr}
+ 800203c:	b084      	sub	sp, #16
+ 800203e:	af00      	add	r7, sp, #0
+ 8002040:	6078      	str	r0, [r7, #4]
+ 8002042:	6039      	str	r1, [r7, #0]
 
     //initilaize values
     adbms_2950->raw_data.v7 = 0;
- 8002040:	683b      	ldr	r3, [r7, #0]
- 8002042:	2200      	movs	r2, #0
- 8002044:	819a      	strh	r2, [r3, #12]
+ 8002044:	683b      	ldr	r3, [r7, #0]
+ 8002046:	2200      	movs	r2, #0
+ 8002048:	819a      	strh	r2, [r3, #12]
     adbms_2950->raw_data.v9 = 0;
- 8002046:	683b      	ldr	r3, [r7, #0]
- 8002048:	2200      	movs	r2, #0
- 800204a:	81da      	strh	r2, [r3, #14]
+ 800204a:	683b      	ldr	r3, [r7, #0]
+ 800204c:	2200      	movs	r2, #0
+ 800204e:	81da      	strh	r2, [r3, #14]
 
     //offset because 2950 is the last chip ont he daisy chain
     int offset = (NUM_6830) * DATA_LEN;
- 800204c:	230c      	movs	r3, #12
- 800204e:	60fb      	str	r3, [r7, #12]
+ 8002050:	230c      	movs	r3, #12
+ 8002052:	60fb      	str	r3, [r7, #12]
 
     //getting raw data 
     adbms_2950->raw_data.v7 = (int16_t)(adbms_raw->read_raw_c.read_return[1+offset] << 8) | (int16_t)(adbms_raw->read_raw_c.read_return[0+offset]);
- 8002050:	68fb      	ldr	r3, [r7, #12]
- 8002052:	3301      	adds	r3, #1
- 8002054:	687a      	ldr	r2, [r7, #4]
- 8002056:	4413      	add	r3, r2
- 8002058:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
- 800205c:	b21b      	sxth	r3, r3
- 800205e:	021b      	lsls	r3, r3, #8
- 8002060:	b21a      	sxth	r2, r3
- 8002062:	6879      	ldr	r1, [r7, #4]
- 8002064:	68fb      	ldr	r3, [r7, #12]
- 8002066:	440b      	add	r3, r1
- 8002068:	337c      	adds	r3, #124	@ 0x7c
- 800206a:	781b      	ldrb	r3, [r3, #0]
- 800206c:	b21b      	sxth	r3, r3
- 800206e:	4313      	orrs	r3, r2
- 8002070:	b21a      	sxth	r2, r3
- 8002072:	683b      	ldr	r3, [r7, #0]
- 8002074:	819a      	strh	r2, [r3, #12]
+ 8002054:	68fb      	ldr	r3, [r7, #12]
+ 8002056:	3301      	adds	r3, #1
+ 8002058:	687a      	ldr	r2, [r7, #4]
+ 800205a:	4413      	add	r3, r2
+ 800205c:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
+ 8002060:	b21b      	sxth	r3, r3
+ 8002062:	021b      	lsls	r3, r3, #8
+ 8002064:	b21a      	sxth	r2, r3
+ 8002066:	6879      	ldr	r1, [r7, #4]
+ 8002068:	68fb      	ldr	r3, [r7, #12]
+ 800206a:	440b      	add	r3, r1
+ 800206c:	337c      	adds	r3, #124	@ 0x7c
+ 800206e:	781b      	ldrb	r3, [r3, #0]
+ 8002070:	b21b      	sxth	r3, r3
+ 8002072:	4313      	orrs	r3, r2
+ 8002074:	b21a      	sxth	r2, r3
+ 8002076:	683b      	ldr	r3, [r7, #0]
+ 8002078:	819a      	strh	r2, [r3, #12]
     adbms_2950->raw_data.v9 = (int16_t)(adbms_raw->read_raw_c.read_return[5+offset] << 8) | (int16_t)(adbms_raw->read_raw_c.read_return[4+offset]);
- 8002076:	68fb      	ldr	r3, [r7, #12]
- 8002078:	3305      	adds	r3, #5
- 800207a:	687a      	ldr	r2, [r7, #4]
- 800207c:	4413      	add	r3, r2
- 800207e:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
- 8002082:	b21b      	sxth	r3, r3
- 8002084:	021b      	lsls	r3, r3, #8
- 8002086:	b21a      	sxth	r2, r3
- 8002088:	68fb      	ldr	r3, [r7, #12]
- 800208a:	3304      	adds	r3, #4
- 800208c:	6879      	ldr	r1, [r7, #4]
- 800208e:	440b      	add	r3, r1
- 8002090:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
- 8002094:	b21b      	sxth	r3, r3
- 8002096:	4313      	orrs	r3, r2
- 8002098:	b21a      	sxth	r2, r3
- 800209a:	683b      	ldr	r3, [r7, #0]
- 800209c:	81da      	strh	r2, [r3, #14]
+ 800207a:	68fb      	ldr	r3, [r7, #12]
+ 800207c:	3305      	adds	r3, #5
+ 800207e:	687a      	ldr	r2, [r7, #4]
+ 8002080:	4413      	add	r3, r2
+ 8002082:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
+ 8002086:	b21b      	sxth	r3, r3
+ 8002088:	021b      	lsls	r3, r3, #8
+ 800208a:	b21a      	sxth	r2, r3
+ 800208c:	68fb      	ldr	r3, [r7, #12]
+ 800208e:	3304      	adds	r3, #4
+ 8002090:	6879      	ldr	r1, [r7, #4]
+ 8002092:	440b      	add	r3, r1
+ 8002094:	f893 307c 	ldrb.w	r3, [r3, #124]	@ 0x7c
+ 8002098:	b21b      	sxth	r3, r3
+ 800209a:	4313      	orrs	r3, r2
+ 800209c:	b21a      	sxth	r2, r3
+ 800209e:	683b      	ldr	r3, [r7, #0]
+ 80020a0:	81da      	strh	r2, [r3, #14]
 
     adbms_2950->data.pack_temperature_1 = ADBMS_2950_Transfer_Shunt_Temp(adbms_2950->raw_data.v7);
- 800209e:	683b      	ldr	r3, [r7, #0]
- 80020a0:	f9b3 300c 	ldrsh.w	r3, [r3, #12]
- 80020a4:	4618      	mov	r0, r3
- 80020a6:	f000 f877 	bl	8002198 <ADBMS_2950_Transfer_Shunt_Temp>
- 80020aa:	eef0 7a40 	vmov.f32	s15, s0
- 80020ae:	683b      	ldr	r3, [r7, #0]
- 80020b0:	edc3 7a06 	vstr	s15, [r3, #24]
+ 80020a2:	683b      	ldr	r3, [r7, #0]
+ 80020a4:	f9b3 300c 	ldrsh.w	r3, [r3, #12]
+ 80020a8:	4618      	mov	r0, r3
+ 80020aa:	f000 f875 	bl	8002198 <ADBMS_2950_Transfer_Shunt_Temp>
+ 80020ae:	eef0 7a40 	vmov.f32	s15, s0
+ 80020b2:	683b      	ldr	r3, [r7, #0]
+ 80020b4:	edc3 7a06 	vstr	s15, [r3, #24]
     adbms_2950->data.pack_temperature_2 = ADBMS_2950_Transfer_Shunt_Temp(adbms_2950->raw_data.v9);
- 80020b4:	683b      	ldr	r3, [r7, #0]
- 80020b6:	f9b3 300e 	ldrsh.w	r3, [r3, #14]
- 80020ba:	4618      	mov	r0, r3
- 80020bc:	f000 f86c 	bl	8002198 <ADBMS_2950_Transfer_Shunt_Temp>
- 80020c0:	eef0 7a40 	vmov.f32	s15, s0
- 80020c4:	683b      	ldr	r3, [r7, #0]
- 80020c6:	edc3 7a07 	vstr	s15, [r3, #28]
+ 80020b8:	683b      	ldr	r3, [r7, #0]
+ 80020ba:	f9b3 300e 	ldrsh.w	r3, [r3, #14]
+ 80020be:	4618      	mov	r0, r3
+ 80020c0:	f000 f86a 	bl	8002198 <ADBMS_2950_Transfer_Shunt_Temp>
+ 80020c4:	eef0 7a40 	vmov.f32	s15, s0
+ 80020c8:	683b      	ldr	r3, [r7, #0]
+ 80020ca:	edc3 7a07 	vstr	s15, [r3, #28]
 
 }
- 80020ca:	bf00      	nop
- 80020cc:	3710      	adds	r7, #16
- 80020ce:	46bd      	mov	sp, r7
- 80020d0:	bd80      	pop	{r7, pc}
- 80020d2:	0000      	movs	r0, r0
- 80020d4:	0000      	movs	r0, r0
+ 80020ce:	bf00      	nop
+ 80020d0:	3710      	adds	r7, #16
+ 80020d2:	46bd      	mov	sp, r7
+ 80020d4:	bd80      	pop	{r7, pc}
 	...
 
 080020d8 <ADBMS_2950_Transfer_Vbat>:
@@ -5491,7 +5492,7 @@ void Owc_c_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
  8002b52:	2201      	movs	r2, #1
  8002b54:	2100      	movs	r1, #0
  8002b56:	6878      	ldr	r0, [r7, #4]
- 8002b58:	f7ff f8da 	bl	8001d10 <ADBMS_Owc_Config>
+ 8002b58:	f7ff f8dc 	bl	8001d14 <ADBMS_Owc_Config>
     ADBMS_Read_Voltages(&adbms_raw->read_raw_c_owc, C_Channel_Read, adbms_raw->SPI_data.hspi, adbms_raw->SPI_data.spi_dataBuf);
  8002b5c:	687b      	ldr	r3, [r7, #4]
  8002b5e:	f503 70e3 	add.w	r0, r3, #454	@ 0x1c6
@@ -5500,7 +5501,7 @@ void Owc_c_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
  8002b66:	687b      	ldr	r3, [r7, #4]
  8002b68:	3360      	adds	r3, #96	@ 0x60
  8002b6a:	2100      	movs	r1, #0
- 8002b6c:	f7fe ff4c 	bl	8001a08 <ADBMS_Read_Voltages>
+ 8002b6c:	f7fe ff4e 	bl	8001a0c <ADBMS_Read_Voltages>
     ADBMS_6830_Parse_Voltage(&adbms_raw->read_raw_c_owc, &adbms_6830->voltage_owc);
  8002b70:	687b      	ldr	r3, [r7, #4]
  8002b72:	f503 72e3 	add.w	r2, r3, #454	@ 0x1c6
@@ -5523,7 +5524,7 @@ void Owc_c_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
  8002b96:	2200      	movs	r2, #0
  8002b98:	2100      	movs	r1, #0
  8002b9a:	6878      	ldr	r0, [r7, #4]
- 8002b9c:	f7ff f8b8 	bl	8001d10 <ADBMS_Owc_Config>
+ 8002b9c:	f7ff f8ba 	bl	8001d14 <ADBMS_Owc_Config>
     ADBMS_Read_Voltages(&adbms_raw->read_raw_c_owc, C_Channel_Read, adbms_raw->SPI_data.hspi, adbms_raw->SPI_data.spi_dataBuf);
  8002ba0:	687b      	ldr	r3, [r7, #4]
  8002ba2:	f503 70e3 	add.w	r0, r3, #454	@ 0x1c6
@@ -5532,7 +5533,7 @@ void Owc_c_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
  8002baa:	687b      	ldr	r3, [r7, #4]
  8002bac:	3360      	adds	r3, #96	@ 0x60
  8002bae:	2100      	movs	r1, #0
- 8002bb0:	f7fe ff2a 	bl	8001a08 <ADBMS_Read_Voltages>
+ 8002bb0:	f7fe ff2c 	bl	8001a0c <ADBMS_Read_Voltages>
     ADBMS_6830_Parse_Voltage(&adbms_raw->read_raw_c_owc, &adbms_6830->voltage_owc);
  8002bb4:	687b      	ldr	r3, [r7, #4]
  8002bb6:	f503 72e3 	add.w	r2, r3, #454	@ 0x1c6
@@ -5555,7 +5556,7 @@ void Owc_c_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
  8002bda:	2202      	movs	r2, #2
  8002bdc:	2100      	movs	r1, #0
  8002bde:	6878      	ldr	r0, [r7, #4]
- 8002be0:	f7ff f896 	bl	8001d10 <ADBMS_Owc_Config>
+ 8002be0:	f7ff f898 	bl	8001d14 <ADBMS_Owc_Config>
 }
  8002be4:	bf00      	nop
  8002be6:	3708      	adds	r7, #8
@@ -5577,7 +5578,7 @@ void Owc_s_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
  8002bf6:	2201      	movs	r2, #1
  8002bf8:	2101      	movs	r1, #1
  8002bfa:	6878      	ldr	r0, [r7, #4]
- 8002bfc:	f7ff f888 	bl	8001d10 <ADBMS_Owc_Config>
+ 8002bfc:	f7ff f88a 	bl	8001d14 <ADBMS_Owc_Config>
     ADBMS_Read_Voltages(&adbms_raw->read_raw_s_owc, S_Channel_Read, adbms_raw->SPI_data.hspi, adbms_raw->SPI_data.spi_dataBuf);
  8002c00:	687b      	ldr	r3, [r7, #4]
  8002c02:	f503 700d 	add.w	r0, r3, #564	@ 0x234
@@ -5586,7 +5587,7 @@ void Owc_s_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
  8002c0a:	687b      	ldr	r3, [r7, #4]
  8002c0c:	3360      	adds	r3, #96	@ 0x60
  8002c0e:	2101      	movs	r1, #1
- 8002c10:	f7fe fefa 	bl	8001a08 <ADBMS_Read_Voltages>
+ 8002c10:	f7fe fefc 	bl	8001a0c <ADBMS_Read_Voltages>
     ADBMS_6830_Parse_Voltage(&adbms_raw->read_raw_s_owc, &adbms_6830->voltage_owc);
  8002c14:	687b      	ldr	r3, [r7, #4]
  8002c16:	f503 720d 	add.w	r2, r3, #564	@ 0x234
@@ -5609,7 +5610,7 @@ void Owc_s_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
  8002c3a:	2200      	movs	r2, #0
  8002c3c:	2101      	movs	r1, #1
  8002c3e:	6878      	ldr	r0, [r7, #4]
- 8002c40:	f7ff f866 	bl	8001d10 <ADBMS_Owc_Config>
+ 8002c40:	f7ff f868 	bl	8001d14 <ADBMS_Owc_Config>
     ADBMS_Read_Voltages(&adbms_raw->read_raw_s_owc, S_Channel_Read, adbms_raw->SPI_data.hspi, adbms_raw->SPI_data.spi_dataBuf);
  8002c44:	687b      	ldr	r3, [r7, #4]
  8002c46:	f503 700d 	add.w	r0, r3, #564	@ 0x234
@@ -5618,7 +5619,7 @@ void Owc_s_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
  8002c4e:	687b      	ldr	r3, [r7, #4]
  8002c50:	3360      	adds	r3, #96	@ 0x60
  8002c52:	2101      	movs	r1, #1
- 8002c54:	f7fe fed8 	bl	8001a08 <ADBMS_Read_Voltages>
+ 8002c54:	f7fe feda 	bl	8001a0c <ADBMS_Read_Voltages>
     ADBMS_6830_Parse_Voltage(&adbms_raw->read_raw_s_owc, &adbms_6830->voltage_owc);
  8002c58:	687b      	ldr	r3, [r7, #4]
  8002c5a:	f503 720d 	add.w	r2, r3, #564	@ 0x234
@@ -5641,7 +5642,7 @@ void Owc_s_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
  8002c7e:	2202      	movs	r2, #2
  8002c80:	2101      	movs	r1, #1
  8002c82:	6878      	ldr	r0, [r7, #4]
- 8002c84:	f7ff f844 	bl	8001d10 <ADBMS_Owc_Config>
+ 8002c84:	f7ff f846 	bl	8001d14 <ADBMS_Owc_Config>
 }
  8002c88:	bf00      	nop
  8002c8a:	3708      	adds	r7, #8
@@ -6101,7 +6102,7 @@ void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 	ADBMS_Initialize(&mainboard.adbms_raw, hspi);
  8003062:	6879      	ldr	r1, [r7, #4]
  8003064:	4822      	ldr	r0, [pc, #136]	@ (80030f0 <Bms_Mainboard_Setup+0xa0>)
- 8003066:	f7fe fc65 	bl	8001934 <ADBMS_Initialize>
+ 8003066:	f7fe fc67 	bl	8001938 <ADBMS_Initialize>
 
 	// initialize CAN;
 	Bms_Initialize_Can(&mainboard);
@@ -6257,7 +6258,7 @@ void update_values()
  8003168:	4b3d      	ldr	r3, [pc, #244]	@ (8003260 <update_values+0x100>)
  800316a:	2100      	movs	r1, #0
  800316c:	483d      	ldr	r0, [pc, #244]	@ (8003264 <update_values+0x104>)
- 800316e:	f7fe fc4b 	bl	8001a08 <ADBMS_Read_Voltages>
+ 800316e:	f7fe fc4d 	bl	8001a0c <ADBMS_Read_Voltages>
 	//Parse 6830 voltage
 	ADBMS_6830_Parse_Voltage(&mainboard.adbms_raw.read_raw_c, &mainboard.adbms_6830.voltage);
  8003172:	493d      	ldr	r1, [pc, #244]	@ (8003268 <update_values+0x108>)
@@ -6271,7 +6272,7 @@ void update_values()
  800317e:	4b38      	ldr	r3, [pc, #224]	@ (8003260 <update_values+0x100>)
  8003180:	2102      	movs	r1, #2
  8003182:	483a      	ldr	r0, [pc, #232]	@ (800326c <update_values+0x10c>)
- 8003184:	f7fe fc40 	bl	8001a08 <ADBMS_Read_Voltages>
+ 8003184:	f7fe fc42 	bl	8001a0c <ADBMS_Read_Voltages>
 	//RESTART ADAX
 	ADBMS_Write_CMD(mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.command_bit.adax);
  8003188:	4b34      	ldr	r3, [pc, #208]	@ (800325c <update_values+0xfc>)
@@ -6292,7 +6293,7 @@ void update_values()
     ADBMS_2950_Calculate_Values(&mainboard.adbms_raw, &mainboard.adbms_2950);
  80031a0:	4934      	ldr	r1, [pc, #208]	@ (8003274 <update_values+0x114>)
  80031a2:	482e      	ldr	r0, [pc, #184]	@ (800325c <update_values+0xfc>)
- 80031a4:	f7fe fe64 	bl	8001e70 <ADBMS_2950_Calculate_Values>
+ 80031a4:	f7fe fe66 	bl	8001e74 <ADBMS_2950_Calculate_Values>
 
     //Update Faults
     //this is just 6830 faults -> 2950 faults still need to come
@@ -8630,7 +8631,7 @@ void Soc_Initialize(mainboard_ *mainboard)
  80044c6:	687b      	ldr	r3, [r7, #4]
  80044c8:	3360      	adds	r3, #96	@ 0x60
  80044ca:	2100      	movs	r1, #0
- 80044cc:	f7fd fa9c 	bl	8001a08 <ADBMS_Read_Voltages>
+ 80044cc:	f7fd fa9e 	bl	8001a0c <ADBMS_Read_Voltages>
 
     //now we also need to parse the raw data and put it into the structs
     ADBMS_6830_Parse_Voltage(&mainboard->adbms_raw.read_raw_c, &mainboard->adbms_6830.voltage);

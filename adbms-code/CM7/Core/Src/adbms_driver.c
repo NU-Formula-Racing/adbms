@@ -379,8 +379,9 @@ void ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf,
         if (cic == NUM_CHIPS-1){
             pec_error_2950 |= (rx_pec != calc_pec);
         }
-
-        pec_error_6830 |= (rx_pec != calc_pec);
+        else{
+            pec_error_6830 |= (rx_pec != calc_pec);
+        }
     }
 
     pec_return-> pec_6830 = pec_error_6830;
