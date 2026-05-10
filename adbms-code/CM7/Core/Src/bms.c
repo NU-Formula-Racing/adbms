@@ -179,6 +179,7 @@ void send_data_over_printf()
 	printf("External fault: %d\n", mainboard.external_fault);
 	printf("BMS State: %d\n", mainboard.internal_state);
 	printf("Charging State: %d\n", mainboard.charging_state);
+	printf("SOC: %f\n", mainboard.soc);
 	
 	// TODO Add more prints as needed
 }
