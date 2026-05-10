@@ -34,8 +34,6 @@ void ADBMS_Read_Voltages(adbms_read_raw_* read_raw, voltage_read_type_ type, SPI
 
     bool pec = 0;
 
-    ADBMS_WakeUP_ICs();
-
     switch (type)
     {
         case C_Channel_Read:
