@@ -17,8 +17,8 @@ void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 	Soc_Initialize(&mainboard);
 
 	// initialize the timers: adbms_mainboard_loop, drive_can, data_can
-	timer_ t_adbms = Create_Timer(250, bms_mainboard_loop);
-	timer_ t_adbms_owc_check = Create_Timer(10000, adbms_owc_loop);
+	timer_ t_adbms = Create_Timer(200, bms_mainboard_loop);
+	timer_ t_adbms_owc_check = Create_Timer(30000, adbms_owc_loop);
 	timer_ timers[NUM_TIMERS] = {t_adbms, t_adbms_owc_check};
 	mainboard.tg = Create_Timer_Group(timers);
 
@@ -40,11 +40,14 @@ void Tick_Mainboard_Timers()
 void bms_mainboard_loop()
 {
     //this loops need i think a lot of changes (because the entire structure chnanged)
-
 	update_values();
 	check_faults();
-	Can_Loop();
 	Control_Loop(&mainboard);
+
+	Can_Loop();
+	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
+	if(ENABLE_USB_COMMS) send_data_over_USB(); 
+
 }
 
 // Seprate loop that gets ticked to run OWC
@@ -61,6 +64,7 @@ void adbms_owc_loop()
 void update_values()
 {
 	//First Read both Voltages and Temps raw values in lower level interface
+	ADBMS_WakeUP_ICs();
 
 	//read voltages
 	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_c, C_Channel_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
@@ -73,7 +77,6 @@ void update_values()
 	ADBMS_Write_CMD(mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.command_bit.adax);
 	//parse 6830 temp
 	ADBMS_6830_Parse_Temperature(&mainboard.adbms_raw.read_raw_aux, &mainboard.adbms_6830.temperature);
-
 
     //parse 2950 data
     ADBMS_2950_Calculate_Values(&mainboard.adbms_raw, &mainboard.adbms_2950);
@@ -99,8 +102,6 @@ void update_values()
     //this should change into both current_1 and 2 when both start working
 	mainboard.adbms_2950.faults.overcurrent_fault = mainboard.adbms_2950.data.current > OVERCURRENT;
 
-	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
-	if(ENABLE_USB_COMMS) send_data_over_USB(); 
 }
 
 void check_faults()
@@ -114,8 +115,7 @@ void check_faults()
 							|| mainboard.adbms_6830.faults.undertemperature_fault
 							|| mainboard.adbms_6830.faults.openwire_voltage_fault
 							|| mainboard.adbms_6830.faults.openwire_temp_fault
-							|| mainboard.adbms_6830.faults.pec_fault
-							|| mainboard.adbms_2950.faults.overcurrent_fault;
+							|| mainboard.adbms_6830.faults.pec_fault;
 
 	// write BMS_Status - healthy is high
 	HAL_GPIO_WritePin(BMS_STATUS_OUT_GPIO_Port, BMS_STATUS_OUT_Pin, !mainboard.bms_fault);
@@ -177,6 +177,8 @@ void send_data_over_printf()
 	printf("Time: %d\n", (int)(HAL_GetTick() - mainboard.start_time));
 	printf("BMS fault: %d\n", mainboard.bms_fault);
 	printf("External fault: %d\n", mainboard.external_fault);
+	printf("BMS State: %d\n", mainboard.internal_state);
+	printf("Charging State: %d\n", mainboard.charging_state);
 	
 	// TODO Add more prints as needed
 }

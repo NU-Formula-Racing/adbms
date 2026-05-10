@@ -5,7 +5,7 @@
 // This might change in future years, if so change which contactors are closed accoringly in the FSM 
 
 
-#define NUM_6830  2
+#define NUM_6830  10
 #define NUM_2950  1
 #define POSITION_2950 1					/*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
 #define POSITION_6830 (POSITION_2950 ^ 1) /*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
@@ -23,7 +23,7 @@
 
 #define PEC_FAILURE_THRESHOLD 10		/* Number of consecutive PEC failures that can happen before a pec fault occurs*/
 #define OWC_VOLTAGE_THRESHOLD 0.5
-#define CB_THRESHOLD 0.01				/* Threshold Away From Lowest Cell to Start Cell Balancing when CB is enabled */
+#define CB_THRESHOLD 1				/* Threshold Away From Lowest Cell to Start Cell Balancing when CB is enabled */
 #define CB_MIN_V_THRESHOLD 3			/* Cells under this threshold will not be balanced even when CB is enabled */
 
 #define ENABLE_PRINTF_DEBUG_COMMS 1	/* Flag to enable Printf debug comms */
@@ -36,8 +36,8 @@
 #define NUM_DATA_CAN_TEMPS_PER_MSG 8    // will break if this is changed. Based on how data can and DBC are set up
 #define NUM_DATA_CAN_TEMP_MSGS (NUM_CHIPS * NUM_TEMPS_CHIP) / NUM_DATA_CAN_TEMPS_PER_MSG
 
-#define MAX_CHARGER_VOLTAGE 568
-#define MAX_CHARGER_CURRENT 3
+#define MAX_CHARGER_VOLTAGE 480
+#define MAX_CHARGER_CURRENT 4
 
 // BMS IC Parameters
 #define CELLS 	16														  /* Bms ic number of Cells                */
@@ -54,7 +54,7 @@
 #define NUM_TIMERS 2    // will break if this is changed. This will be replaced by RTOS
 
 #define INVERTER_VOLTAGE_THRESHOLD 0.9 
-#define CHARGER_VOLTAGE_THRESHOLD 0.75 
+#define CHARGER_VOLTAGE_THRESHOLD 0.9 
 
 // CAN TIMEOUTS (ms)
 #define VCU_CAN_TIMEOUT 5000
