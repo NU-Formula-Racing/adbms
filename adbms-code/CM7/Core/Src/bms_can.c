@@ -230,9 +230,9 @@ void populate_bms_status(uint8_t *data)
 
 	// external warnings
 	populateRawMessage(&signals[11], !bms_can.mainboard->shutdown_present, 1, 1, 0);	// shutdown open
-	populateRawMessage(&signals[12], !bms_can.mainboard->vcu_timeout, 1, 1, 0);			// vcu timeout
-	populateRawMessage(&signals[13], !bms_can.mainboard->inverter_timeout, 1, 1, 0);	// inverter timeout
-	populateRawMessage(&signals[14], !bms_can.mainboard->charger_timeout, 1, 1, 0);		// charger timeout
+	populateRawMessage(&signals[12], bms_can.mainboard->vcu_timeout, 1, 1, 0);			// vcu timeout
+	populateRawMessage(&signals[13], bms_can.mainboard->inverter_timeout, 1, 1, 0);	// inverter timeout
+	populateRawMessage(&signals[14], bms_can.mainboard->charger_timeout, 1, 1, 0);		// charger timeout
 
 	// 2950 warnings
 	populateRawMessage(&signals[15], 0, 1, 1, 0);		// 2950 pec warning

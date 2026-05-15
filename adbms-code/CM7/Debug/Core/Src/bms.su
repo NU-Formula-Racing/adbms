@@ -3,7 +3,7 @@
 ../Core/Src/bms.c:40:6:bms_mainboard_loop	8	static
 ../Core/Src/bms.c:54:6:adbms_owc_loop	8	static
 ../Core/Src/bms.c:64:6:update_values	8	static
-../Core/Src/bms.c:107:6:check_faults	24	static
-../Core/Src/bms.c:153:6:HAL_TIM_PeriodElapsedCallback	16	static
-../Core/Src/bms.c:169:6:send_data_over_printf	8	static
-../Core/Src/bms.c:187:6:send_data_over_USB	4	static
+../Core/Src/bms.c:103:6:check_faults	24	static
+../Core/Src/bms.c:151:6:HAL_TIM_PeriodElapsedCallback	16	static
+../Core/Src/bms.c:167:6:send_data_over_printf	8	static
+../Core/Src/bms.c:185:6:send_data_over_USB	4	static
