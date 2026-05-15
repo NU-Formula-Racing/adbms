@@ -55,9 +55,12 @@ void ADBMS_Read_Voltages(adbms_read_raw_* read_raw, voltage_read_type_ type, SPI
             pec |= ADBMS_Read_Data(hspi, RDAUXB, (read_raw->read_return + 1 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
             pec |= ADBMS_Read_Data(hspi, RDAUXC, (read_raw->read_return + 2 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
             pec |= ADBMS_Read_Data(hspi, RDAUXD, (read_raw->read_return + 3 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
+            break;
+
         case Accumulate_Read_2950:
             pec |= ADBMS_Read_Data(hspi, RDACA, (read_raw->read_return + 0 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
-            pec |= ADBMS_Read_Data(hspi, RDACB, (read_raw->read_return + 1 * NUM_CHIPS * DATA_LEN), spi_dataBuf);       
+            pec |= ADBMS_Read_Data(hspi, RDACB, (read_raw->read_return + 1 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
+            break;       
     }
 
     read_raw->read_pec_failure = pec;

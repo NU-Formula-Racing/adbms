@@ -7,8 +7,8 @@
 typedef struct
 {
     //precontactor voltages
-    int16_t vbat1_raw;
-    int16_t vbat2_raw;
+    int32_t vbat1_raw;
+    int32_t vbat2_raw;
 
     //currents 
     int32_t i1_raw;
@@ -44,7 +44,7 @@ void ADBMS_2950_Calculate_Current(adbms_read_raw_* adbms_2950_read_raw, adbms_29
 void ADBMS_2950_Calculate_Shunt_Temp(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950);
 
 //Transfer Functions
-float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw);
+float ADBMS_2950_Transfer_Vbat(int32_t vbat1_raw, int32_t vbat2_raw);
 float ADBMS_2950_Transfer_Current(int32_t data);
 float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage);
 

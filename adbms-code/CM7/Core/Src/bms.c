@@ -45,6 +45,8 @@ void bms_mainboard_loop()
 	Can_Loop();
 	
 	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
+
+	if(mainboard.internal_state == Fault) HAL_Delay(20);	// if in falt slow down loop time
 }
 
 // Seprate loop that gets ticked to run OWC
@@ -76,7 +78,7 @@ void update_values()
 	ADBMS_6830_Parse_Temperature(&mainboard.adbms_raw.read_raw_aux, &mainboard.adbms_6830.temperature);
 
 	// read filtered voltages
-	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_2950_filtered, C_Channel_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
+	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_2950_filtered, Accumulate_Read_2950, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
     // parse 2950 data
     ADBMS_2950_Calculate_Values(&mainboard.adbms_raw.read_raw_2950_filtered, &mainboard.adbms_2950);
 

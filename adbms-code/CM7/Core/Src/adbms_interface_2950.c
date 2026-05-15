@@ -24,8 +24,17 @@ void ADBMS_2950_Calculate_Vbat(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_
     int offset = (NUM_6830) * DATA_LEN;
 
     //take raw bit values from adbms and place into raw_data in adbms_2950
-    adbms_2950->raw_data.vbat1_raw = ((int16_t)(adbms_2950_read_raw->read_return[3 + command_offset + offset]) << 8) | (int16_t)(adbms_2950_read_raw->read_return[2 + command_offset + offset]);
-    adbms_2950->raw_data.vbat2_raw = ((int16_t)(adbms_2950_read_raw->read_return[5 + command_offset + offset]) << 8) | (int16_t)(adbms_2950_read_raw->read_return[4 + command_offset + offset]);
+    adbms_2950->raw_data.vbat1_raw = ((int32_t)(adbms_2950_read_raw->read_return[2 + command_offset + offset]) << 16) | ((int32_t)(adbms_2950_read_raw->read_return[1 + command_offset + offset]) << 8) | adbms_2950_read_raw->read_return[0 + command_offset + offset];
+    adbms_2950->raw_data.vbat2_raw = ((int32_t)(adbms_2950_read_raw->read_return[5 + command_offset + offset]) << 16) | ((int32_t)(adbms_2950_read_raw->read_return[4 + command_offset + offset]) << 8) | adbms_2950_read_raw->read_return[3 + command_offset + offset];
+
+    //sign extend because it is a 24 bit number but stored int32
+    if (adbms_2950->raw_data.vbat1_raw & 0x00800000) {     
+        adbms_2950->raw_data.vbat1_raw |= 0xFF000000;      
+    }
+
+    if(adbms_2950->raw_data.vbat2_raw & 0x00800000){
+        adbms_2950->raw_data.vbat2_raw |= 0xFF000000;
+    }
 
     adbms_2950->data.precontactor_voltage = ADBMS_2950_Transfer_Vbat(adbms_2950->raw_data.vbat1_raw,adbms_2950->raw_data.vbat2_raw);
 
@@ -83,7 +92,7 @@ void ADBMS_2950_Calculate_Shunt_Temp(adbms_read_raw_* adbms_2950_read_raw, adbms
 //
 //Transfer Functions
 //
-float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw){
+float ADBMS_2950_Transfer_Vbat(int32_t vbat1_raw, int32_t vbat2_raw){
     float vbat_final = 0.0;
 
     //transfer to real value and store
