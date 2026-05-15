@@ -1,18 +1,18 @@
 #include "adbms_interface_2950.h"
 
 
-void ADBMS_2950_Calculate_Values(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
+void ADBMS_2950_Calculate_Values(adbms_read_raw_* adbms_2950_read_raw,adbms_2950_* adbms_2950)
 {
-    ADBMS_2950_Calculate_Vbat(adbms_raw, adbms_2950);
-    ADBMS_2950_Calculate_Current(adbms_raw, adbms_2950);
-    ADBMS_2950_Calculate_Shunt_Temp(adbms_raw, adbms_2950);
+    ADBMS_2950_Calculate_Vbat(adbms_2950_read_raw, adbms_2950);
+    ADBMS_2950_Calculate_Current(adbms_2950_read_raw, adbms_2950);
+    ADBMS_2950_Calculate_Shunt_Temp(adbms_2950_read_raw, adbms_2950);
 }
 
 
 //
 //Calculate Values
 //
-void ADBMS_2950_Calculate_Vbat(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
+void ADBMS_2950_Calculate_Vbat(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950)
 {
     //initialize values
     adbms_2950->raw_data.vbat1_raw = 0;
@@ -24,15 +24,15 @@ void ADBMS_2950_Calculate_Vbat(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
     int offset = (NUM_6830) * DATA_LEN;
 
     //take raw bit values from adbms and place into raw_data in adbms_2950
-    adbms_2950->raw_data.vbat1_raw = ((int16_t)(adbms_raw->read_raw_c.read_return[3 + command_offset + offset]) << 8) | (int16_t)(adbms_raw->read_raw_c.read_return[2 + command_offset + offset]);
-    adbms_2950->raw_data.vbat2_raw = ((int16_t)(adbms_raw->read_raw_c.read_return[5 + command_offset + offset]) << 8) | (int16_t)(adbms_raw->read_raw_c.read_return[4 + command_offset + offset]);
+    adbms_2950->raw_data.vbat1_raw = ((int16_t)(adbms_2950_read_raw->read_return[3 + command_offset + offset]) << 8) | (int16_t)(adbms_2950_read_raw->read_return[2 + command_offset + offset]);
+    adbms_2950->raw_data.vbat2_raw = ((int16_t)(adbms_2950_read_raw->read_return[5 + command_offset + offset]) << 8) | (int16_t)(adbms_2950_read_raw->read_return[4 + command_offset + offset]);
 
     adbms_2950->data.precontactor_voltage = ADBMS_2950_Transfer_Vbat(adbms_2950->raw_data.vbat1_raw,adbms_2950->raw_data.vbat2_raw);
 
 }
 
 
-void ADBMS_2950_Calculate_Current(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
+void ADBMS_2950_Calculate_Current(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950)
 {
     //initialize values
     adbms_2950->raw_data.i1_raw = 0;
@@ -42,8 +42,8 @@ void ADBMS_2950_Calculate_Current(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950
     int offset =  (NUM_6830) * DATA_LEN;
 
     //getting raw data from cell readings and putting it in adbms_2950 
-    adbms_2950->raw_data.i1_raw = ((int32_t)(adbms_raw->read_raw_c.read_return[2 + offset]) << 16) | ((int32_t)(adbms_raw->read_raw_c.read_return[1 + offset]) << 8) | adbms_raw->read_raw_c.read_return[0 + offset];
-    adbms_2950->raw_data.i2_raw = ((int32_t)(adbms_raw->read_raw_c.read_return[5 + offset]) << 16) | ((int32_t)(adbms_raw->read_raw_c.read_return[4 + offset]) << 8) | adbms_raw->read_raw_c.read_return[3 + offset];
+    adbms_2950->raw_data.i1_raw = ((int32_t)(adbms_2950_read_raw->read_return[2 + offset]) << 16) | ((int32_t)(adbms_2950_read_raw->read_return[1 + offset]) << 8) | adbms_2950_read_raw->read_return[0 + offset];
+    adbms_2950->raw_data.i2_raw = ((int32_t)(adbms_2950_read_raw->read_return[5 + offset]) << 16) | ((int32_t)(adbms_2950_read_raw->read_return[4 + offset]) << 8) | adbms_2950_read_raw->read_return[3 + offset];
 
     //sign extend because it is a 24 bit number but stored int32
     if (adbms_2950->raw_data.i1_raw & 0x00800000) {     
@@ -59,7 +59,7 @@ void ADBMS_2950_Calculate_Current(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950
 }
 
 
-void ADBMS_2950_Calculate_Shunt_Temp(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
+void ADBMS_2950_Calculate_Shunt_Temp(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950)
 {
 
     //initilaize values
@@ -70,8 +70,8 @@ void ADBMS_2950_Calculate_Shunt_Temp(adbms_raw_* adbms_raw, adbms_2950_* adbms_2
     int offset = (NUM_6830) * DATA_LEN;
 
     //getting raw data 
-    adbms_2950->raw_data.v7 = (int16_t)(adbms_raw->read_raw_c.read_return[1+offset] << 8) | (int16_t)(adbms_raw->read_raw_c.read_return[0+offset]);
-    adbms_2950->raw_data.v9 = (int16_t)(adbms_raw->read_raw_c.read_return[5+offset] << 8) | (int16_t)(adbms_raw->read_raw_c.read_return[4+offset]);
+    adbms_2950->raw_data.v7 = (int16_t)(adbms_2950_read_raw->read_return[1+offset] << 8) | (int16_t)(adbms_2950_read_raw->read_return[0+offset]);
+    adbms_2950->raw_data.v9 = (int16_t)(adbms_2950_read_raw->read_return[5+offset] << 8) | (int16_t)(adbms_2950_read_raw->read_return[4+offset]);
 
     adbms_2950->data.pack_temperature_1 = ADBMS_2950_Transfer_Shunt_Temp(adbms_2950->raw_data.v7);
     adbms_2950->data.pack_temperature_2 = ADBMS_2950_Transfer_Shunt_Temp(adbms_2950->raw_data.v9);

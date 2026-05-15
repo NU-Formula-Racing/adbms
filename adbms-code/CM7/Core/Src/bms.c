@@ -75,8 +75,10 @@ void update_values()
 	//parse 6830 temp
 	ADBMS_6830_Parse_Temperature(&mainboard.adbms_raw.read_raw_aux, &mainboard.adbms_6830.temperature);
 
-    //parse 2950 data
-    ADBMS_2950_Calculate_Values(&mainboard.adbms_raw, &mainboard.adbms_2950);
+	// read filtered voltages
+	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_2950_filtered, C_Channel_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
+    // parse 2950 data
+    ADBMS_2950_Calculate_Values(&mainboard.adbms_raw.read_raw_2950_filtered, &mainboard.adbms_2950);
 
     //Update Faults
     //this is just 6830 faults -> 2950 faults still need to come

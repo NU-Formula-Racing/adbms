@@ -36,12 +36,12 @@ typedef struct
 }adbms_2950_;
 
 
-void ADBMS_2950_Calculate_Values(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950);
+void ADBMS_2950_Calculate_Values(adbms_read_raw_* adbms_2950_read_raw,adbms_2950_* adbms_2950);
 
 //Calculate Values
-void ADBMS_2950_Calculate_Vbat(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950);
-void ADBMS_2950_Calculate_Current(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950);
-void ADBMS_2950_Calculate_Shunt_Temp(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950);
+void ADBMS_2950_Calculate_Vbat(adbms_read_raw_* adbms_2950_read_raw,adbms_2950_* adbms_2950);
+void ADBMS_2950_Calculate_Current(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950);
+void ADBMS_2950_Calculate_Shunt_Temp(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950);
 
 //Transfer Functions
 float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw);

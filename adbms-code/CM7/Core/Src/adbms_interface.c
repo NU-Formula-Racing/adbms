@@ -55,7 +55,9 @@ void ADBMS_Read_Voltages(adbms_read_raw_* read_raw, voltage_read_type_ type, SPI
             pec |= ADBMS_Read_Data(hspi, RDAUXB, (read_raw->read_return + 1 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
             pec |= ADBMS_Read_Data(hspi, RDAUXC, (read_raw->read_return + 2 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
             pec |= ADBMS_Read_Data(hspi, RDAUXD, (read_raw->read_return + 3 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
-            
+        case Accumulate_Read_2950:
+            pec |= ADBMS_Read_Data(hspi, RDACA, (read_raw->read_return + 0 * NUM_CHIPS * DATA_LEN), spi_dataBuf);
+            pec |= ADBMS_Read_Data(hspi, RDACB, (read_raw->read_return + 1 * NUM_CHIPS * DATA_LEN), spi_dataBuf);       
     }
 
     read_raw->read_pec_failure = pec;
@@ -90,9 +92,10 @@ void ADBMS_2950_Config(command_parameters_2950_* parameters, config_command_bits
     //
     //cfa configs
     //
-    parameters->cfa2950.refup = 1; //refup to 1
-    parameters->cfa2950.gpo1c = 1; //for opening the mosfet for vbat
-    parameters->cfa2950.gpo1od = 0; //for opening the mosfet for vbat
+    parameters->cfa2950.refup = 1;    // refup to 1
+    parameters->cfa2950.gpo1c = 1;    // for opening the mosfet for vbat
+    parameters->cfa2950.gpo1od = 0;   // for opening the mosfet for vbat
+    parameters->cfa2950.acci = 0b100; // accumulate 20 1ms samples for 50Hz reading
 
     ADBMS_Set_Config_A_2950(&parameters->cfa2950,command_bits->cfg_a, NUM_2950,POSITION_2950); //2950 is the last chip on the daisychain
 
