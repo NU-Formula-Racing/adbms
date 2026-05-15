@@ -115,9 +115,9 @@ void charger_control(mainboard_ *mainboard)
                     if (!mainboard->external_fault) {
                         HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
                         HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_SET);
-                        HAL_Delay(100);
+                        HAL_Delay(10);
                         HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_SET);
-                        HAL_Delay(100);
+                        HAL_Delay(10);
                         mainboard->charging_state = charger_precharge;
                         break;
                     }

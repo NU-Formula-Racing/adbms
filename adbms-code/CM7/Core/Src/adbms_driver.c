@@ -282,13 +282,11 @@ void ADBMS_Set_ADV(adv_ adv, uint16_t* adv_cmd_buffer){
 //
 void ADBMS_WakeUP_ICs()
 {
-    for(uint8_t i = 0; i < NUM_CHIPS; i++){
-        // Blocking Transmit the msg
-    	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-    	HAL_Delay(1);
-        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
-        HAL_Delay(1);
-    }
+    // Blocking Transmit the msg
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+    HAL_Delay(1);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+    HAL_Delay(2);
 }
 
 void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd)
