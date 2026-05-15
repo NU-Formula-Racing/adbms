@@ -13,11 +13,11 @@ typedef struct
     uint8_t rxData_[8]; 
 
     // Drive CAN Messages
-    FDCAN_TxHeaderTypeDef TxHeaderSOC_;
-    uint8_t txDataSOC_[8];
+    FDCAN_TxHeaderTypeDef TxHeaderPackboard_;
+    uint8_t txDataPackboard_[8];
 
-    FDCAN_TxHeaderTypeDef TxHeaderFaults_;
-    uint8_t txDataFaults_[8];
+    FDCAN_TxHeaderTypeDef TxHeaderDaughterboard_;
+    uint8_t txDataDaughterboard_[8];
 
     FDCAN_TxHeaderTypeDef TxHeaderStatus_;
     uint8_t txDataStatus_[8];
@@ -25,12 +25,14 @@ typedef struct
     FDCAN_TxHeaderTypeDef TxHeaderCharger_;
     uint8_t txDataCharger_[8];
 
-    // data can messages
+    // large messages
     FDCAN_TxHeaderTypeDef TxHeaderVoltages_;
     uint8_t txDataVoltages_[8];
+    uint8_t current_voltage_msg;
 
     FDCAN_TxHeaderTypeDef TxHeaderTemperatures_;
     uint8_t txDataTemperatures_[8];
+    uint8_t current_temp_msg;
 } bms_can_;
 
 void Bms_Initialize_Can(mainboard_ *mainboard);
@@ -38,11 +40,11 @@ void Bms_Initialize_Can(mainboard_ *mainboard);
 /* CAN Loops */
 void Can_Loop();
 
-void populate_bms_soc(uint8_t *data);
-void populate_bms_faults(uint8_t *data);
+void populate_bms_packboard(uint8_t *data);
+void populate_bms_daughterboard(uint8_t *data);
 void populate_bms_status(uint8_t *data);
 void populate_bms_voltages(uint8_t *data, int volt_msg_num);
-void populate_bms_temparatures(uint8_t *data, int temp_num);
+void populate_bms_temparatures(uint8_t *data, int temp_msg_num);
 void populateCharger_Msg(uint8_t *data);
 
 /* send_can_messages updated to use FDCAN types and buffer index pointer */
