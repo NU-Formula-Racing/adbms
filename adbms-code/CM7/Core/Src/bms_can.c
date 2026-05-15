@@ -153,8 +153,11 @@ void Can_Loop()
 	populate_bms_status(bms_can.txDataStatus_);
 	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderStatus_, bms_can.txDataStatus_);
 
-	// send voltage messages
-	for(int i = 0; i < NUM_CAN_VOLTAGE_MSG_SENT_PER_ITTR; i++) 
+	// populate and send voltage messages
+	uint8_t num_voltge_msgs_sent = NUM_CAN_VOLTAGE_MSG_SENT_PER_ITTR;
+	if (bms_can.mainboard->internal_state == Fault) num_voltge_msgs_sent = NUM_CAN_VOLTAGE_MSGS;
+	
+	for(int i = 0; i < num_voltge_msgs_sent; i++) 
 	{
 		populate_bms_voltages(bms_can.txDataVoltages_, bms_can.current_voltage_msg);
 		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderVoltages_, bms_can.txDataVoltages_);
@@ -168,8 +171,12 @@ void Can_Loop()
 		}
 	}
 
-	// send temperature messages
-	for(int i = 0; i < NUM_CAN_TEMP_MSG_SENT_PER_ITTR; i++) {
+
+	// populate and send temperature messages
+	uint8_t num_temp_msgs_sent = NUM_CAN_TEMP_MSG_SENT_PER_ITTR;
+	if (bms_can.mainboard->internal_state == Fault) num_temp_msgs_sent = NUM_CAN_TEMP_MSGS;
+	
+	for(int i = 0; i < num_temp_msgs_sent; i++) {
 		populate_bms_temparatures(bms_can.txDataTemperatures_, bms_can.current_temp_msg);
 		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderTemperatures_, bms_can.txDataTemperatures_);
 		bms_can.TxHeaderTemperatures_.Identifier++;
