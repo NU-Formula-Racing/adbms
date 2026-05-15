@@ -90,7 +90,7 @@ float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw){
     float vbat_final = 0.0;
 
     //transfer to real value and store
-    float vbat1 = (float)(vbat1_raw / 0.0041938); // (15000/3,600,000 + 15000)
+    float vbat1 = (float)(vbat1_raw /  0.00414937759); // (15000/3,600,000 + 15000)
     float vbat2 = (float) vbat2_raw;
 
     vbat_final = (vbat1-vbat2) * 0.0001; //100 microolms

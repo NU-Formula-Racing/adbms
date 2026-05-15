@@ -33,9 +33,10 @@ void in_car(mainboard_ *mainboard)
         {
             HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
             HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_SET);
+            HAL_Delay(100);
 		    HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_SET);
+            HAL_Delay(1000);
             mainboard->internal_state = Precharge;
-
         }
         else if (mainboard->internal_state == Precharge)
         {
@@ -111,12 +112,27 @@ void charger_control(mainboard_ *mainboard)
             switch (mainboard->charging_state)
             {
                 case charger_setup:
+                    if (!mainboard->external_fault) {
+                        HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
+                        HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_SET);
+                        HAL_Delay(100);
+                        HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_SET);
+                        HAL_Delay(100);
+                        mainboard->charging_state = charger_precharge;
+                        break;
+                    }
+
+                    mainboard->charging_state = charger_setup;
                     HAL_GPIO_WritePin(GPIOB, CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
-                    HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_SET);
-                    HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_SET);
-                    mainboard->charging_state = charger_precharge;
+                    HAL_GPIO_WritePin(GPIOB, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
+                    HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin, GPIO_PIN_RESET);
                     break;
                 case charger_precharge:
+                    if (mainboard->external_fault) {
+                        mainboard->charging_state = charger_setup;
+                        break;
+                    }
+
                     float percent_precharged = mainboard->charger_voltage / mainboard->adbms_6830.voltage.total_v;
                     if (percent_precharged > CHARGER_VOLTAGE_THRESHOLD)
                     {
@@ -127,6 +143,10 @@ void charger_control(mainboard_ *mainboard)
                     }
                     break;
                 case charger_active:
+                    if (mainboard->external_fault) {
+                            mainboard->charging_state = charger_setup;
+                            break;
+                        }
                     break;
             }
         }

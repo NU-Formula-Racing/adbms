@@ -1,2 +1,2 @@
-../Core/Src/bms_soc.c:3:6:Soc_Initialize	1
-../Core/Src/bms_soc.c:19:6:Soc_Update	1
+../Core/Src/bms_soc.c:3:6:Soc_Initialize	4
+../Core/Src/bms_soc.c:43:6:Soc_Update	1
