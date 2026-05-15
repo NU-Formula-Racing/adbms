@@ -31,16 +31,8 @@ typedef struct
 
 typedef struct
 {
-    bool overcurrent_fault;
-
-}adbms_2950_faults_;
-
-typedef struct
-{
     adbms_2950_raw_data_         raw_data;
     adbms_2950_data_parsed_      data;
-    adbms_2950_faults_           faults;
-
 }adbms_2950_;
 
 

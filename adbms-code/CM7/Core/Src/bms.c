@@ -98,10 +98,6 @@ void update_values()
 
 	//soc
 	Soc_Update(&mainboard);
-	
-    //this should change into both current_1 and 2 when both start working
-	mainboard.adbms_2950.faults.overcurrent_fault = mainboard.adbms_2950.data.current > OVERCURRENT;
-
 }
 
 void check_faults()

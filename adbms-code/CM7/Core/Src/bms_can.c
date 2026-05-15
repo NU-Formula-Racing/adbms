@@ -16,30 +16,30 @@ void Bms_Initialize_Can(mainboard_ *mainboard)
 
 	HAL_FDCAN_Start(bms_can.mainboard->hcan);
 
-	// SOC header initialization
-    bms_can.TxHeaderSOC_.Identifier = SOC_ID;
-    bms_can.TxHeaderSOC_.IdType = FDCAN_STANDARD_ID;
-    bms_can.TxHeaderSOC_.TxFrameType = FDCAN_DATA_FRAME;
-    bms_can.TxHeaderSOC_.DataLength = FDCAN_DLC_BYTES_8;
-    bms_can.TxHeaderSOC_.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-    bms_can.TxHeaderSOC_.BitRateSwitch = FDCAN_BRS_OFF;
-    bms_can.TxHeaderSOC_.FDFormat = FDCAN_CLASSIC_CAN;
-    bms_can.TxHeaderSOC_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-    bms_can.TxHeaderSOC_.MessageMarker = 0;
+	// Packboard header initialization
+    bms_can.TxHeaderPackboard_.Identifier = BMS_Packboard_ID;
+    bms_can.TxHeaderPackboard_.IdType = FDCAN_STANDARD_ID;
+    bms_can.TxHeaderPackboard_.TxFrameType = FDCAN_DATA_FRAME;
+    bms_can.TxHeaderPackboard_.DataLength = FDCAN_DLC_BYTES_8;
+    bms_can.TxHeaderPackboard_.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+    bms_can.TxHeaderPackboard_.BitRateSwitch = FDCAN_BRS_OFF;
+    bms_can.TxHeaderPackboard_.FDFormat = FDCAN_CLASSIC_CAN;
+    bms_can.TxHeaderPackboard_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+    bms_can.TxHeaderPackboard_.MessageMarker = 0;
 
-	// Faults header initialization
-	bms_can.TxHeaderFaults_.Identifier = FAULT_ID;
-	bms_can.TxHeaderFaults_.IdType = FDCAN_STANDARD_ID;
-	bms_can.TxHeaderFaults_.TxFrameType = FDCAN_DATA_FRAME;
-	bms_can.TxHeaderFaults_.DataLength = FDCAN_DLC_BYTES_8;
-  	bms_can.TxHeaderFaults_.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
- 	bms_can.TxHeaderFaults_.BitRateSwitch = FDCAN_BRS_OFF;
-   	bms_can.TxHeaderFaults_.FDFormat = FDCAN_CLASSIC_CAN;
-   	bms_can.TxHeaderFaults_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
- 	bms_can.TxHeaderFaults_.MessageMarker = 0;
+	// Daughterboard header initialization
+	bms_can.TxHeaderDaughterboard_.Identifier = BMS_Daughterboard_ID;
+	bms_can.TxHeaderDaughterboard_.IdType = FDCAN_STANDARD_ID;
+	bms_can.TxHeaderDaughterboard_.TxFrameType = FDCAN_DATA_FRAME;
+	bms_can.TxHeaderDaughterboard_.DataLength = FDCAN_DLC_BYTES_8;
+  	bms_can.TxHeaderDaughterboard_.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+ 	bms_can.TxHeaderDaughterboard_.BitRateSwitch = FDCAN_BRS_OFF;
+   	bms_can.TxHeaderDaughterboard_.FDFormat = FDCAN_CLASSIC_CAN;
+   	bms_can.TxHeaderDaughterboard_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+ 	bms_can.TxHeaderDaughterboard_.MessageMarker = 0;
 
 	// Status header initialization
-	bms_can.TxHeaderStatus_.Identifier = STATUS_ID;
+	bms_can.TxHeaderStatus_.Identifier = BMS_Status_ID;
     bms_can.TxHeaderStatus_.IdType = FDCAN_STANDARD_ID;
     bms_can.TxHeaderStatus_.TxFrameType = FDCAN_DATA_FRAME;
     bms_can.TxHeaderStatus_.DataLength = FDCAN_DLC_BYTES_8;
@@ -141,35 +141,33 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hcan, uint32_t RxFifo0ITs)
 
 void Can_Loop()
 {
-	// printf("Sending Drive CAN\n");
+	// update and send packboard
+	populate_bms_packboard(bms_can.txDataPackboard_);
+	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderPackboard_, bms_can.txDataPackboard_);
 
-	// update and send soc
-	populate_bms_soc(bms_can.txDataSOC_);
-	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderSOC_, bms_can.txDataSOC_);
-
-	// update and send faults
-	populate_bms_faults(bms_can.txDataFaults_);
-	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderFaults_, bms_can.txDataFaults_);
+	// update and send daughterboard
+	populate_bms_daughterboard(bms_can.txDataDaughterboard_);
+	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderDaughterboard_, bms_can.txDataDaughterboard_);
 
 	// update and send status
 	populate_bms_status(bms_can.txDataStatus_);
 	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderStatus_, bms_can.txDataStatus_);
 
-	// send voltage messages
-	bms_can.TxHeaderVoltages_.Identifier = 0x153; // set the message id for next iteration
-	for(int i = 0; i < NUM_DATA_CAN_VOLTAGE_MSGS; i++) {
-		populate_bms_voltages(bms_can.txDataVoltages_, i);
-		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderVoltages_, bms_can.txDataVoltages_);
-		bms_can.TxHeaderVoltages_.Identifier++;
-	}
+	// // send voltage messages
+	// bms_can.TxHeaderVoltages_.Identifier = VOLTAGES_ID; // set the message id for next iteration
+	// for(int i = 0; i < NUM_DATA_CAN_VOLTAGE_MSGS; i++) {
+	// 	populate_bms_voltages(bms_can.txDataVoltages_, i);
+	// 	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderVoltages_, bms_can.txDataVoltages_);
+	// 	bms_can.TxHeaderVoltages_.Identifier++;
+	// }
 
-	// send temperature messages
-	bms_can.TxHeaderTemperatures_.Identifier = 0x167; // set the message id for next iteration
-	for(int i = 0; i < NUM_DATA_CAN_TEMP_MSGS; i++) {
-		populate_bms_temparatures(bms_can.txDataTemperatures_, i);
-		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderTemperatures_, bms_can.txDataTemperatures_);
-		bms_can.TxHeaderTemperatures_.Identifier++;
-	}
+	// // send temperature messages
+	// bms_can.TxHeaderTemperatures_.Identifier = TEMPS_ID; // set the message id for next iteration
+	// for(int i = 0; i < NUM_DATA_CAN_TEMP_MSGS; i++) {
+	// 	populate_bms_temparatures(bms_can.txDataTemperatures_, i);
+	// 	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderTemperatures_, bms_can.txDataTemperatures_);
+	// 	bms_can.TxHeaderTemperatures_.Identifier++;
+	// }
 
 	if (bms_can.mainboard->internal_state == Charging)
 	{
@@ -192,80 +190,79 @@ uint8_t send_can_messages(FDCAN_HandleTypeDef *hcan, FDCAN_TxHeaderTypeDef *TxHe
 	return 0;
 }
 
-void populate_bms_soc(uint8_t *data)
+void populate_bms_packboard(uint8_t *data)
 {
-	RawCanSignal signals[5];
-	populateRawMessage(&signals[0], 0, 12, 0.1, 0);									  // max discharge current
-	populateRawMessage(&signals[1], 0, 12, 0.1, 0);									  // max regen current
-
-    //total_v and avg_temp are 6830
-	populateRawMessage(&signals[2], bms_can.mainboard->adbms_6830.voltage.total_v, 16, 0.01, 0);   // battery voltage
-	populateRawMessage(&signals[3], bms_can.mainboard->adbms_6830.temperature.avg_temp, 8, 1, -40);    // battery temp
-
-    //this current is for the 2950
-	populateRawMessage(&signals[4], 100 + bms_can.mainboard->adbms_2950.data.current, 16, 0.01, 0);		  // battery current
-	encodeSignals(data, 5, signals[0], signals[1], signals[2], signals[3], signals[4]);
+	RawCanSignal signals[2];
+	populateRawMessage(&signals[0], bms_can.mainboard->adbms_2950.data.current, 32, 0.0001, -100);	// battery current
+	populateRawMessage(&signals[1], bms_can.mainboard->adbms_2950.data.precontactor_voltage, 32, 0.0001, 0);// max regen current
+	encodeSignals(data, 2, signals[0], signals[1]);
 }
 
-void populate_bms_faults(uint8_t *data)
+void populate_bms_daughterboard(uint8_t *data)
 {
-	RawCanSignal signals[11];
-	populateRawMessage(&signals[0], bms_can.mainboard->bms_fault, 1, 1, 0);																  	// fault summary
-	populateRawMessage(&signals[1], bms_can.mainboard->external_fault, 1, 1, 0);													   		// external fault
-
-    //6830 faults
-	populateRawMessage(&signals[2], bms_can.mainboard->adbms_6830.faults.undervoltage_fault, 1, 1, 0);									    // undervoltage fault
-	populateRawMessage(&signals[3], bms_can.mainboard->adbms_6830.faults.overvoltage_fault, 1, 1, 0);										// overvoltage fault
-	populateRawMessage(&signals[4], bms_can.mainboard->adbms_6830.faults.undertemperature_fault, 1, 1, 0);									// undertemp fault
-	populateRawMessage(&signals[5], bms_can.mainboard->adbms_6830.faults.overtemperature_fault, 1, 1, 0);									// overemp fault
-
-    //6830 openwire faults
-	populateRawMessage(&signals[7], bms_can.mainboard->adbms_6830.faults.openwire_voltage_fault, 1, 1, 0);									// open wire fault
-	populateRawMessage(&signals[8], bms_can.mainboard->adbms_6830.faults.openwire_temp_fault, 1, 1, 0);									    // open wire temp fault
-	populateRawMessage(&signals[9], bms_can.mainboard->adbms_6830.faults.pec_fault, 1, 1, 0);												//Pec Fault
-	encodeSignals(data, 8, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]); 				// Pec Failures
-
-    //2950 faults
-	populateRawMessage(&signals[6], bms_can.mainboard->adbms_2950.faults.overcurrent_fault, 1, 1, 0);										// overcurrent fault
+	RawCanSignal signals[4];
+	populateRawMessage(&signals[0], bms_can.mainboard->adbms_6830.voltage.total_v, 16, 0.01, 0);   		 // total voltage
+	populateRawMessage(&signals[1], bms_can.mainboard->adbms_6830.voltage.max_v, 16, 0.00015, -3.4152);	 // max cell voltage
+	populateRawMessage(&signals[2], bms_can.mainboard->adbms_6830.voltage.min_v, 16, 0.00015, -3.4152);	 // min cell voltage
+	populateRawMessage(&signals[3], bms_can.mainboard->adbms_6830.temperature.max_temp, 16, 0.01, -20);   	 // max cell temp
+	encodeSignals(data, 4, signals[0], signals[1], signals[2], signals[3]);
 
 }
 
 void populate_bms_status(uint8_t *data)
 {
-	RawCanSignal signals[7];
+	RawCanSignal signals[17];
 
-	populateRawMessage(&signals[0], bms_can.mainboard->internal_state, 8, 1, 0);	 // BMS State
-	populateRawMessage(&signals[1], bms_can.mainboard->imd_status, 8, 1, 0);		 // IMD State
+	// states faults summary
+	populateRawMessage(&signals[0], bms_can.mainboard->soc, 16, 0.00002, 0);		// SOC
+	populateRawMessage(&signals[1], bms_can.mainboard->internal_state, 8, 1, 0);	// BMS state
+	populateRawMessage(&signals[2], bms_can.mainboard->imd_status, 1, 1, 0);		// IMD status
+	populateRawMessage(&signals[3], bms_can.mainboard->bms_fault, 1, 1, 0);			// InternalFault_Summary
 
-    //6830 data
-	populateRawMessage(&signals[2], bms_can.mainboard->adbms_6830.temperature.max_temp, 8, 1, -40);   // max cell temp
-	populateRawMessage(&signals[3], bms_can.mainboard->adbms_6830.temperature.min_temp, 8, 1, -40);   // min cell temp
-	populateRawMessage(&signals[4], bms_can.mainboard->adbms_6830.voltage.max_v, 8, 0.012, 2);	 // max cell voltage
-	populateRawMessage(&signals[5], bms_can.mainboard->adbms_6830.voltage.min_v, 8, 0.012, 2);	 // min cell voltage
-	populateRawMessage(&signals[6], 0, 8, 0.5, 0);									 // BMS SOC
-	encodeSignals(data, 7, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6]);
+    // faults
+	populateRawMessage(&signals[4], bms_can.mainboard->adbms_6830.faults.undervoltage_fault, 1, 1, 0);		// undervoltage fault
+	populateRawMessage(&signals[5], bms_can.mainboard->adbms_6830.faults.overvoltage_fault, 1, 1, 0);		// overvoltage fault
+	populateRawMessage(&signals[6], bms_can.mainboard->adbms_6830.faults.undertemperature_fault, 1, 1, 0);	// undertemp fault
+	populateRawMessage(&signals[7], bms_can.mainboard->adbms_6830.faults.overtemperature_fault, 1, 1, 0);	// overemp fault
+	populateRawMessage(&signals[8], bms_can.mainboard->adbms_6830.faults.openwire_voltage_fault, 1, 1, 0);	// open wire fault
+	populateRawMessage(&signals[9], bms_can.mainboard->adbms_6830.faults.openwire_temp_fault, 1, 1, 0);		// open wire temp fault
+	populateRawMessage(&signals[10], bms_can.mainboard->adbms_6830.faults.pec_fault, 1, 1, 0);				// Pec Fault
+
+	// external warnings
+	populateRawMessage(&signals[11], !bms_can.mainboard->shutdown_present, 1, 1, 0);	// shutdown open
+	populateRawMessage(&signals[12], !bms_can.mainboard->vcu_timeout, 1, 1, 0);			// vcu timeout
+	populateRawMessage(&signals[13], !bms_can.mainboard->inverter_timeout, 1, 1, 0);	// inverter timeout
+	populateRawMessage(&signals[14], !bms_can.mainboard->charger_timeout, 1, 1, 0);		// charger timeout
+
+	// 2950 warnings
+	populateRawMessage(&signals[15], 0, 1, 1, 0);		// 2950 pec warning
+
+	// total pec failures
+	populateRawMessage(&signals[16], bms_can.mainboard->adbms_6830.faults.total_pec_failures, 16, 1, 0);
+
+	encodeSignals(data, 17, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7], signals[8], signals[9], signals[10], signals[11], signals[12], signals[13], signals[14], signals[15], signals[16]);
 }
 
 
-void populate_bms_voltages(uint8_t *data, int volt_msg_num)
-{
-	RawCanSignal signals[8];
-	for(int i = 0; i < NUM_DATA_CAN_VOLTAGES_PER_MSG; i++){
-		populateRawMessage(&signals[i], bms_can.mainboard->adbms_6830.voltage.voltages[volt_msg_num * NUM_DATA_CAN_VOLTAGES_PER_MSG + i], 8, 0.012, 2);
-	}
-	populateRawMessage(&signals[7], 0, 8, 0.004, 0);	// OCV msg that is legacy from BQ code and only included for backwards compatibility
-	// num_per_msg + 1 because includes the added OCV msg
-	encodeSignals(data, NUM_DATA_CAN_VOLTAGES_PER_MSG+1, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]);
-}
+// void populate_bms_voltages(uint8_t *data, int volt_msg_num)
+// {
+// 	RawCanSignal signals[8];
+// 	for(int i = 0; i < NUM_DATA_CAN_VOLTAGES_PER_MSG; i++){
+// 		populateRawMessage(&signals[i], bms_can.mainboard->adbms_6830.voltage.voltages[volt_msg_num * NUM_DATA_CAN_VOLTAGES_PER_MSG + i], 8, 0.012, 2);
+// 	}
+// 	populateRawMessage(&signals[7], 0, 8, 0.004, 0);	// OCV msg that is legacy from BQ code and only included for backwards compatibility
+// 	// num_per_msg + 1 because includes the added OCV msg
+// 	encodeSignals(data, NUM_DATA_CAN_VOLTAGES_PER_MSG+1, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]);
+// }
 
-void populate_bms_temparatures(uint8_t *data, int temp_num)
-{
-	RawCanSignal signals[8];
-	for(int i = 0; i < NUM_DATA_CAN_TEMPS_PER_MSG; i++){
-		populateRawMessage(&signals[i], bms_can.mainboard->adbms_6830.temperature.temperatures[temp_num * NUM_DATA_CAN_TEMPS_PER_MSG + i], 8, 1, -40);
-	}
-	encodeSignals(data, NUM_DATA_CAN_TEMPS_PER_MSG, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]);
-}
+// void populate_bms_temparatures(uint8_t *data, int temp_num)
+// {
+// 	RawCanSignal signals[8];
+// 	for(int i = 0; i < NUM_DATA_CAN_TEMPS_PER_MSG; i++){
+// 		populateRawMessage(&signals[i], bms_can.mainboard->adbms_6830.temperature.temperatures[temp_num * NUM_DATA_CAN_TEMPS_PER_MSG + i], 8, 1, -40);
+// 	}
+// 	encodeSignals(data, NUM_DATA_CAN_TEMPS_PER_MSG, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]);
+// }
 
 void populateCharger_Msg(uint8_t *data)
 {

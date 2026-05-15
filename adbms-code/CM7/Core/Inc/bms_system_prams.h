@@ -1,10 +1,6 @@
 #ifndef AD_SYSTEM_PARAMS_H
 #define AD_SYSTEM_PARAMS_H
 
-// Note for NFR25 we precharged across the negative contactor. 
-// This might change in future years, if so change which contactors are closed accoringly in the FSM 
-
-
 #define NUM_6830  10
 #define NUM_2950  1
 #define POSITION_2950 1					/*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
@@ -14,12 +10,12 @@
 #define NUM_VOLTAGES_ODD_CHIP  11  	   	/* Nmber of Cells in odd number ICs starting at 1 ending at 9*/
 #define NUM_VOLTAGES (NUM_6830 * NUM_VOLTAGES_ODD_CHIP + ((NUM_6830 + 1)/2))
 #define NUM_TEMPS_CHIP 10				/* Number of Temps to read per IC 	*/
+#define NUM_TEMPS (NUM_6830 * NUM_TEMPS_CHIP)
 
 #define OVERVOLTAGE 4.2					/* Overvoltage Threshold 	*/
 #define UNDERVOLTAGE 2.5				/* Undervoltage Threshold 	*/
-#define OVERTEMP 90						/* Over Temp Threshold 		*/
-#define UNDERTEMP -40					/* Under Temp Threshold 	*/
-#define OVERCURRENT 135					/* Over Current Threshold 	*/
+#define OVERTEMP 60						/* Over Temp Threshold 		*/
+#define UNDERTEMP -20					/* Under Temp Threshold 	*/
 
 #define PEC_FAILURE_THRESHOLD 10		/* Number of consecutive PEC failures that can happen before a pec fault occurs*/
 #define OWC_VOLTAGE_THRESHOLD 0.5
@@ -31,13 +27,25 @@
 #define ENABLE_SD_LOGGING_BIN 0			/* Flag to enable logging to SD Card as binary files */
 #define ENABLE_SD_LOGGING_CSV 0			/* Flag to enable logging to SD Card as CSV files (ASCII)*/
 
-#define NUM_DATA_CAN_VOLTAGES_PER_MSG 7 // will break if this is changed. Based on how data can and DBC are set up
-#define NUM_DATA_CAN_VOLTAGE_MSGS (NUM_CHIPS * NUM_VOLTAGES_ODD_CHIP + ((NUM_CHIPS + 1)/2)) / NUM_DATA_CAN_VOLTAGES_PER_MSG
-#define NUM_DATA_CAN_TEMPS_PER_MSG 8    // will break if this is changed. Based on how data can and DBC are set up
-#define NUM_DATA_CAN_TEMP_MSGS (NUM_CHIPS * NUM_TEMPS_CHIP) / NUM_DATA_CAN_TEMPS_PER_MSG
+#define NUM_CAN_VOLTAGES_PER_MSG 4	 	// will break if this is changed. Based on how DBC is set up
+// #define NUM_CAN_VOLTAGE_MSGS  (1 + ((NUM_VOLTAGES - 1) / NUM_CAN_VOLTAGES_PER_MSG))
+#define NUM_CAN_VOLTAGE_MSG_SENT_PER_ITTR 6
+#define NUM_CAN_TEMPS_PER_MSG 8    // will break if this is changed. Based on how DBC is set up
+// #define NUM_CAN_TEMP_MSGS (1 + ((NUM_TEMPS - 1) / NUM_CAN_VOLTAGES_PER_MSG))
+#define NUM_CAN_TEMP_MSG_SENT_PER_ITTR 1
 
 #define MAX_CHARGER_VOLTAGE 480
 #define MAX_CHARGER_CURRENT 4
+
+#define NUM_TIMERS 2    // will break if this is changed. This will be replaced by RTOS
+
+#define INVERTER_VOLTAGE_THRESHOLD 0.9 
+#define CHARGER_VOLTAGE_THRESHOLD 0.9 
+
+// CAN TIMEOUTS (ms)
+#define VCU_CAN_TIMEOUT 5000
+#define INVERTER_CAN_TIMEOUT 5000
+#define CHARGER_CAN_TIMEOUT 5000
 
 // BMS IC Parameters
 #define CELLS 	16														  /* Bms ic number of Cells                */
@@ -51,28 +59,18 @@
 #define PEC_LEN  2                                                        /* Number of PEC Bytes                   */
 #define DATABUF_LEN (CMD_LEN + PEC_LEN) + (DATA_LEN + PEC_LEN)*NUM_CHIPS  /* CMD Msg + PEC and (DATA + PEC) per IC */
 
-#define NUM_TIMERS 2    // will break if this is changed. This will be replaced by RTOS
-
-#define INVERTER_VOLTAGE_THRESHOLD 0.9 
-#define CHARGER_VOLTAGE_THRESHOLD 0.9 
-
-// CAN TIMEOUTS (ms)
-#define VCU_CAN_TIMEOUT 5000
-#define INVERTER_CAN_TIMEOUT 5000
-#define CHARGER_CAN_TIMEOUT 5000
-
 //for SOC calculations
 #define CELL_CAPACITY 4.876
 #define PARALLEL 3
 #define SYSTEM_CAPACITY (CELL_CAPACITY * PARALLEL)
 
 //CAN IDs
-#define SOC_ID 0x150
-#define FAULT_ID 0x151
-#define STATUS_ID 0x152
+#define BMS_Packboard_ID 0x150
+#define BMS_Daughterboard_ID 0x151
+#define BMS_Status_ID 0x152
 #define CHARGER_ID 0x1806E5F4
 #define VOLTAGES_ID 0x153
-#define TEMPS_ID 0x167
+#define TEMPS_ID 0x170
 
 // ENUMERATES
 enum bms_states

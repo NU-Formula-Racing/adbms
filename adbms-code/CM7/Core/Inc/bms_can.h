@@ -13,11 +13,11 @@ typedef struct
     uint8_t rxData_[8]; 
 
     // Drive CAN Messages
-    FDCAN_TxHeaderTypeDef TxHeaderSOC_;
-    uint8_t txDataSOC_[8];
+    FDCAN_TxHeaderTypeDef TxHeaderPackboard_;
+    uint8_t txDataPackboard_[8];
 
-    FDCAN_TxHeaderTypeDef TxHeaderFaults_;
-    uint8_t txDataFaults_[8];
+    FDCAN_TxHeaderTypeDef TxHeaderDaughterboard_;
+    uint8_t txDataDaughterboard_[8];
 
     FDCAN_TxHeaderTypeDef TxHeaderStatus_;
     uint8_t txDataStatus_[8];
@@ -38,8 +38,8 @@ void Bms_Initialize_Can(mainboard_ *mainboard);
 /* CAN Loops */
 void Can_Loop();
 
-void populate_bms_soc(uint8_t *data);
-void populate_bms_faults(uint8_t *data);
+void populate_bms_packboard(uint8_t *data);
+void populate_bms_daughterboard(uint8_t *data);
 void populate_bms_status(uint8_t *data);
 void populate_bms_voltages(uint8_t *data, int volt_msg_num);
 void populate_bms_temparatures(uint8_t *data, int temp_num);
