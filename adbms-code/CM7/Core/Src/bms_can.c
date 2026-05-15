@@ -153,21 +153,34 @@ void Can_Loop()
 	populate_bms_status(bms_can.txDataStatus_);
 	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderStatus_, bms_can.txDataStatus_);
 
-	// // send voltage messages
-	// bms_can.TxHeaderVoltages_.Identifier = VOLTAGES_ID; // set the message id for next iteration
-	// for(int i = 0; i < NUM_DATA_CAN_VOLTAGE_MSGS; i++) {
-	// 	populate_bms_voltages(bms_can.txDataVoltages_, i);
-	// 	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderVoltages_, bms_can.txDataVoltages_);
-	// 	bms_can.TxHeaderVoltages_.Identifier++;
-	// }
+	// send voltage messages
+	for(int i = 0; i < NUM_CAN_VOLTAGE_MSG_SENT_PER_ITTR; i++) 
+	{
+		populate_bms_voltages(bms_can.txDataVoltages_, bms_can.current_voltage_msg);
+		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderVoltages_, bms_can.txDataVoltages_);
+		bms_can.TxHeaderVoltages_.Identifier++;
+		bms_can.current_voltage_msg++;
 
-	// // send temperature messages
-	// bms_can.TxHeaderTemperatures_.Identifier = TEMPS_ID; // set the message id for next iteration
-	// for(int i = 0; i < NUM_DATA_CAN_TEMP_MSGS; i++) {
-	// 	populate_bms_temparatures(bms_can.txDataTemperatures_, i);
-	// 	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderTemperatures_, bms_can.txDataTemperatures_);
-	// 	bms_can.TxHeaderTemperatures_.Identifier++;
-	// }
+		if (bms_can.current_voltage_msg >= NUM_CAN_VOLTAGE_MSGS)
+		{
+			bms_can.TxHeaderVoltages_.Identifier = VOLTAGES_ID;
+			bms_can.current_voltage_msg = 0;
+		}
+	}
+
+	// send temperature messages
+	for(int i = 0; i < NUM_CAN_TEMP_MSG_SENT_PER_ITTR; i++) {
+		populate_bms_temparatures(bms_can.txDataTemperatures_, bms_can.current_temp_msg);
+		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderTemperatures_, bms_can.txDataTemperatures_);
+		bms_can.TxHeaderTemperatures_.Identifier++;
+		bms_can.current_temp_msg++;
+
+		if (bms_can.current_temp_msg >= NUM_CAN_TEMP_MSGS)
+		{
+			bms_can.TxHeaderTemperatures_.Identifier = TEMPS_ID;
+			bms_can.current_temp_msg = 0;
+		}
+	}
 
 	if (bms_can.mainboard->internal_state == Charging)
 	{
@@ -244,25 +257,37 @@ void populate_bms_status(uint8_t *data)
 }
 
 
-// void populate_bms_voltages(uint8_t *data, int volt_msg_num)
-// {
-// 	RawCanSignal signals[8];
-// 	for(int i = 0; i < NUM_DATA_CAN_VOLTAGES_PER_MSG; i++){
-// 		populateRawMessage(&signals[i], bms_can.mainboard->adbms_6830.voltage.voltages[volt_msg_num * NUM_DATA_CAN_VOLTAGES_PER_MSG + i], 8, 0.012, 2);
-// 	}
-// 	populateRawMessage(&signals[7], 0, 8, 0.004, 0);	// OCV msg that is legacy from BQ code and only included for backwards compatibility
-// 	// num_per_msg + 1 because includes the added OCV msg
-// 	encodeSignals(data, NUM_DATA_CAN_VOLTAGES_PER_MSG+1, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]);
-// }
+void populate_bms_voltages(uint8_t *data, int volt_msg_num)
+{
+	RawCanSignal signals[NUM_CAN_VOLTAGES_PER_MSG];
+	for(int i = 0; i < NUM_CAN_VOLTAGES_PER_MSG; i++){
+		if ((volt_msg_num * NUM_CAN_VOLTAGES_PER_MSG + i) >= NUM_VOLTAGES)
+		{
+			populateRawMessage(&signals[i], 0, 16, 0, 0);	// out of voltage range so send 0s
+		}
+		else
+		{	
+			populateRawMessage(&signals[i], bms_can.mainboard->adbms_6830.voltage.voltages[volt_msg_num * NUM_CAN_VOLTAGES_PER_MSG + i], 16, 0.00015, -3.4152);
+		}
+	}
+	encodeSignals(data, NUM_CAN_VOLTAGES_PER_MSG, signals[0], signals[1], signals[2], signals[3]);
+}
 
-// void populate_bms_temparatures(uint8_t *data, int temp_num)
-// {
-// 	RawCanSignal signals[8];
-// 	for(int i = 0; i < NUM_DATA_CAN_TEMPS_PER_MSG; i++){
-// 		populateRawMessage(&signals[i], bms_can.mainboard->adbms_6830.temperature.temperatures[temp_num * NUM_DATA_CAN_TEMPS_PER_MSG + i], 8, 1, -40);
-// 	}
-// 	encodeSignals(data, NUM_DATA_CAN_TEMPS_PER_MSG, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]);
-// }
+void populate_bms_temparatures(uint8_t *data, int temp_msg_num)
+{
+	RawCanSignal signals[NUM_CAN_TEMPS_PER_MSG];
+	for(int i = 0; i < NUM_CAN_TEMPS_PER_MSG; i++){
+		if ((temp_msg_num * NUM_CAN_TEMPS_PER_MSG + i) >= NUM_TEMPS)
+		{
+			populateRawMessage(&signals[i], 0, 8, 0, 0);	// out of temp range so send 0s
+		}
+		else
+		{	
+			populateRawMessage(&signals[i], bms_can.mainboard->adbms_6830.temperature.temperatures[temp_msg_num * NUM_CAN_TEMPS_PER_MSG + i], 8, 0.5, -20);
+		}
+	}
+	encodeSignals(data, NUM_CAN_TEMPS_PER_MSG, signals[0], signals[1], signals[2], signals[3], signals[4], signals[5], signals[6], signals[7]);
+}
 
 void populateCharger_Msg(uint8_t *data)
 {

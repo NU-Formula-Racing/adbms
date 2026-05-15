@@ -1,8 +1,10 @@
 ../Core/Src/bms_can.c:6:6:Bms_Initialize_Can	16	static
 ../Core/Src/bms_can.c:87:6:HAL_FDCAN_RxFifo0Callback	24	static
-../Core/Src/bms_can.c:142:6:Can_Loop	8	static
-../Core/Src/bms_can.c:179:9:send_can_messages	32	static
-../Core/Src/bms_can.c:193:6:populate_bms_packboard	80	static
-../Core/Src/bms_can.c:201:6:populate_bms_daughterboard	144	static
-../Core/Src/bms_can.c:212:6:populate_bms_status	568	static
-../Core/Src/bms_can.c:267:6:populateCharger_Msg	24	static
+../Core/Src/bms_can.c:142:6:Can_Loop	16	static
+../Core/Src/bms_can.c:192:9:send_can_messages	32	static
+../Core/Src/bms_can.c:206:6:populate_bms_packboard	80	static
+../Core/Src/bms_can.c:214:6:populate_bms_daughterboard	144	static
+../Core/Src/bms_can.c:225:6:populate_bms_status	568	static
+../Core/Src/bms_can.c:260:6:populate_bms_voltages	152	static
+../Core/Src/bms_can.c:276:6:populate_bms_temparatures	280	static
+../Core/Src/bms_can.c:292:6:populateCharger_Msg	24	static

@@ -28,10 +28,10 @@
 #define ENABLE_SD_LOGGING_CSV 0			/* Flag to enable logging to SD Card as CSV files (ASCII)*/
 
 #define NUM_CAN_VOLTAGES_PER_MSG 4	 	// will break if this is changed. Based on how DBC is set up
-// #define NUM_CAN_VOLTAGE_MSGS  (1 + ((NUM_VOLTAGES - 1) / NUM_CAN_VOLTAGES_PER_MSG))
+#define NUM_CAN_VOLTAGE_MSGS  (1 + ((NUM_VOLTAGES - 1) / NUM_CAN_VOLTAGES_PER_MSG))
 #define NUM_CAN_VOLTAGE_MSG_SENT_PER_ITTR 6
 #define NUM_CAN_TEMPS_PER_MSG 8    // will break if this is changed. Based on how DBC is set up
-// #define NUM_CAN_TEMP_MSGS (1 + ((NUM_TEMPS - 1) / NUM_CAN_VOLTAGES_PER_MSG))
+#define NUM_CAN_TEMP_MSGS (1 + ((NUM_TEMPS - 1) / NUM_CAN_TEMPS_PER_MSG))
 #define NUM_CAN_TEMP_MSG_SENT_PER_ITTR 1
 
 #define MAX_CHARGER_VOLTAGE 480

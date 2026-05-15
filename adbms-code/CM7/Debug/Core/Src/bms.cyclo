@@ -4,6 +4,6 @@
 ../Core/Src/bms.c:54:6:adbms_owc_loop	1
 ../Core/Src/bms.c:64:6:update_values	4
 ../Core/Src/bms.c:103:6:check_faults	14
-../Core/Src/bms.c:151:6:HAL_TIM_PeriodElapsedCallback	3
-../Core/Src/bms.c:167:6:send_data_over_printf	1
-../Core/Src/bms.c:185:6:send_data_over_USB	1
+../Core/Src/bms.c:149:6:HAL_TIM_PeriodElapsedCallback	3
+../Core/Src/bms.c:165:6:send_data_over_printf	1
+../Core/Src/bms.c:183:6:send_data_over_USB	1
