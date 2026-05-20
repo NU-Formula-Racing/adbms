@@ -36,11 +36,10 @@ typedef struct
 }adbms_2950_;
 
 
-void ADBMS_2950_Calculate_Values(adbms_read_raw_* adbms_2950_read_raw,adbms_2950_* adbms_2950);
+void ADBMS_2950_Calculate_Values(adbms_read_raw_* adbms_2950_read_raw,adbms_2950_* adbms_2950,uint8_t acci);
 
 //Calculate Values
-void ADBMS_2950_Calculate_Vbat(adbms_read_raw_* adbms_2950_read_raw,adbms_2950_* adbms_2950);
-void ADBMS_2950_Calculate_Current(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950);
+void ADBMS_2950_Calculate_Accumulator_Vbat(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950, uint8_t acci);
 void ADBMS_2950_Calculate_Accumulator_Current(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950, uint8_t acci);
 void ADBMS_2950_Calculate_Shunt_Temp(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950);
 

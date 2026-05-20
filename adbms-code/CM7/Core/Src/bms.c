@@ -80,7 +80,7 @@ void update_values()
 	// read filtered voltages
 	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_2950_filtered, Accumulate_Read_2950, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
     // parse 2950 data
-    ADBMS_2950_Calculate_Values(&mainboard.adbms_raw.read_raw_2950_filtered, &mainboard.adbms_2950);
+    ADBMS_2950_Calculate_Values(&mainboard.adbms_raw.read_raw_2950_filtered, &mainboard.adbms_2950, mainboard.adbms_raw.command_parameters.parameter_2950.cfa2950.acci);
 
     //Update Faults
     //this is just 6830 faults -> 2950 faults still need to come
