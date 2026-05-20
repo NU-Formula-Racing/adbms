@@ -19,10 +19,10 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
-#include "usbd_core.h"
 #include "stm32h7xx.h"
 #include "stm32h7xx_hal.h"
 #include "usbd_def.h"
+#include "usbd_core.h"
 #include "usbd_cdc.h"
 
 /* USER CODE BEGIN Includes */

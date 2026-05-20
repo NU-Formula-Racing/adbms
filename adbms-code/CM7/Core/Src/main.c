@@ -42,6 +42,8 @@ int _write(int le, char *ptr, int len)
 
 /* Private typedef -----------------------------------------------------------*/
 typedef StaticTask_t osStaticThreadDef_t;
+typedef StaticQueue_t osStaticMessageQDef_t;
+typedef StaticEventGroup_t osStaticEventGroupDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -95,6 +97,140 @@ const osThreadAttr_t MainTask_attributes = {
   .stack_size = sizeof(MainTaskBuffer),
   .priority = (osPriority_t) osPriorityNormal,
 };
+/* Definitions for ProcessADTask */
+osThreadId_t ProcessADTaskHandle;
+uint32_t ProcessADTaskBuffer[ 128 ];
+osStaticThreadDef_t ProcessADTaskControlBlock;
+const osThreadAttr_t ProcessADTask_attributes = {
+  .name = "ProcessADTask",
+  .cb_mem = &ProcessADTaskControlBlock,
+  .cb_size = sizeof(ProcessADTaskControlBlock),
+  .stack_mem = &ProcessADTaskBuffer[0],
+  .stack_size = sizeof(ProcessADTaskBuffer),
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for CANrxTask */
+osThreadId_t CANrxTaskHandle;
+uint32_t CANrxTaskBuffer[ 128 ];
+osStaticThreadDef_t CANrxTaskControlBlock;
+const osThreadAttr_t CANrxTask_attributes = {
+  .name = "CANrxTask",
+  .cb_mem = &CANrxTaskControlBlock,
+  .cb_size = sizeof(CANrxTaskControlBlock),
+  .stack_mem = &CANrxTaskBuffer[0],
+  .stack_size = sizeof(CANrxTaskBuffer),
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for ContactorContro */
+osThreadId_t ContactorControHandle;
+uint32_t ContactorControBuffer[ 128 ];
+osStaticThreadDef_t ContactorControControlBlock;
+const osThreadAttr_t ContactorContro_attributes = {
+  .name = "ContactorContro",
+  .cb_mem = &ContactorControControlBlock,
+  .cb_size = sizeof(ContactorControControlBlock),
+  .stack_mem = &ContactorControBuffer[0],
+  .stack_size = sizeof(ContactorControBuffer),
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for LoggingTask */
+osThreadId_t LoggingTaskHandle;
+uint32_t LoggingTaskBuffer[ 128 ];
+osStaticThreadDef_t LoggingTaskControlBlock;
+const osThreadAttr_t LoggingTask_attributes = {
+  .name = "LoggingTask",
+  .cb_mem = &LoggingTaskControlBlock,
+  .cb_size = sizeof(LoggingTaskControlBlock),
+  .stack_mem = &LoggingTaskBuffer[0],
+  .stack_size = sizeof(LoggingTaskBuffer),
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for CANoutTask */
+osThreadId_t CANoutTaskHandle;
+uint32_t CANoutTaskBuffer[ 128 ];
+osStaticThreadDef_t CANoutTaskControlBlock;
+const osThreadAttr_t CANoutTask_attributes = {
+  .name = "CANoutTask",
+  .cb_mem = &CANoutTaskControlBlock,
+  .cb_size = sizeof(CANoutTaskControlBlock),
+  .stack_mem = &CANoutTaskBuffer[0],
+  .stack_size = sizeof(CANoutTaskBuffer),
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for m4HsemQueue */
+osMessageQueueId_t m4HsemQueueHandle;
+uint8_t m4HsemQueueBuffer[ 16 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t m4HsemQueueControlBlock;
+const osMessageQueueAttr_t m4HsemQueue_attributes = {
+  .name = "m4HsemQueue",
+  .cb_mem = &m4HsemQueueControlBlock,
+  .cb_size = sizeof(m4HsemQueueControlBlock),
+  .mq_mem = &m4HsemQueueBuffer,
+  .mq_size = sizeof(m4HsemQueueBuffer)
+};
+/* Definitions for CANrxQueue */
+osMessageQueueId_t CANrxQueueHandle;
+uint8_t CANrxQueueBuffer[ 16 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t CANrxQueueControlBlock;
+const osMessageQueueAttr_t CANrxQueue_attributes = {
+  .name = "CANrxQueue",
+  .cb_mem = &CANrxQueueControlBlock,
+  .cb_size = sizeof(CANrxQueueControlBlock),
+  .mq_mem = &CANrxQueueBuffer,
+  .mq_size = sizeof(CANrxQueueBuffer)
+};
+/* Definitions for CANtoMainQueue */
+osMessageQueueId_t CANtoMainQueueHandle;
+uint8_t CANtoMainQueueBuffer[ 16 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t CANtoMainQueueControlBlock;
+const osMessageQueueAttr_t CANtoMainQueue_attributes = {
+  .name = "CANtoMainQueue",
+  .cb_mem = &CANtoMainQueueControlBlock,
+  .cb_size = sizeof(CANtoMainQueueControlBlock),
+  .mq_mem = &CANtoMainQueueBuffer,
+  .mq_size = sizeof(CANtoMainQueueBuffer)
+};
+/* Definitions for ADtoSOCQueue */
+osMessageQueueId_t ADtoSOCQueueHandle;
+uint8_t ADtoSOCQueueBuffer[ 16 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t ADtoSOCQueueControlBlock;
+const osMessageQueueAttr_t ADtoSOCQueue_attributes = {
+  .name = "ADtoSOCQueue",
+  .cb_mem = &ADtoSOCQueueControlBlock,
+  .cb_size = sizeof(ADtoSOCQueueControlBlock),
+  .mq_mem = &ADtoSOCQueueBuffer,
+  .mq_size = sizeof(ADtoSOCQueueBuffer)
+};
+/* Definitions for SOCtoMainQueue */
+osMessageQueueId_t SOCtoMainQueueHandle;
+uint8_t SOCtoMainQueueBuffer[ 16 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t SOCtoMainQueueControlBlock;
+const osMessageQueueAttr_t SOCtoMainQueue_attributes = {
+  .name = "SOCtoMainQueue",
+  .cb_mem = &SOCtoMainQueueControlBlock,
+  .cb_size = sizeof(SOCtoMainQueueControlBlock),
+  .mq_mem = &SOCtoMainQueueBuffer,
+  .mq_size = sizeof(SOCtoMainQueueBuffer)
+};
+/* Definitions for ADtoMainQueue */
+osMessageQueueId_t ADtoMainQueueHandle;
+uint8_t ADtoMainQueueBuffer[ 16 * sizeof( uint16_t ) ];
+osStaticMessageQDef_t ADtoMainQueueControlBlock;
+const osMessageQueueAttr_t ADtoMainQueue_attributes = {
+  .name = "ADtoMainQueue",
+  .cb_mem = &ADtoMainQueueControlBlock,
+  .cb_size = sizeof(ADtoMainQueueControlBlock),
+  .mq_mem = &ADtoMainQueueBuffer,
+  .mq_size = sizeof(ADtoMainQueueBuffer)
+};
+/* Definitions for MainboardFlags */
+osEventFlagsId_t MainboardFlagsHandle;
+osStaticEventGroupDef_t MainboardFlagsControlBlock;
+const osEventFlagsAttr_t MainboardFlags_attributes = {
+  .name = "MainboardFlags",
+  .cb_mem = &MainboardFlagsControlBlock,
+  .cb_size = sizeof(MainboardFlagsControlBlock),
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -108,6 +244,11 @@ static void MX_SDMMC1_SD_Init(void);
 static void MX_FDCAN1_Init(void);
 static void MX_TIM4_Init(void);
 void StartMainTask(void *argument);
+void StartADTask(void *argument);
+void StartCANrxTask(void *argument);
+void StartContactorTask04(void *argument);
+void StartLoggingTask(void *argument);
+void StartCANoutTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -219,6 +360,25 @@ Error_Handler();
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
+  /* Create the queue(s) */
+  /* creation of m4HsemQueue */
+  m4HsemQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &m4HsemQueue_attributes);
+
+  /* creation of CANrxQueue */
+  CANrxQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &CANrxQueue_attributes);
+
+  /* creation of CANtoMainQueue */
+  CANtoMainQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &CANtoMainQueue_attributes);
+
+  /* creation of ADtoSOCQueue */
+  ADtoSOCQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &ADtoSOCQueue_attributes);
+
+  /* creation of SOCtoMainQueue */
+  SOCtoMainQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &SOCtoMainQueue_attributes);
+
+  /* creation of ADtoMainQueue */
+  ADtoMainQueueHandle = osMessageQueueNew (16, sizeof(uint16_t), &ADtoMainQueue_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
@@ -227,9 +387,28 @@ Error_Handler();
   /* creation of MainTask */
   MainTaskHandle = osThreadNew(StartMainTask, NULL, &MainTask_attributes);
 
+  /* creation of ProcessADTask */
+  ProcessADTaskHandle = osThreadNew(StartADTask, NULL, &ProcessADTask_attributes);
+
+  /* creation of CANrxTask */
+  CANrxTaskHandle = osThreadNew(StartCANrxTask, NULL, &CANrxTask_attributes);
+
+  /* creation of ContactorContro */
+  ContactorControHandle = osThreadNew(StartContactorTask04, NULL, &ContactorContro_attributes);
+
+  /* creation of LoggingTask */
+  LoggingTaskHandle = osThreadNew(StartLoggingTask, NULL, &LoggingTask_attributes);
+
+  /* creation of CANoutTask */
+  CANoutTaskHandle = osThreadNew(StartCANoutTask, NULL, &CANoutTask_attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
+
+  /* Create the event(s) */
+  /* creation of MainboardFlags */
+  MainboardFlagsHandle = osEventFlagsNew(&MainboardFlags_attributes);
 
   /* USER CODE BEGIN RTOS_EVENTS */
   /* add events, ... */
@@ -608,6 +787,96 @@ void StartMainTask(void *argument)
     osDelay(1);
   }
   /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartADTask */
+/**
+* @brief Function implementing the ProcessADTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartADTask */
+void StartADTask(void *argument)
+{
+  /* USER CODE BEGIN StartADTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartADTask */
+}
+
+/* USER CODE BEGIN Header_StartCANrxTask */
+/**
+* @brief Function implementing the CANrxTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartCANrxTask */
+void StartCANrxTask(void *argument)
+{
+  /* USER CODE BEGIN StartCANrxTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartCANrxTask */
+}
+
+/* USER CODE BEGIN Header_StartContactorTask04 */
+/**
+* @brief Function implementing the ContactorContro thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartContactorTask04 */
+void StartContactorTask04(void *argument)
+{
+  /* USER CODE BEGIN StartContactorTask04 */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartContactorTask04 */
+}
+
+/* USER CODE BEGIN Header_StartLoggingTask */
+/**
+* @brief Function implementing the LoggingTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartLoggingTask */
+void StartLoggingTask(void *argument)
+{
+  /* USER CODE BEGIN StartLoggingTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartLoggingTask */
+}
+
+/* USER CODE BEGIN Header_StartCANoutTask */
+/**
+* @brief Function implementing the CANoutTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartCANoutTask */
+void StartCANoutTask(void *argument)
+{
+  /* USER CODE BEGIN StartCANoutTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartCANoutTask */
 }
 
  /* MPU Configuration */

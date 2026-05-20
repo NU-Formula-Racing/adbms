@@ -22,6 +22,17 @@ SourceFiles=CM4\Core\Src\main.c;CM7\Core\Src\main.c;CM7\FATFS\Target\bsp_driver_
 HeaderPath=Drivers\STM32H7xx_HAL_Driver\Inc;Drivers\STM32H7xx_HAL_Driver\Inc\Legacy;Middlewares\Third_Party\FatFs\src;Middlewares\Third_Party\FreeRTOS\Source\include;Middlewares\Third_Party\FreeRTOS\Source\CMSIS_RTOS_V2;Middlewares\Third_Party\FreeRTOS\Source\portable\GCC\ARM_CM4F;Middlewares\ST\STM32_USB_Device_Library\Core\Inc;Middlewares\ST\STM32_USB_Device_Library\Class\CDC\Inc;Drivers\CMSIS\Device\ST\STM32H7xx\Include;Drivers\CMSIS\Include;CM7\FATFS\Target;CM7\FATFS\App;CM7\Core\Inc;CM7\USB_DEVICE\App;CM7\USB_DEVICE\Target;CM4\Core\Inc;
 CDefines=CORE_CM4;CORE_CM7;CORE_CM7;USE_HAL_DRIVER;STM32H745xx;USE_HAL_DRIVER;USE_PWR_LDO_SUPPLY;USE_HAL_DRIVER;USE_HAL_DRIVER;CORE_CM4;CORE_CM4;USE_HAL_DRIVER;STM32H745xx;USE_HAL_DRIVER;USE_PWR_LDO_SUPPLY;USE_HAL_DRIVER;USE_HAL_DRIVER;USE_HAL_DRIVER;
 
+[CortexM7:]
+SourceFiles=;;
+CDefines=CORE_CM7;USE_HAL_DRIVER;STM32H745xx;USE_HAL_DRIVER;
+
+[CortexM4:]
+SourceFiles=;;
+CDefines=CORE_CM4;USE_HAL_DRIVER;STM32H745xx;USE_HAL_DRIVER;
+
+[]
+SourceFiles=;;
+
 [CortexM7:PreviousGenFiles]
 AdvancedFolderStructure=true
 HeaderFileListSize=13
