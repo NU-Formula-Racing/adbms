@@ -3,7 +3,7 @@
 
 void ADBMS_2950_Calculate_Values(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
 {
-    if (ADBMS_2950_Pec_Update(adbms_raw, adbms_2950)) //pec needs to be false for us to process
+    if (!ADBMS_2950_Pec_Failure(adbms_raw, adbms_2950)) //pec needs to be false for us to process
     {
         ADBMS_2950_Calculate_Vbat(adbms_raw, adbms_2950);
         ADBMS_2950_Calculate_Current(adbms_raw, adbms_2950);
@@ -112,16 +112,16 @@ float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage){
 
 }
 
-bool ADBMS_2950_Pec_Update(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
+bool ADBMS_2950_Pec_Failure(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
 {
 
     if (adbms_raw->read_raw_c.read_pec_failure.pec_2950){
         adbms_2950->warnings.pec_warning_count += 1;
-        return false; // pec true we don't parse this data, 
+        return true; // pec true we don't parse this data, 
     }
 
     adbms_2950->warnings.pec_warning_count = 0;
-    return true;
+    return false;
 }
 
 

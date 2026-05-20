@@ -17,7 +17,6 @@
 
 #define OVERTEMP 60						/* Over Temp Threshold 		*/
 #define UNDERTEMP -20					/* Under Temp Threshold 	*/
-#define OVERCURRENT 300					/* Over Current Threshold 	*/
 
 
 #define PEC_FAILURE_THRESHOLD 10		/* Number of consecutive PEC failures that can happen before a pec fault occurs*/
