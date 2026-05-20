@@ -31,7 +31,6 @@ typedef struct
 
 typedef struct
 {
-    bool overcurrent_warning;
 
     bool pec_warning;
     int pec_warning_count;

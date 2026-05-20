@@ -96,8 +96,6 @@ void update_values()
 
 	//soc
 	Soc_Update(&mainboard);
-	
-	mainboard.adbms_2950.warnings.overcurrent_warning = mainboard.adbms_2950.data.current > OVERCURRENT;
 
 }
 

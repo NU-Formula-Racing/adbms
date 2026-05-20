@@ -228,11 +228,6 @@ void populate_bms_daughterboard(uint8_t *data)
 	populateRawMessage(&signals[3], bms_can.mainboard->adbms_6830.temperature.max_temp, 16, 0.01, -20);   	 // max cell temp
 	encodeSignals(data, 4, signals[0], signals[1], signals[2], signals[3]);
 
-	//this needs to go SOMEWHERE, but im not quite sure where yet
-	//2950 faults
-	//populateRawMessage(&signals[6], bms_can.mainboard->adbms_2950.warnings.overcurrent_warning, 1, 1, 0);		
-
-
 }
 
 void populate_bms_status(uint8_t *data)
@@ -261,7 +256,7 @@ void populate_bms_status(uint8_t *data)
 	populateRawMessage(&signals[14], bms_can.mainboard->charger_timeout, 1, 1, 0);		// charger timeout
 
 	// 2950 warnings
-	populateRawMessage(&signals[15], 0, 1, 1, 0);		// 2950 pec warning
+	populateRawMessage(&signals[15], bms_can.mainboard->adbms_2950.warnings.pec_warning, 1, 1, 0);	// 2950 pec warning
 
 	// total pec failures
 	populateRawMessage(&signals[16], bms_can.mainboard->adbms_6830.faults.total_pec_failures, 16, 1, 0);
