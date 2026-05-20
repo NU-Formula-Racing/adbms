@@ -17,7 +17,7 @@ void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 	Soc_Initialize(&mainboard);
 
 	// initialize the timers: adbms_mainboard_loop, drive_can, data_can
-	timer_ t_adbms = Create_Timer(200, bms_mainboard_loop);
+	timer_ t_adbms = Create_Timer(19, bms_mainboard_loop); // bc of timer group delay is +1ms of the duration
 	timer_ t_adbms_owc_check = Create_Timer(30000, adbms_owc_loop);
 	timer_ timers[NUM_TIMERS] = {t_adbms, t_adbms_owc_check};
 	mainboard.tg = Create_Timer_Group(timers);
@@ -39,15 +39,12 @@ void Tick_Mainboard_Timers()
 // ADBMS loop that gets ticked
 void bms_mainboard_loop()
 {
-    //this loops need i think a lot of changes (because the entire structure chnanged)
 	update_values();
 	check_faults();
 	Control_Loop(&mainboard);
-
 	Can_Loop();
+	
 	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
-	if(ENABLE_USB_COMMS) send_data_over_USB(); 
-
 }
 
 // Seprate loop that gets ticked to run OWC
@@ -100,7 +97,6 @@ void update_values()
 	//soc
 	Soc_Update(&mainboard);
 	
-    //this should change into both current_1 and 2 when both start working
 	mainboard.adbms_2950.warnings.overcurrent_warning = mainboard.adbms_2950.data.current > OVERCURRENT;
 
 }
@@ -183,9 +179,4 @@ void send_data_over_printf()
 	printf("SOC: %f\n", mainboard.soc);
 	
 	// TODO Add more prints as needed
-}
-
-void send_data_over_USB()
-{
-	//work on this later because i have more important things to fix right now
 }

@@ -47,11 +47,4 @@ void Soc_Update(mainboard_ *mainboard)
     mainboard->prev_time = tick;
 
     mainboard->soc = mainboard->soc - (delta * mainboard->adbms_2950.data.current / (SYSTEM_CAPACITY));
-    // int curridx1 = fmin(fmax(0, (int)floor((SYSTEM_CAPACITY * 1000.0 / 3.0 - (mainboard->soc * SYSTEM_CAPACITY)) * 1000.0 / 3.0 / 6.0)), 4500);
-    // int curridx2 = fmin(fmax(0, (int)ceil((SYSTEM_CAPACITY * 1000.0 / 3.0 - (mainboard->soc * SYSTEM_CAPACITY)) * 1000.0 / 3.0 / 6.0)), 4500);
-    // mainboard->dcir = (a2r_lookup[curridx2] - a2r_lookup[curridx1]) * (((SYSTEM_CAPACITY * 1000.0 / 3.0 - (mainboard->soc * SYSTEM_CAPACITY)) * 1000.0 / 3.0) - floor((SYSTEM_CAPACITY - (mainboard->soc * SYSTEM_CAPACITY)) * 1000.0 / 3.0)) + a2r_lookup[curridx1];
-
-
-    // float delta_i = (mainboard->adbms_6830.voltage.avg_v - UNDERVOLTAGE) / (mainboard->dcir * 1000.0f) * PARALLEL; // convert mili-ohms to ohms
-    // mainboard->max_discharge_current = fmin(OVERCURRENT, mainboard->max_discharge_current + delta_i);
 }

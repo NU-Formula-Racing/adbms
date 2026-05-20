@@ -33,10 +33,6 @@ typedef struct
 	bool external_fault;
 	bool bms_fault;
 
-	// current
-	// float current;
-	float current_offset;
-
 	// external values
 	bool shutdown_present;
 	bool imd_status; //high is healthy
@@ -49,8 +45,6 @@ typedef struct
 
 	// soc
 	float soc;
-	float dcir;
-	float max_discharge_current;
 	float prev_time;
 
 	// timeouts

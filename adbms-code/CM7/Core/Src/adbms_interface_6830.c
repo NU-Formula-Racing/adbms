@@ -157,9 +157,9 @@ void Update_6830_InternalFault(adbms_6830_* adbms_6830)
     // check undertemperature fault
     adbms_6830->faults.undertemperature_fault = adbms_6830->faults.undertemperature_fault || (adbms_6830->temperature.min_temp < UNDERTEMP);
 
-    //
-    // moved here new
-    //
+    // check openwire temp fault
+    adbms_6830->faults.openwire_temp_fault = adbms_6830->faults.openwire_temp_fault || (adbms_6830->temperature.openwire_temp_fault);
+
 
     // check pec fault
     if ((adbms_6830->voltage.pec_counts > PEC_FAILURE_THRESHOLD) || (adbms_6830->temperature.pec_counts > PEC_FAILURE_THRESHOLD))
@@ -170,9 +170,6 @@ void Update_6830_InternalFault(adbms_6830_* adbms_6830)
     // Keep running tally of total pec failures for data collection
     if (adbms_6830->voltage.pec_counts) adbms_6830->faults.total_pec_failures++;
     if (adbms_6830->temperature.pec_counts) adbms_6830->faults.total_pec_failures++;
-
-    // check openwire temp fault
-    adbms_6830->faults.openwire_temp_fault = adbms_6830->faults.openwire_temp_fault || (adbms_6830->temperature.openwire_temp_fault);
 }
 
 void Update_6830_Owc_Faults(adbms_6830_voltage_parsed_* voltage_owc, adbms_6830_faults_* faults)
