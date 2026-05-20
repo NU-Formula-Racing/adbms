@@ -29,17 +29,17 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  12 .debug_rnglists 000004dd  00000000  00000000  00009b28  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_macro  000373db  00000000  00000000  0000a005  2**0
+ 13 .debug_macro  000373c8  00000000  00000000  0000a005  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_line   000074e2  00000000  00000000  000413e0  2**0
+ 14 .debug_line   000071a9  00000000  00000000  000413cd  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_str    0016efe6  00000000  00000000  000488c2  2**0
+ 15 .debug_str    0016ef46  00000000  00000000  00048576  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .comment      00000043  00000000  00000000  001b78a8  2**0
+ 16 .comment      00000043  00000000  00000000  001b74bc  2**0
                   CONTENTS, READONLY
- 17 .debug_frame  0000193c  00000000  00000000  001b78ec  2**2
+ 17 .debug_frame  00001738  00000000  00000000  001b7500  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_line_str 0000006b  00000000  00000000  001b9228  2**0
+ 18 .debug_line_str 00000065  00000000  00000000  001b8c38  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -717,7 +717,7 @@ __weak HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
     HAL_NVIC_SetPriority(SysTick_IRQn, TickPriority, 0U);
  81005a0:	2200      	movs	r2, #0
  81005a2:	6879      	ldr	r1, [r7, #4]
- 81005a4:	f04f 30ff 	mov.w	r0, #4294967295
+ 81005a4:	f04f 30ff 	mov.w	r0, #4294967295	@ 0xffffffff
  81005a8:	f000 f8e1 	bl	810076e <HAL_NVIC_SetPriority>
     uwTickPrio = TickPriority;
  81005ac:	4a06      	ldr	r2, [pc, #24]	@ (81005c8 <HAL_InitTick+0x68>)
@@ -934,7 +934,7 @@ __STATIC_INLINE uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t P
 
   return (
            ((PreemptPriority & (uint32_t)((1UL << (PreemptPriorityBits)) - 1UL)) << SubPriorityBits) |
- 81006e0:	f04f 32ff 	mov.w	r2, #4294967295
+ 81006e0:	f04f 32ff 	mov.w	r2, #4294967295	@ 0xffffffff
  81006e4:	69bb      	ldr	r3, [r7, #24]
  81006e6:	fa02 f303 	lsl.w	r3, r2, r3
  81006ea:	43da      	mvns	r2, r3
@@ -943,7 +943,7 @@ __STATIC_INLINE uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t P
  81006f0:	697b      	ldr	r3, [r7, #20]
  81006f2:	409a      	lsls	r2, r3
            ((SubPriority     & (uint32_t)((1UL << (SubPriorityBits    )) - 1UL)))
- 81006f4:	f04f 31ff 	mov.w	r1, #4294967295
+ 81006f4:	f04f 31ff 	mov.w	r1, #4294967295	@ 0xffffffff
  81006f8:	697b      	ldr	r3, [r7, #20]
  81006fa:	fa01 f303 	lsl.w	r3, r1, r3
  81006fe:	43d9      	mvns	r1, r3
@@ -989,7 +989,7 @@ __STATIC_INLINE uint32_t SysTick_Config(uint32_t ticks)
  8100730:	6053      	str	r3, [r2, #4]
   NVIC_SetPriority (SysTick_IRQn, (1UL << __NVIC_PRIO_BITS) - 1UL); /* set Priority for Systick Interrupt */
  8100732:	210f      	movs	r1, #15
- 8100734:	f04f 30ff 	mov.w	r0, #4294967295
+ 8100734:	f04f 30ff 	mov.w	r0, #4294967295	@ 0xffffffff
  8100738:	f7ff ff8e 	bl	8100658 <__NVIC_SetPriority>
   SysTick->VAL   = 0UL;                                             /* Load the SysTick Counter Value */
  810073c:	4b05      	ldr	r3, [pc, #20]	@ (8100754 <SysTick_Config+0x40>)
@@ -1754,18 +1754,18 @@ uint32_t HAL_RCC_GetSysClockFreq(void)
 
 08100c08 <__libc_init_array>:
  8100c08:	b570      	push	{r4, r5, r6, lr}
- 8100c0a:	4d0d      	ldr	r5, [pc, #52]	@ (8100c40 <__libc_init_array+0x38>)
- 8100c0c:	4c0d      	ldr	r4, [pc, #52]	@ (8100c44 <__libc_init_array+0x3c>)
- 8100c0e:	1b64      	subs	r4, r4, r5
- 8100c10:	10a4      	asrs	r4, r4, #2
+ 8100c0a:	4b0d      	ldr	r3, [pc, #52]	@ (8100c40 <__libc_init_array+0x38>)
+ 8100c0c:	4d0d      	ldr	r5, [pc, #52]	@ (8100c44 <__libc_init_array+0x3c>)
+ 8100c0e:	1b5b      	subs	r3, r3, r5
+ 8100c10:	109c      	asrs	r4, r3, #2
  8100c12:	2600      	movs	r6, #0
  8100c14:	42a6      	cmp	r6, r4
  8100c16:	d109      	bne.n	8100c2c <__libc_init_array+0x24>
- 8100c18:	4d0b      	ldr	r5, [pc, #44]	@ (8100c48 <__libc_init_array+0x40>)
- 8100c1a:	4c0c      	ldr	r4, [pc, #48]	@ (8100c4c <__libc_init_array+0x44>)
- 8100c1c:	f000 f818 	bl	8100c50 <_init>
- 8100c20:	1b64      	subs	r4, r4, r5
- 8100c22:	10a4      	asrs	r4, r4, #2
+ 8100c18:	f000 f81a 	bl	8100c50 <_init>
+ 8100c1c:	4d0a      	ldr	r5, [pc, #40]	@ (8100c48 <__libc_init_array+0x40>)
+ 8100c1e:	4b0b      	ldr	r3, [pc, #44]	@ (8100c4c <__libc_init_array+0x44>)
+ 8100c20:	1b5b      	subs	r3, r3, r5
+ 8100c22:	109c      	asrs	r4, r3, #2
  8100c24:	2600      	movs	r6, #0
  8100c26:	42a6      	cmp	r6, r4
  8100c28:	d105      	bne.n	8100c36 <__libc_init_array+0x2e>
