@@ -12,7 +12,7 @@ void ADBMS_2950_Calculate_Values(adbms_read_raw_* adbms_2950_read_raw,adbms_2950
 //
 //Calculate Values
 //
-void ADBMS_2950_Calculate_Vbat(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950)
+void ADBMS_2950_Calculate_Accumulator_Vbat(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950, uint8_t acci)
 {
     //initialize values
     adbms_2950->raw_data.vbat1_raw = 0;
@@ -36,12 +36,12 @@ void ADBMS_2950_Calculate_Vbat(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_
         adbms_2950->raw_data.vbat2_raw |= 0xFF000000;
     }
 
-    adbms_2950->data.precontactor_voltage = ADBMS_2950_Transfer_Vbat(adbms_2950->raw_data.vbat1_raw,adbms_2950->raw_data.vbat2_raw);
+    adbms_2950->data.precontactor_voltage = ADBMS_2950_Transfer_Accumulator_Vbat(adbms_2950->raw_data.vbat1_raw,adbms_2950->raw_data.vbat2_raw,acci);
 
 }
 
 
-void ADBMS_2950_Calculate_Current(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950)
+void ADBMS_2950_Calculate_Accumulator_Current(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950, uint8_t acci)
 {
     //initialize values
     adbms_2950->raw_data.i1_raw = 0;
@@ -64,7 +64,7 @@ void ADBMS_2950_Calculate_Current(adbms_read_raw_* adbms_2950_read_raw, adbms_29
     }
 
     //average the two
-    adbms_2950->data.current = (-ADBMS_2950_Transfer_Current(adbms_2950->raw_data.i1_raw) + ADBMS_2950_Transfer_Current(adbms_2950->raw_data.i2_raw)) / 2 ;
+    adbms_2950->data.current = ADBMS_2950_Transfer_Accumulator_Current(adbms_2950->raw_data.i1_raw,adbms_2950->raw_data.i2_raw,acci);
 }
 
 
@@ -92,24 +92,29 @@ void ADBMS_2950_Calculate_Shunt_Temp(adbms_read_raw_* adbms_2950_read_raw, adbms
 //
 //Transfer Functions
 //
-float ADBMS_2950_Transfer_Vbat(int32_t vbat1_raw, int32_t vbat2_raw){
-    float vbat_final = 0.0;
 
-    //transfer to real value and store
-    float vbat1 = (float)(vbat1_raw /  0.00414937759); // (15000/3,600,000 + 15000)
-    float vbat2 = (float) vbat2_raw;
+float ADBMS_2950_Transfer_Accumulator_Vbat(int32_t vbat1_raw, int32_t vbat2_raw, uint8_t acci)
+{
+    //page 50 of datasheet
+    float accn = (float) 4 * acci + 4;
 
-    vbat_final = (vbat1-vbat2) * 0.0001; //100 microolms
-    
-    return vbat_final;
+    //transfer to real value
+    float vbat1 = (float)(vbat1_raw / (accn * 0.00414937759)); // (15000/3,600,000 + 15000)
+    float vbat2 = (float) vbat2_raw / accn;
+
+    return (vbat1-vbat2) * 0.0001; //100 microolms
 }
 
-float ADBMS_2950_Transfer_Current(int32_t data)
+
+float ADBMS_2950_Transfer_Accumulator_Current(int32_t current_1_raw, int32_t current_2_raw, uint8_t acci)
 {
-  float current;
-  //the actual measured resistance is closer to 94 microolms instead of 100
-  current = (float) data / 94.0;
-  return current;
+
+    //page 50 of datasheet
+    float accn = (float) 4 * acci + 4;
+
+    float current1 = (float) -current_1_raw/ (94.0 * accn);
+    float current2 = (float) current_2_raw/ (94.0 * accn);
+    return (current1 + current2)/2;
 }
 
 float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage){
@@ -118,6 +123,7 @@ float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage){
 
 }
 
+ 
 
 //
 //Prints 
@@ -132,6 +138,31 @@ void ADBMS_2950_Print_Vals(adbms_2950_* adbms_2950)
 
 
 
+//Previous transfer functions
+// float ADBMS_2950_Transfer_Current(int32_t data)
+// {
+//   float current;
+//   //the actual measured resistance is closer to 94 microolms instead of 100
+//   //its measured in micro volts
+//   current = (float) data / 94.0;
+//   return current;
+// }
+
+
+// float ADBMS_2950_Transfer_Vbat(int32_t vbat1_raw, int32_t vbat2_raw){
+
+//     //fix this transfer function
+
+//     float vbat_final = 0.0;
+
+//     //transfer to real value and store
+//     float vbat1 = (float)(vbat1_raw /  0.00414937759); // (15000/3,600,000 + 15000)
+//     float vbat2 = (float) vbat2_raw;
+
+//     vbat_final = (vbat1-vbat2) * 0.0001; //100 microolms
+    
+//     return vbat_final;
+// }
 
 //
 // Post Contactor Voltage No longe exists
