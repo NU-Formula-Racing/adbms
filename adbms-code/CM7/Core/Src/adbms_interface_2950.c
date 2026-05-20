@@ -3,6 +3,8 @@
 
 void ADBMS_2950_Calculate_Values(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
 {
+    if (NUM_2950 == 0) return;
+    
     ADBMS_2950_Calculate_Vbat(adbms_raw, adbms_2950);
     ADBMS_2950_Calculate_Current(adbms_raw, adbms_2950);
     ADBMS_2950_Calculate_Shunt_Temp(adbms_raw, adbms_2950);

@@ -60,6 +60,28 @@ void Bms_Initialize_Can(mainboard_ *mainboard)
     bms_can.TxHeaderCharger_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
     bms_can.TxHeaderCharger_.MessageMarker = 0;
 
+	// OWC_C header initialization
+	bms_can.TxHeaderOWC_C_.Identifier = BMS_OWC_C;
+    bms_can.TxHeaderOWC_C_.IdType = FDCAN_STANDARD_ID;
+    bms_can.TxHeaderOWC_C_.TxFrameType = FDCAN_DATA_FRAME;
+    bms_can.TxHeaderOWC_C_.DataLength = FDCAN_DLC_BYTES_8;
+    bms_can.TxHeaderOWC_C_.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+    bms_can.TxHeaderOWC_C_.BitRateSwitch = FDCAN_BRS_OFF;
+    bms_can.TxHeaderOWC_C_.FDFormat = FDCAN_CLASSIC_CAN;
+    bms_can.TxHeaderOWC_C_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+    bms_can.TxHeaderOWC_C_.MessageMarker = 0;
+
+	// OWC_S header initialization
+	bms_can.TxHeaderOWC_C_.Identifier = BMS_OWC_S;
+    bms_can.TxHeaderOWC_C_.IdType = FDCAN_STANDARD_ID;
+    bms_can.TxHeaderOWC_C_.TxFrameType = FDCAN_DATA_FRAME;
+    bms_can.TxHeaderOWC_C_.DataLength = FDCAN_DLC_BYTES_8;
+    bms_can.TxHeaderOWC_C_.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+    bms_can.TxHeaderOWC_C_.BitRateSwitch = FDCAN_BRS_OFF;
+    bms_can.TxHeaderOWC_C_.FDFormat = FDCAN_CLASSIC_CAN;
+    bms_can.TxHeaderOWC_C_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+    bms_can.TxHeaderOWC_C_.MessageMarker = 0;
+
 	// Voltages header initialization
     bms_can.TxHeaderVoltages_.Identifier = VOLTAGES_ID;
     bms_can.TxHeaderVoltages_.IdType = FDCAN_STANDARD_ID;
@@ -196,6 +218,27 @@ void Can_Loop()
 	}
 }
 
+void owc_can_loop()
+{
+	// send c channel messages
+	for(int i = 0; i < NUM_CAN_OWC_MSGS; i++) 
+	{
+		populate_bms_owc(bms_can.txDataOWC_C_, i, C_Channel);
+		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderOWC_C_, bms_can.txDataOWC_C_);
+		bms_can.TxHeaderOWC_C_.Identifier++;
+	}
+	bms_can.TxHeaderOWC_C_.Identifier = BMS_OWC_C;
+
+	// send s channel messages
+	for(int i = 0; i < NUM_CAN_OWC_MSGS; i++) 
+	{
+		populate_bms_owc(bms_can.txDataOWC_S_, i, S_Channel);
+		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderOWC_S_, bms_can.txDataOWC_S_);
+		bms_can.TxHeaderOWC_S_.Identifier++;
+	}
+	bms_can.TxHeaderOWC_S_.Identifier = BMS_OWC_S;
+}
+
 uint8_t send_can_messages(FDCAN_HandleTypeDef *hcan, FDCAN_TxHeaderTypeDef *TxHeader, uint8_t *data)
 {	
 	// send msg
@@ -313,4 +356,30 @@ void populateCharger_Msg(uint8_t *data)
 		data[4] = 1;
 	}
 	 
+}
+
+
+void populate_bms_owc(uint8_t *data, uint8_t owc_msg_num, Owc_Channel_ channel)
+{
+	for(int i = 0; i < 8; i++){
+		uint8_t owc_faults = 0;
+
+		// process in baches of 8
+		for(int j = 0; j < 8; j++) {
+			if ((owc_msg_num * 64 + i + j) < NUM_VOLTAGES)
+			{
+				switch (channel)
+				{
+					case C_Channel:
+						if (bms_can.mainboard->adbms_6830.faults.owc_c_faults[owc_msg_num*64 +i+j]) owc_faults |= 1 < j;
+						break;
+					case S_Channel:
+						if (bms_can.mainboard->adbms_6830.faults.owc_s_faults[owc_msg_num*64 +i+j]) owc_faults |= 1 < j;
+						break;
+				}
+			}
+		}
+
+		data[i] = owc_faults;
+	}
 }

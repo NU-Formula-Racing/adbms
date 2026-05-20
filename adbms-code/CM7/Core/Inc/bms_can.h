@@ -25,6 +25,12 @@ typedef struct
     FDCAN_TxHeaderTypeDef TxHeaderCharger_;
     uint8_t txDataCharger_[8];
 
+    FDCAN_TxHeaderTypeDef TxHeaderOWC_C_;
+    uint8_t txDataOWC_C_[8];
+
+    FDCAN_TxHeaderTypeDef TxHeaderOWC_S_;
+    uint8_t txDataOWC_S_[8];
+
     // large messages
     FDCAN_TxHeaderTypeDef TxHeaderVoltages_;
     uint8_t txDataVoltages_[8];
@@ -39,12 +45,14 @@ void Bms_Initialize_Can(mainboard_ *mainboard);
 
 /* CAN Loops */
 void Can_Loop();
+void owc_can_loop();
 
 void populate_bms_packboard(uint8_t *data);
 void populate_bms_daughterboard(uint8_t *data);
 void populate_bms_status(uint8_t *data);
 void populate_bms_voltages(uint8_t *data, int volt_msg_num);
 void populate_bms_temparatures(uint8_t *data, int temp_msg_num);
+void populate_bms_owc(uint8_t *data, uint8_t owc_msg_num, Owc_Channel_ channel);
 void populateCharger_Msg(uint8_t *data);
 
 /* send_can_messages updated to use FDCAN types and buffer index pointer */
