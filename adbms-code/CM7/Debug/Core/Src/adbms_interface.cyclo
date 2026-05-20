@@ -1,6 +1,0 @@
-../Core/Src/adbms_interface.c:4:6:ADBMS_Initialize	1
-../Core/Src/adbms_interface.c:32:6:ADBMS_Read_Voltages	5
-../Core/Src/adbms_interface.c:68:6:ADBMS_6830_Config	2
-../Core/Src/adbms_interface.c:88:6:ADBMS_2950_Config	1
-../Core/Src/adbms_interface.c:107:6:ADBMS_joint_Config	1
-../Core/Src/adbms_interface.c:145:6:ADBMS_Owc_Config	11
