@@ -172,7 +172,7 @@ void Update_6830_InternalFault(adbms_6830_* adbms_6830)
     if (adbms_6830->temperature.pec_counts) adbms_6830->faults.total_pec_failures++;
 }
 
-void Update_6830_Owc_Faults(adbms_6830_voltage_parsed_* voltage_owc, adbms_6830_faults_* faults)
+void Update_6830_Owc_Faults(adbms_6830_voltage_parsed_* voltage_owc, adbms_6830_faults_* faults, Owc_Channel_ channel)
 {
     // pec check
     if (voltage_owc->pec_counts > PEC_FAILURE_THRESHOLD)
@@ -180,8 +180,11 @@ void Update_6830_Owc_Faults(adbms_6830_voltage_parsed_* voltage_owc, adbms_6830_
         faults->pec_fault = true;
     }
 
-    // Keep running tally of total pec failures for data collection
-    if (voltage_owc->pec_counts) faults->total_pec_failures++;
+    // Keep running tally of total pec failures for data collection and return
+    if (voltage_owc->pec_counts) {
+        faults->total_pec_failures++;
+        return;
+    }
 
 
     // owc check
@@ -189,6 +192,17 @@ void Update_6830_Owc_Faults(adbms_6830_voltage_parsed_* voltage_owc, adbms_6830_
     {
         if (voltage_owc->voltages[i] < OWC_VOLTAGE_THRESHOLD){
             faults->openwire_voltage_fault = true;
+
+            switch (channel)
+            {
+                case C_Channel:
+                    faults->owc_c_faults[i] = 1;
+                    break;
+
+                case S_Channel:
+                    faults->owc_s_faults[i] = 1;
+                    break;
+            }
         }  
     }
 }
@@ -253,13 +267,13 @@ void Owc_c_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
     ADBMS_Owc_Config(adbms_raw, C_Channel, Channel_Even_On);
     ADBMS_Read_Voltages(&adbms_raw->read_raw_c_owc, C_Channel_Read, adbms_raw->SPI_data.hspi, adbms_raw->SPI_data.spi_dataBuf);
     ADBMS_6830_Parse_Voltage(&adbms_raw->read_raw_c_owc, &adbms_6830->voltage_owc);
-    Update_6830_Owc_Faults(&adbms_6830->voltage_owc, &adbms_6830->faults);
+    Update_6830_Owc_Faults(&adbms_6830->voltage_owc, &adbms_6830->faults, C_Channel);
 
     //Turn on Odd, Read, Update
     ADBMS_Owc_Config(adbms_raw, C_Channel, Channel_Odd_On);
     ADBMS_Read_Voltages(&adbms_raw->read_raw_c_owc, C_Channel_Read, adbms_raw->SPI_data.hspi, adbms_raw->SPI_data.spi_dataBuf);
     ADBMS_6830_Parse_Voltage(&adbms_raw->read_raw_c_owc, &adbms_6830->voltage_owc);
-    Update_6830_Owc_Faults(&adbms_6830->voltage_owc, &adbms_6830->faults);
+    Update_6830_Owc_Faults(&adbms_6830->voltage_owc, &adbms_6830->faults, C_Channel);
 
     //Turn Off
     ADBMS_Owc_Config(adbms_raw, C_Channel, Channel_Off);
@@ -267,18 +281,17 @@ void Owc_c_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
 
 void Owc_s_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
 {
-
     //Turn on Even, Read, Update
     ADBMS_Owc_Config(adbms_raw, S_Channel, Channel_Even_On);
     ADBMS_Read_Voltages(&adbms_raw->read_raw_s_owc, S_Channel_Read, adbms_raw->SPI_data.hspi, adbms_raw->SPI_data.spi_dataBuf);
     ADBMS_6830_Parse_Voltage(&adbms_raw->read_raw_s_owc, &adbms_6830->voltage_owc);
-    Update_6830_Owc_Faults(&adbms_6830->voltage_owc, &adbms_6830->faults);
+    Update_6830_Owc_Faults(&adbms_6830->voltage_owc, &adbms_6830->faults, S_Channel);
 
     //Turn on Odd, Read, Update
     ADBMS_Owc_Config(adbms_raw,S_Channel,Channel_Odd_On);
     ADBMS_Read_Voltages(&adbms_raw->read_raw_s_owc, S_Channel_Read, adbms_raw->SPI_data.hspi, adbms_raw->SPI_data.spi_dataBuf);
     ADBMS_6830_Parse_Voltage(&adbms_raw->read_raw_s_owc, &adbms_6830->voltage_owc);
-    Update_6830_Owc_Faults(&adbms_6830->voltage_owc, &adbms_6830->faults);
+    Update_6830_Owc_Faults(&adbms_6830->voltage_owc, &adbms_6830->faults, S_Channel);
 
     //Turn off
     ADBMS_Owc_Config(adbms_raw, S_Channel, Channel_Off);

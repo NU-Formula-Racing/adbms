@@ -1,3 +1,4 @@
 *.mp4
-*.elfadbms-code/CM7/Debug/
+*.elf
+.vscode/
 adbms-code/CM7/Debug/
