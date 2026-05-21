@@ -18,7 +18,7 @@ void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 
 	// initialize the timers: adbms_mainboard_loop, drive_can, data_can
 	timer_ t_adbms = Create_Timer(19, bms_mainboard_loop); // bc of timer group delay is +1ms of the duration
-	timer_ t_adbms_owc_check = Create_Timer(10000, adbms_owc_loop);
+	timer_ t_adbms_owc_check = Create_Timer(30000, adbms_owc_loop);
 	timer_ timers[NUM_TIMERS] = {t_adbms, t_adbms_owc_check};
 	mainboard.tg = Create_Timer_Group(timers);
 
