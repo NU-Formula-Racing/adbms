@@ -1,8 +1,8 @@
 #ifndef AD_SYSTEM_PARAMS_H
 #define AD_SYSTEM_PARAMS_H
 
-#define NUM_6830  10
-#define NUM_2950  1
+#define NUM_6830  2
+#define NUM_2950  0
 #define POSITION_2950 1					/*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
 #define POSITION_6830 (POSITION_2950 ^ 1) /*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
 #define NUM_CHIPS (NUM_6830+NUM_2950)	/* Number of ICs 					*/
@@ -27,7 +27,7 @@
 #define CB_THRESHOLD 1					/* Threshold Away From Lowest Cell to Start Cell Balancing when CB is enabled */
 #define CB_MIN_V_THRESHOLD 3			/* Cells under this threshold will not be balanced even when CB is enabled */
 
-#define ENABLE_PRINTF_DEBUG_COMMS 1		/* Flag to enable Printf debug comms */
+#define ENABLE_PRINTF_DEBUG_COMMS 0		/* Flag to enable Printf debug comms */
 #define ENABLE_USB_COMMS 0				/* Flag to enable USB comms */
 #define ENABLE_SD_LOGGING_BIN 0			/* Flag to enable logging to SD Card as binary files */
 #define ENABLE_SD_LOGGING_CSV 0			/* Flag to enable logging to SD Card as CSV files (ASCII)*/

@@ -45,6 +45,8 @@ void bms_mainboard_loop()
 	Can_Loop();
 	
 	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
+
+	if(mainboard.internal_state == Fault) HAL_Delay(10);	// delay loop to send values slower in fault
 }
 
 // Seprate loop that gets ticked to run OWC

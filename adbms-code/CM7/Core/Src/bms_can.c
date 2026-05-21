@@ -72,15 +72,15 @@ void Bms_Initialize_Can(mainboard_ *mainboard)
     bms_can.TxHeaderOWC_C_.MessageMarker = 0;
 
 	// OWC_S header initialization
-	bms_can.TxHeaderOWC_C_.Identifier = BMS_OWC_S;
-    bms_can.TxHeaderOWC_C_.IdType = FDCAN_STANDARD_ID;
-    bms_can.TxHeaderOWC_C_.TxFrameType = FDCAN_DATA_FRAME;
-    bms_can.TxHeaderOWC_C_.DataLength = FDCAN_DLC_BYTES_8;
-    bms_can.TxHeaderOWC_C_.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-    bms_can.TxHeaderOWC_C_.BitRateSwitch = FDCAN_BRS_OFF;
-    bms_can.TxHeaderOWC_C_.FDFormat = FDCAN_CLASSIC_CAN;
-    bms_can.TxHeaderOWC_C_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-    bms_can.TxHeaderOWC_C_.MessageMarker = 0;
+	bms_can.TxHeaderOWC_S_.Identifier = BMS_OWC_S;
+    bms_can.TxHeaderOWC_S_.IdType = FDCAN_STANDARD_ID;
+    bms_can.TxHeaderOWC_S_.TxFrameType = FDCAN_DATA_FRAME;
+    bms_can.TxHeaderOWC_S_.DataLength = FDCAN_DLC_BYTES_8;
+    bms_can.TxHeaderOWC_S_.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+    bms_can.TxHeaderOWC_S_.BitRateSwitch = FDCAN_BRS_OFF;
+    bms_can.TxHeaderOWC_S_.FDFormat = FDCAN_CLASSIC_CAN;
+    bms_can.TxHeaderOWC_S_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+    bms_can.TxHeaderOWC_S_.MessageMarker = 0;
 
 	// Voltages header initialization
     bms_can.TxHeaderVoltages_.Identifier = VOLTAGES_ID;
@@ -367,15 +367,15 @@ void populate_bms_owc(uint8_t *data, uint8_t owc_msg_num, Owc_Channel_ channel)
 
 		// process in baches of 8
 		for(int j = 0; j < 8; j++) {
-			if ((owc_msg_num * 64 + i + j) < NUM_VOLTAGES)
+			if ((owc_msg_num * 64 + i*8 + j) < NUM_VOLTAGES)
 			{
 				switch (channel)
 				{
 					case C_Channel:
-						if (bms_can.mainboard->adbms_6830.faults.owc_c_faults[owc_msg_num*64 +i+j]) owc_faults |= 1 < j;
+						if (bms_can.mainboard->adbms_6830.faults.owc_c_faults[owc_msg_num*64 + i*8 + j])	owc_faults |= 1 << j;
 						break;
 					case S_Channel:
-						if (bms_can.mainboard->adbms_6830.faults.owc_s_faults[owc_msg_num*64 +i+j]) owc_faults |= 1 < j;
+						if (bms_can.mainboard->adbms_6830.faults.owc_s_faults[owc_msg_num*64 + i*8 + j])	owc_faults |= 1 << j;
 						break;
 				}
 			}
