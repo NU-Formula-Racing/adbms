@@ -6,6 +6,6 @@
 ../Core/Src/adbms_interface_6830.c:250:6:cell_Balance_Off	24	static
 ../Core/Src/adbms_interface_6830.c:264:6:Owc_c_channel_update	16	static
 ../Core/Src/adbms_interface_6830.c:282:6:Owc_s_channel_update	16	static
-../Core/Src/adbms_interface_6830.c:305:7:ADBMS_6830_Transfer_Voltage	24	static
-../Core/Src/adbms_interface_6830.c:312:7:ADBMS_6830_Transfer_Temp	24	static
-../Core/Src/adbms_interface_6830.c:327:6:ADBMS_6830_Print_Vals	40	static
+../Core/Src/adbms_interface_6830.c:304:7:ADBMS_6830_Transfer_Voltage	24	static
+../Core/Src/adbms_interface_6830.c:311:7:ADBMS_6830_Transfer_Temp	24	static
+../Core/Src/adbms_interface_6830.c:326:6:ADBMS_6830_Print_Vals	40	static

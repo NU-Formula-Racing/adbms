@@ -281,7 +281,6 @@ void Owc_c_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
 
 void Owc_s_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
 {
-
     //Turn on Even, Read, Update
     ADBMS_Owc_Config(adbms_raw, S_Channel, Channel_Even_On);
     ADBMS_Read_Voltages(&adbms_raw->read_raw_s_owc, S_Channel_Read, adbms_raw->SPI_data.hspi, adbms_raw->SPI_data.spi_dataBuf);
