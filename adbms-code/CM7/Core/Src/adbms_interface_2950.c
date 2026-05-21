@@ -3,7 +3,7 @@
 
 void ADBMS_2950_Calculate_Values(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
 {
-    if (!ADBMS_2950_Pec_Failure(adbms_raw, adbms_2950)) //pec needs to be false for us to process
+    if (NUM_2950 && !ADBMS_2950_Pec_Failure(adbms_raw, adbms_2950)) //pec needs to be false for us to process
     {
         ADBMS_2950_Calculate_Vbat(adbms_raw, adbms_2950);
         ADBMS_2950_Calculate_Current(adbms_raw, adbms_2950);
