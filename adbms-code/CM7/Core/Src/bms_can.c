@@ -196,7 +196,10 @@ void Can_Loop()
 
 	// populate and send temperature messages
 	uint8_t num_temp_msgs_sent = NUM_CAN_TEMP_MSG_SENT_PER_ITTR;
-	if (bms_can.mainboard->internal_state == Fault) num_temp_msgs_sent = NUM_CAN_TEMP_MSGS;
+	if (bms_can.mainboard->internal_state == Fault) {
+		num_temp_msgs_sent = NUM_CAN_TEMP_MSGS;
+		HAL_Delay(2);	// delay to allow CAN buffer to empty
+	}
 	
 	for(int i = 0; i < num_temp_msgs_sent; i++) {
 		populate_bms_temparatures(bms_can.txDataTemperatures_, bms_can.current_temp_msg);
