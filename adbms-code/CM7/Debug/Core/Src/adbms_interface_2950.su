@@ -1,8 +1,0 @@
-../Core/Src/adbms_interface_2950.c:4:6:ADBMS_2950_Calculate_Values	16	static
-../Core/Src/adbms_interface_2950.c:17:6:ADBMS_2950_Calculate_Vbat	24	static
-../Core/Src/adbms_interface_2950.c:37:6:ADBMS_2950_Calculate_Current	32	static
-../Core/Src/adbms_interface_2950.c:64:6:ADBMS_2950_Calculate_Shunt_Temp	24	static
-../Core/Src/adbms_interface_2950.c:88:7:ADBMS_2950_Transfer_Vbat	32	static
-../Core/Src/adbms_interface_2950.c:100:7:ADBMS_2950_Transfer_Current	24	static
-../Core/Src/adbms_interface_2950.c:108:7:ADBMS_2950_Transfer_Shunt_Temp	16	static
-../Core/Src/adbms_interface_2950.c:118:6:ADBMS_2950_Print_Vals	16	static

@@ -83,6 +83,7 @@ void update_values()
     //Update Faults
     //this is just 6830 faults -> 2950 faults still need to come
     Update_6830_InternalFault(&mainboard.adbms_6830);
+	Update_2950_InternalFault(&mainboard.adbms_2950);
 
 
 	if (mainboard.internal_state == Charging)
@@ -97,6 +98,7 @@ void update_values()
 
 	//soc
 	Soc_Update(&mainboard);
+
 }
 
 void check_faults()

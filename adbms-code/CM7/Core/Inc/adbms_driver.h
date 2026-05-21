@@ -41,12 +41,20 @@ typedef struct
 
 }SPI_data_;
 
+
+typedef struct 
+{
+    bool pec_2950;
+    bool pec_6830;
+
+}pec_return_;
+
 //this struct stores all struct of all the bit values coming back from reads
 typedef struct 
 {
 
     uint8_t read_return[NUM_CHIPS * CELL_REG_GRP * DATA_LEN];
-    bool read_pec_failure;
+    pec_return_ read_pec_failure;
 
 }adbms_read_raw_;
 
@@ -267,4 +275,7 @@ void ADBMS_Set_ADV(adv_ adv, uint16_t* adv_cmd_buffer);
 void ADBMS_WakeUP_ICs();
 void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd);
 void ADBMS_Write_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf);
-bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf);
+void ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf, pec_return_* pec_return);
+
+//old read function
+//bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf);

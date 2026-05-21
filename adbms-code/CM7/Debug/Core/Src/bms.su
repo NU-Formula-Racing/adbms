@@ -1,8 +1,0 @@
-../Core/Src/bms.c:5:6:Bms_Mainboard_Setup	64	static
-../Core/Src/bms.c:34:6:Tick_Mainboard_Timers	8	static
-../Core/Src/bms.c:40:6:bms_mainboard_loop	8	static
-../Core/Src/bms.c:51:6:adbms_owc_loop	8	static
-../Core/Src/bms.c:63:6:update_values	8	static
-../Core/Src/bms.c:102:6:check_faults	24	static
-../Core/Src/bms.c:148:6:HAL_TIM_PeriodElapsedCallback	16	static
-../Core/Src/bms.c:164:6:send_data_over_printf	8	static
