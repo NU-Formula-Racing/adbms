@@ -60,6 +60,28 @@ void Bms_Initialize_Can(mainboard_ *mainboard)
     bms_can.TxHeaderCharger_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
     bms_can.TxHeaderCharger_.MessageMarker = 0;
 
+	// OWC_C header initialization
+	bms_can.TxHeaderOWC_C_.Identifier = BMS_OWC_C;
+    bms_can.TxHeaderOWC_C_.IdType = FDCAN_STANDARD_ID;
+    bms_can.TxHeaderOWC_C_.TxFrameType = FDCAN_DATA_FRAME;
+    bms_can.TxHeaderOWC_C_.DataLength = FDCAN_DLC_BYTES_8;
+    bms_can.TxHeaderOWC_C_.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+    bms_can.TxHeaderOWC_C_.BitRateSwitch = FDCAN_BRS_OFF;
+    bms_can.TxHeaderOWC_C_.FDFormat = FDCAN_CLASSIC_CAN;
+    bms_can.TxHeaderOWC_C_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+    bms_can.TxHeaderOWC_C_.MessageMarker = 0;
+
+	// OWC_S header initialization
+	bms_can.TxHeaderOWC_S_.Identifier = BMS_OWC_S;
+    bms_can.TxHeaderOWC_S_.IdType = FDCAN_STANDARD_ID;
+    bms_can.TxHeaderOWC_S_.TxFrameType = FDCAN_DATA_FRAME;
+    bms_can.TxHeaderOWC_S_.DataLength = FDCAN_DLC_BYTES_8;
+    bms_can.TxHeaderOWC_S_.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+    bms_can.TxHeaderOWC_S_.BitRateSwitch = FDCAN_BRS_OFF;
+    bms_can.TxHeaderOWC_S_.FDFormat = FDCAN_CLASSIC_CAN;
+    bms_can.TxHeaderOWC_S_.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+    bms_can.TxHeaderOWC_S_.MessageMarker = 0;
+
 	// Voltages header initialization
     bms_can.TxHeaderVoltages_.Identifier = VOLTAGES_ID;
     bms_can.TxHeaderVoltages_.IdType = FDCAN_STANDARD_ID;
@@ -174,7 +196,10 @@ void Can_Loop()
 
 	// populate and send temperature messages
 	uint8_t num_temp_msgs_sent = NUM_CAN_TEMP_MSG_SENT_PER_ITTR;
-	if (bms_can.mainboard->internal_state == Fault) num_temp_msgs_sent = NUM_CAN_TEMP_MSGS;
+	if (bms_can.mainboard->internal_state == Fault) {
+		num_temp_msgs_sent = NUM_CAN_TEMP_MSGS;
+		HAL_Delay(2);	// delay to allow CAN buffer to empty
+	}
 	
 	for(int i = 0; i < num_temp_msgs_sent; i++) {
 		populate_bms_temparatures(bms_can.txDataTemperatures_, bms_can.current_temp_msg);
@@ -194,6 +219,27 @@ void Can_Loop()
 		populateCharger_Msg(bms_can.txDataCharger_);
 		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderCharger_, bms_can.txDataCharger_);
 	}
+}
+
+void owc_can_loop()
+{
+	// send c channel messages
+	for(int i = 0; i < NUM_CAN_OWC_MSGS; i++) 
+	{
+		populate_bms_owc(bms_can.txDataOWC_C_, i, C_Channel);
+		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderOWC_C_, bms_can.txDataOWC_C_);
+		bms_can.TxHeaderOWC_C_.Identifier++;
+	}
+	bms_can.TxHeaderOWC_C_.Identifier = BMS_OWC_C;
+
+	// send s channel messages
+	for(int i = 0; i < NUM_CAN_OWC_MSGS; i++) 
+	{
+		populate_bms_owc(bms_can.txDataOWC_S_, i, S_Channel);
+		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderOWC_S_, bms_can.txDataOWC_S_);
+		bms_can.TxHeaderOWC_S_.Identifier++;
+	}
+	bms_can.TxHeaderOWC_S_.Identifier = BMS_OWC_S;
 }
 
 uint8_t send_can_messages(FDCAN_HandleTypeDef *hcan, FDCAN_TxHeaderTypeDef *TxHeader, uint8_t *data)
@@ -220,6 +266,7 @@ void populate_bms_packboard(uint8_t *data)
 
 void populate_bms_daughterboard(uint8_t *data)
 {
+
 	RawCanSignal signals[4];
 	populateRawMessage(&signals[0], bms_can.mainboard->adbms_6830.voltage.total_v, 16, 0.01, 0);   		 // total voltage
 	populateRawMessage(&signals[1], bms_can.mainboard->adbms_6830.voltage.max_v, 16, 0.00015, -3.4152);	 // max cell voltage
@@ -255,7 +302,7 @@ void populate_bms_status(uint8_t *data)
 	populateRawMessage(&signals[14], bms_can.mainboard->charger_timeout, 1, 1, 0);		// charger timeout
 
 	// 2950 warnings
-	populateRawMessage(&signals[15], 0, 1, 1, 0);		// 2950 pec warning
+	populateRawMessage(&signals[15], bms_can.mainboard->adbms_2950.warnings.pec_warning, 1, 1, 0);	// 2950 pec warning
 
 	// total pec failures
 	populateRawMessage(&signals[16], bms_can.mainboard->adbms_6830.faults.total_pec_failures, 16, 1, 0);
@@ -313,4 +360,30 @@ void populateCharger_Msg(uint8_t *data)
 		data[4] = 1;
 	}
 	 
+}
+
+
+void populate_bms_owc(uint8_t *data, uint8_t owc_msg_num, Owc_Channel_ channel)
+{
+	for(int i = 0; i < 8; i++){
+		uint8_t owc_faults = 0;
+
+		// process in baches of 8
+		for(int j = 0; j < 8; j++) {
+			if ((owc_msg_num * 64 + i*8 + j) < NUM_VOLTAGES)
+			{
+				switch (channel)
+				{
+					case C_Channel:
+						if (bms_can.mainboard->adbms_6830.faults.owc_c_faults[owc_msg_num*64 + i*8 + j])	owc_faults |= 1 << j;
+						break;
+					case S_Channel:
+						if (bms_can.mainboard->adbms_6830.faults.owc_s_faults[owc_msg_num*64 + i*8 + j])	owc_faults |= 1 << j;
+						break;
+				}
+			}
+		}
+
+		data[i] = owc_faults;
+	}
 }

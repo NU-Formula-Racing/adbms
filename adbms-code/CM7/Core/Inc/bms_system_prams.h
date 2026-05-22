@@ -14,8 +14,10 @@
 
 #define OVERVOLTAGE 4.2					/* Overvoltage Threshold 	*/
 #define UNDERVOLTAGE 2.5				/* Undervoltage Threshold 	*/
+
 #define OVERTEMP 60						/* Over Temp Threshold 		*/
 #define UNDERTEMP -20					/* Under Temp Threshold 	*/
+
 
 #define PEC_FAILURE_THRESHOLD 10		/* Number of consecutive PEC failures that can happen before a pec fault occurs*/
 #define OWC_VOLTAGE_THRESHOLD 0.5
@@ -36,6 +38,7 @@
 #define NUM_CAN_TEMPS_PER_MSG 8    // will break if this is changed. Based on how DBC is set up
 #define NUM_CAN_TEMP_MSGS (1 + ((NUM_TEMPS - 1) / NUM_CAN_TEMPS_PER_MSG))
 #define NUM_CAN_TEMP_MSG_SENT_PER_ITTR 1
+#define NUM_CAN_OWC_MSGS (1 + ((NUM_VOLTAGES - 1) / 64))
 
 #define NUM_TIMERS 2    // will break if this is changed. This will be replaced by RTOS
 
@@ -69,6 +72,8 @@
 #define BMS_Daughterboard_ID 0x151
 #define BMS_Status_ID 0x152
 #define CHARGER_ID 0x1806E5F4
+#define BMS_OWC_C 0x140
+#define BMS_OWC_S 0x142
 #define VOLTAGES_ID 0x153
 #define TEMPS_ID 0x170
 

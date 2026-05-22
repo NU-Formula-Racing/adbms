@@ -5,9 +5,12 @@
 //Ask Drake tomorrow
 void ADBMS_2950_Calculate_Values(adbms_read_raw_* adbms_2950_read_raw,adbms_2950_* adbms_2950,uint8_t acci)
 {
-    ADBMS_2950_Calculate_Accumulator_Vbat(adbms_2950_read_raw, adbms_2950, acci);
-    ADBMS_2950_Calculate_Accumulator_Current(adbms_2950_read_raw, adbms_2950, acci);
-    ADBMS_2950_Calculate_Shunt_Temp(adbms_2950_read_raw, adbms_2950);
+    if (NUM_2950 && !ADBMS_2950_Pec_Failure(adbms_raw, adbms_2950)) //pec needs to be false for us to process
+    {
+        ADBMS_2950_Calculate_Vbat(adbms_raw, adbms_2950);
+        ADBMS_2950_Calculate_Current(adbms_raw, adbms_2950);
+        ADBMS_2950_Calculate_Shunt_Temp(adbms_raw, adbms_2950);
+    }
 }
 
 
@@ -125,6 +128,26 @@ float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage){
 
 }
 
+bool ADBMS_2950_Pec_Failure(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
+{
+
+    if (adbms_raw->read_raw_c.read_pec_failure.pec_2950){
+        adbms_2950->warnings.pec_warning_count += 1;
+        return true; // pec true we don't parse this data, 
+    }
+
+    adbms_2950->warnings.pec_warning_count = 0;
+    return false;
+}
+
+
+void Update_2950_InternalFault(adbms_2950_* adbms_2950)
+{
+    //latching 2950 warnings
+    adbms_2950->warnings.pec_warning = adbms_2950->warnings.pec_warning || (adbms_2950->warnings.pec_warning_count > PEC_FAILURE_THRESHOLD);
+
+}
+
  
 
 //
@@ -136,6 +159,9 @@ void ADBMS_2950_Print_Vals(adbms_2950_* adbms_2950)
     printf("ADBMS 2950 Data\n\n");
     printf("adbms2950 Precontactor voltage: %f\n", adbms_2950->data.precontactor_voltage);
     printf("adbms2950 Current: %f\n\n", adbms_2950->data.current);
+
+    printf("\n ADBMS 2950 Warnings \n\n");
+    printf("adbms2950 Pec Warning: %d\n", adbms_2950->warnings.pec_warning);
 }
 
 

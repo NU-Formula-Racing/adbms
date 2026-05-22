@@ -31,8 +31,18 @@ typedef struct
 
 typedef struct
 {
+
+    bool pec_warning;
+    int pec_warning_count;
+
+}adbms_2950_warnings_;
+
+typedef struct
+{
     adbms_2950_raw_data_         raw_data;
     adbms_2950_data_parsed_      data;
+    adbms_2950_warnings_         warnings;
+
 }adbms_2950_;
 
 
@@ -47,6 +57,10 @@ void ADBMS_2950_Calculate_Shunt_Temp(adbms_read_raw_* adbms_2950_read_raw, adbms
 float ADBMS_2950_Transfer_Accumulator_Vbat(int32_t vbat1_raw, int32_t vbat2_raw, uint8_t acci);
 float ADBMS_2950_Transfer_Accumulator_Current(int32_t current_1_raw, int32_t current_2_raw, uint8_t acci);
 float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage);
+
+//Warning Updates
+bool ADBMS_2950_Pec_Failure(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950);
+void Update_2950_InternalFault(adbms_2950_* adbms_2950);
 
 //Prints
 void ADBMS_2950_Print_Vals(adbms_2950_* adbms_2950);

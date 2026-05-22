@@ -46,7 +46,7 @@ void bms_mainboard_loop()
 	
 	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
 
-	if(mainboard.internal_state == Fault) HAL_Delay(20);	// if in falt slow down loop time
+	if(mainboard.internal_state == Fault) HAL_Delay(10);	// delay loop to send values slower in fault
 }
 
 // Seprate loop that gets ticked to run OWC
@@ -58,6 +58,8 @@ void adbms_owc_loop()
 
 	Owc_c_channel_update(&mainboard.adbms_raw, &mainboard.adbms_6830);
 	Owc_s_channel_update(&mainboard.adbms_raw, &mainboard.adbms_6830);
+
+	owc_can_loop();
 }
 
 void update_values()
@@ -85,6 +87,7 @@ void update_values()
     //Update Faults
     //this is just 6830 faults -> 2950 faults still need to come
     Update_6830_InternalFault(&mainboard.adbms_6830);
+	Update_2950_InternalFault(&mainboard.adbms_2950);
 
 
 	if (mainboard.internal_state == Charging)
@@ -99,6 +102,7 @@ void update_values()
 
 	//soc
 	Soc_Update(&mainboard);
+
 }
 
 void check_faults()
