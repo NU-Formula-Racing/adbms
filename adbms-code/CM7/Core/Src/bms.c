@@ -68,7 +68,7 @@ void update_values()
 	ADBMS_WakeUP_ICs();
 
 	//read voltages
-	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_c, C_Channel_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
+	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_c, C_Channel_Filtered_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
 	//Parse 6830 voltage
 	ADBMS_6830_Parse_Voltage(&mainboard.adbms_raw.read_raw_c, &mainboard.adbms_6830.voltage);
 
@@ -79,8 +79,10 @@ void update_values()
 	//parse 6830 temp
 	ADBMS_6830_Parse_Temperature(&mainboard.adbms_raw.read_raw_aux, &mainboard.adbms_6830.temperature);
 
-    //parse 2950 data
-    ADBMS_2950_Calculate_Values(&mainboard.adbms_raw, &mainboard.adbms_2950);
+	// read filtered voltages
+	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_2950_filtered, Accumulate_Read_2950, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
+    // parse 2950 data
+    ADBMS_2950_Calculate_Values(&mainboard.adbms_raw.read_raw_2950_filtered, &mainboard.adbms_2950, mainboard.adbms_raw.command_parameters.parameter_2950.cfa2950.acci);
 
     //Update Faults
     //this is just 6830 faults -> 2950 faults still need to come

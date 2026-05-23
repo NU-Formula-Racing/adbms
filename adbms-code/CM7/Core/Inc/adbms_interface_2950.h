@@ -7,8 +7,8 @@
 typedef struct
 {
     //precontactor voltages
-    int16_t vbat1_raw;
-    int16_t vbat2_raw;
+    int32_t vbat1_raw;
+    int32_t vbat2_raw;
 
     //currents 
     int32_t i1_raw;
@@ -46,20 +46,20 @@ typedef struct
 }adbms_2950_;
 
 
-void ADBMS_2950_Calculate_Values(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950);
+void ADBMS_2950_Calculate_Values(adbms_read_raw_* adbms_2950_read_raw,adbms_2950_* adbms_2950,uint8_t acci);
 
 //Calculate Values
-void ADBMS_2950_Calculate_Vbat(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950);
-void ADBMS_2950_Calculate_Current(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950);
-void ADBMS_2950_Calculate_Shunt_Temp(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950);
+void ADBMS_2950_Calculate_Accumulator_Vbat(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950, uint8_t acci);
+void ADBMS_2950_Calculate_Accumulator_Current(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950, uint8_t acci);
+void ADBMS_2950_Calculate_Shunt_Temp(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950);
 
 //Transfer Functions
-float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw);
-float ADBMS_2950_Transfer_Current(int32_t data);
+float ADBMS_2950_Transfer_Accumulator_Vbat(int32_t vbat1_raw, int32_t vbat2_raw, uint8_t acci);
+float ADBMS_2950_Transfer_Accumulator_Current(int32_t current_1_raw, int32_t current_2_raw, uint8_t acci);
 float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage);
 
 //Warning Updates
-bool ADBMS_2950_Pec_Failure(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950);
+bool ADBMS_2950_Pec_Failure(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950);
 void Update_2950_InternalFault(adbms_2950_* adbms_2950);
 
 //Prints

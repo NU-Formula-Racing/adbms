@@ -20,6 +20,7 @@ typedef struct
     adbms_read_raw_                     read_raw_aux;
     adbms_read_raw_                     read_raw_c_owc;
     adbms_read_raw_                     read_raw_s_owc;
+    adbms_read_raw_                     read_raw_2950_filtered;
 
     //read failures
     read_failures_                      read_failure;

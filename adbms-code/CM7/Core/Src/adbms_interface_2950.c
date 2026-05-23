@@ -1,13 +1,15 @@
 #include "adbms_interface_2950.h"
 
 
-void ADBMS_2950_Calculate_Values(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
+//I DON'T LIKE THIS
+//Ask Drake tomorrow
+void ADBMS_2950_Calculate_Values(adbms_read_raw_* adbms_2950_read_raw,adbms_2950_* adbms_2950,uint8_t acci)
 {
-    if (NUM_2950 && !ADBMS_2950_Pec_Failure(adbms_raw, adbms_2950)) //pec needs to be false for us to process
+    if (NUM_2950 && !ADBMS_2950_Pec_Failure(adbms_2950_read_raw, adbms_2950)) //pec needs to be false for us to process
     {
-        ADBMS_2950_Calculate_Vbat(adbms_raw, adbms_2950);
-        ADBMS_2950_Calculate_Current(adbms_raw, adbms_2950);
-        ADBMS_2950_Calculate_Shunt_Temp(adbms_raw, adbms_2950);
+        ADBMS_2950_Calculate_Accumulator_Vbat(adbms_2950_read_raw, adbms_2950, acci);
+        ADBMS_2950_Calculate_Accumulator_Current(adbms_2950_read_raw, adbms_2950, acci);
+        ADBMS_2950_Calculate_Shunt_Temp(adbms_2950_read_raw, adbms_2950);
     }
 }
 
@@ -15,7 +17,7 @@ void ADBMS_2950_Calculate_Values(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
 //
 //Calculate Values
 //
-void ADBMS_2950_Calculate_Vbat(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
+void ADBMS_2950_Calculate_Accumulator_Vbat(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950, uint8_t acci)
 {
     //initialize values
     adbms_2950->raw_data.vbat1_raw = 0;
@@ -27,15 +29,24 @@ void ADBMS_2950_Calculate_Vbat(adbms_raw_* adbms_raw,adbms_2950_* adbms_2950)
     int offset = (NUM_6830) * DATA_LEN;
 
     //take raw bit values from adbms and place into raw_data in adbms_2950
-    adbms_2950->raw_data.vbat1_raw = ((int16_t)(adbms_raw->read_raw_c.read_return[3 + command_offset + offset]) << 8) | (int16_t)(adbms_raw->read_raw_c.read_return[2 + command_offset + offset]);
-    adbms_2950->raw_data.vbat2_raw = ((int16_t)(adbms_raw->read_raw_c.read_return[5 + command_offset + offset]) << 8) | (int16_t)(adbms_raw->read_raw_c.read_return[4 + command_offset + offset]);
+    adbms_2950->raw_data.vbat1_raw = ((int32_t)(adbms_2950_read_raw->read_return[2 + command_offset + offset]) << 16) | ((int32_t)(adbms_2950_read_raw->read_return[1 + command_offset + offset]) << 8) | adbms_2950_read_raw->read_return[0 + command_offset + offset];
+    adbms_2950->raw_data.vbat2_raw = ((int32_t)(adbms_2950_read_raw->read_return[5 + command_offset + offset]) << 16) | ((int32_t)(adbms_2950_read_raw->read_return[4 + command_offset + offset]) << 8) | adbms_2950_read_raw->read_return[3 + command_offset + offset];
 
-    adbms_2950->data.precontactor_voltage = ADBMS_2950_Transfer_Vbat(adbms_2950->raw_data.vbat1_raw,adbms_2950->raw_data.vbat2_raw);
+    //sign extend because it is a 24 bit number but stored int32
+    if (adbms_2950->raw_data.vbat1_raw & 0x00800000) {     
+        adbms_2950->raw_data.vbat1_raw |= 0xFF000000;      
+    }
+
+    if(adbms_2950->raw_data.vbat2_raw & 0x00800000){
+        adbms_2950->raw_data.vbat2_raw |= 0xFF000000;
+    }
+
+    adbms_2950->data.precontactor_voltage = ADBMS_2950_Transfer_Accumulator_Vbat(adbms_2950->raw_data.vbat1_raw,adbms_2950->raw_data.vbat2_raw,acci);
 
 }
 
 
-void ADBMS_2950_Calculate_Current(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
+void ADBMS_2950_Calculate_Accumulator_Current(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950, uint8_t acci)
 {
     //initialize values
     adbms_2950->raw_data.i1_raw = 0;
@@ -45,8 +56,8 @@ void ADBMS_2950_Calculate_Current(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950
     int offset =  (NUM_6830) * DATA_LEN;
 
     //getting raw data from cell readings and putting it in adbms_2950 
-    adbms_2950->raw_data.i1_raw = ((int32_t)(adbms_raw->read_raw_c.read_return[2 + offset]) << 16) | ((int32_t)(adbms_raw->read_raw_c.read_return[1 + offset]) << 8) | adbms_raw->read_raw_c.read_return[0 + offset];
-    adbms_2950->raw_data.i2_raw = ((int32_t)(adbms_raw->read_raw_c.read_return[5 + offset]) << 16) | ((int32_t)(adbms_raw->read_raw_c.read_return[4 + offset]) << 8) | adbms_raw->read_raw_c.read_return[3 + offset];
+    adbms_2950->raw_data.i1_raw = ((int32_t)(adbms_2950_read_raw->read_return[2 + offset]) << 16) | ((int32_t)(adbms_2950_read_raw->read_return[1 + offset]) << 8) | adbms_2950_read_raw->read_return[0 + offset];
+    adbms_2950->raw_data.i2_raw = ((int32_t)(adbms_2950_read_raw->read_return[5 + offset]) << 16) | ((int32_t)(adbms_2950_read_raw->read_return[4 + offset]) << 8) | adbms_2950_read_raw->read_return[3 + offset];
 
     //sign extend because it is a 24 bit number but stored int32
     if (adbms_2950->raw_data.i1_raw & 0x00800000) {     
@@ -58,11 +69,11 @@ void ADBMS_2950_Calculate_Current(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950
     }
 
     //average the two
-    adbms_2950->data.current = (-ADBMS_2950_Transfer_Current(adbms_2950->raw_data.i1_raw) + ADBMS_2950_Transfer_Current(adbms_2950->raw_data.i2_raw)) / 2 ;
+    adbms_2950->data.current = ADBMS_2950_Transfer_Accumulator_Current(adbms_2950->raw_data.i1_raw,adbms_2950->raw_data.i2_raw,acci);
 }
 
 
-void ADBMS_2950_Calculate_Shunt_Temp(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
+void ADBMS_2950_Calculate_Shunt_Temp(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950)
 {
 
     //initilaize values
@@ -73,8 +84,8 @@ void ADBMS_2950_Calculate_Shunt_Temp(adbms_raw_* adbms_raw, adbms_2950_* adbms_2
     int offset = (NUM_6830) * DATA_LEN;
 
     //getting raw data 
-    adbms_2950->raw_data.v7 = (int16_t)(adbms_raw->read_raw_c.read_return[1+offset] << 8) | (int16_t)(adbms_raw->read_raw_c.read_return[0+offset]);
-    adbms_2950->raw_data.v9 = (int16_t)(adbms_raw->read_raw_c.read_return[5+offset] << 8) | (int16_t)(adbms_raw->read_raw_c.read_return[4+offset]);
+    adbms_2950->raw_data.v7 = (int16_t)(adbms_2950_read_raw->read_return[1+offset] << 8) | (int16_t)(adbms_2950_read_raw->read_return[0+offset]);
+    adbms_2950->raw_data.v9 = (int16_t)(adbms_2950_read_raw->read_return[5+offset] << 8) | (int16_t)(adbms_2950_read_raw->read_return[4+offset]);
 
     adbms_2950->data.pack_temperature_1 = ADBMS_2950_Transfer_Shunt_Temp(adbms_2950->raw_data.v7);
     adbms_2950->data.pack_temperature_2 = ADBMS_2950_Transfer_Shunt_Temp(adbms_2950->raw_data.v9);
@@ -86,24 +97,31 @@ void ADBMS_2950_Calculate_Shunt_Temp(adbms_raw_* adbms_raw, adbms_2950_* adbms_2
 //
 //Transfer Functions
 //
-float ADBMS_2950_Transfer_Vbat(int16_t vbat1_raw, int16_t vbat2_raw){
-    float vbat_final = 0.0;
 
-    //transfer to real value and store
-    float vbat1 = (float)(vbat1_raw /  0.00414937759); // (15000/3,600,000 + 15000)
-    float vbat2 = (float) vbat2_raw;
+float ADBMS_2950_Transfer_Accumulator_Vbat(int32_t vbat1_raw, int32_t vbat2_raw, uint8_t acci)
+{
+    //page 50 of datasheet
+    float accn = (float) 4 * acci + 4;
 
-    vbat_final = (vbat1-vbat2) * 0.0001; //100 microolms
-    
-    return vbat_final;
+    //transfer to real value
+    float vbat1 = (float)(vbat1_raw / (accn * 0.00414937759)); // (15000/3,600,000 + 15000)
+    float vbat2 = (float) vbat2_raw / accn;
+
+    float vbat = (vbat1-vbat2) * 0.0001; //100 microolms
+
+    return vbat - 0.06; // measured DC offset
 }
 
-float ADBMS_2950_Transfer_Current(int32_t data)
+
+float ADBMS_2950_Transfer_Accumulator_Current(int32_t current_1_raw, int32_t current_2_raw, uint8_t acci)
 {
-  float current;
-  //the actual measured resistance is closer to 94 microolms instead of 100
-  current = (float) data / 94.0;
-  return current;
+
+    //page 50 of datasheet
+    float accn = (float) 4 * acci + 4;
+
+    float current1 = (float) -current_1_raw/ (94.0 * accn);
+    float current2 = (float) current_2_raw/ (94.0 * accn);
+    return (current1 + current2)/2;
 }
 
 float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage){
@@ -112,10 +130,10 @@ float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage){
 
 }
 
-bool ADBMS_2950_Pec_Failure(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
+bool ADBMS_2950_Pec_Failure(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950)
 {
 
-    if (adbms_raw->read_raw_c.read_pec_failure.pec_2950){
+    if (adbms_2950_read_raw->read_pec_failure.pec_2950){
         adbms_2950->warnings.pec_warning_count += 1;
         return true; // pec true we don't parse this data, 
     }
@@ -132,6 +150,7 @@ void Update_2950_InternalFault(adbms_2950_* adbms_2950)
 
 }
 
+ 
 
 //
 //Prints 
@@ -149,6 +168,31 @@ void ADBMS_2950_Print_Vals(adbms_2950_* adbms_2950)
 
 
 
+//Previous transfer functions
+// float ADBMS_2950_Transfer_Current(int32_t data)
+// {
+//   float current;
+//   //the actual measured resistance is closer to 94 microolms instead of 100
+//   //its measured in micro volts
+//   current = (float) data / 94.0;
+//   return current;
+// }
+
+
+// float ADBMS_2950_Transfer_Vbat(int32_t vbat1_raw, int32_t vbat2_raw){
+
+//     //fix this transfer function
+
+//     float vbat_final = 0.0;
+
+//     //transfer to real value and store
+//     float vbat1 = (float)(vbat1_raw /  0.00414937759); // (15000/3,600,000 + 15000)
+//     float vbat2 = (float) vbat2_raw;
+
+//     vbat_final = (vbat1-vbat2) * 0.0001; //100 microolms
+    
+//     return vbat_final;
+// }
 
 //
 // Post Contactor Voltage No longe exists
