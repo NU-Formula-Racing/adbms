@@ -5,11 +5,11 @@
 //Ask Drake tomorrow
 void ADBMS_2950_Calculate_Values(adbms_read_raw_* adbms_2950_read_raw,adbms_2950_* adbms_2950,uint8_t acci)
 {
-    if (NUM_2950 && !ADBMS_2950_Pec_Failure(adbms_raw, adbms_2950)) //pec needs to be false for us to process
+    if (NUM_2950 && !ADBMS_2950_Pec_Failure(adbms_2950_read_raw, adbms_2950)) //pec needs to be false for us to process
     {
-        ADBMS_2950_Calculate_Vbat(adbms_raw, adbms_2950);
-        ADBMS_2950_Calculate_Current(adbms_raw, adbms_2950);
-        ADBMS_2950_Calculate_Shunt_Temp(adbms_raw, adbms_2950);
+        ADBMS_2950_Calculate_Accumulator_Vbat(adbms_2950_read_raw, adbms_2950, acci);
+        ADBMS_2950_Calculate_Accumulator_Current(adbms_2950_read_raw, adbms_2950, acci);
+        ADBMS_2950_Calculate_Shunt_Temp(adbms_2950_read_raw, adbms_2950);
     }
 }
 
@@ -128,10 +128,10 @@ float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage){
 
 }
 
-bool ADBMS_2950_Pec_Failure(adbms_raw_* adbms_raw, adbms_2950_* adbms_2950)
+bool ADBMS_2950_Pec_Failure(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950)
 {
 
-    if (adbms_raw->read_raw_c.read_pec_failure.pec_2950){
+    if (adbms_2950_read_raw->read_pec_failure.pec_2950){
         adbms_2950->warnings.pec_warning_count += 1;
         return true; // pec true we don't parse this data, 
     }
