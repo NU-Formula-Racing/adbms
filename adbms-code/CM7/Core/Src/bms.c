@@ -62,7 +62,6 @@ void adbms_owc_loop()
 	owc_can_loop();
 }
 
-uint32_t cb_off;
 
 void update_values()
 {
@@ -77,6 +76,7 @@ void update_values()
     	HAL_Delay(1); // ADCs are updated at their conversion rate of 1ms
 	}
 
+	
 	//read voltages
 	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_c, C_Channel_Filtered_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
 	//Parse 6830 voltage
