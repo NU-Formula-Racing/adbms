@@ -60,23 +60,32 @@ void adbms_owc_loop()
 	Owc_s_channel_update(&mainboard.adbms_raw, &mainboard.adbms_6830);
 
 	owc_can_loop();
-
-	// turn back on cb
-	if (mainboard.internal_state == Charging)
-	{
-		cell_Balance_On(&mainboard.adbms_raw,&mainboard.adbms_6830);
-	}
 }
+
+uint32_t cb_off;
 
 void update_values()
 {
 	//First Read both Voltages and Temps raw values in lower level interface
 	ADBMS_WakeUP_ICs();
+	
+	// turn cb off if charging to read true voltage
+	if (mainboard.internal_state == Charging) 
+	{
+		cell_Balance_Off(&mainboard.adbms_raw);
+		ADBMS_Write_CMD(mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.command_bit.adcv); // clear adc filter
+    	HAL_Delay(1); // ADCs are updated at their conversion rate of 1ms
+	}
+
 
 	//read voltages
 	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_c, C_Channel_Filtered_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
 	//Parse 6830 voltage
 	ADBMS_6830_Parse_Voltage(&mainboard.adbms_raw.read_raw_c, &mainboard.adbms_6830.voltage);
+
+	// turn cb back on if charging
+	if (mainboard.internal_state == Charging) cell_Balance_On(&mainboard.adbms_raw,&mainboard.adbms_6830);
+
 
 	//read temp
 	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_aux, AUX_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
@@ -101,11 +110,6 @@ void update_values()
 		ADBMS_Initialize(&mainboard.adbms_raw, mainboard.adbms_raw.SPI_data.hspi);
     }
 
-	if (mainboard.internal_state == Charging)
-	{
-		cell_Balance_On(&mainboard.adbms_raw,&mainboard.adbms_6830);
-	}
-
 	// update STM32 Pin values
     mainboard.shutdown_present = HAL_GPIO_ReadPin(GPIOD, Shutdown_Contactors_Pin); 	   		  // shutdown status
     mainboard.imd_status = mainboard.imd_status && HAL_GPIO_ReadPin(GPIOD, IMD_STATUS_IN_Pin); // IMD_Status (software latched)
@@ -114,6 +118,8 @@ void update_values()
 	//soc
 	Soc_Update(&mainboard);
 
+	// delay to allow higher duty cycle on cb
+	if (mainboard.internal_state == Charging) HAL_Delay(32);
 }
 
 void check_faults()
