@@ -107,7 +107,9 @@ float ADBMS_2950_Transfer_Accumulator_Vbat(int32_t vbat1_raw, int32_t vbat2_raw,
     float vbat1 = (float)(vbat1_raw / (accn * 0.00414937759)); // (15000/3,600,000 + 15000)
     float vbat2 = (float) vbat2_raw / accn;
 
-    return (vbat1-vbat2) * 0.0001; //100 microolms
+    float vbat = (vbat1-vbat2) * 0.0001; //100 microolms
+
+    return vbat - 0.06; // measured DC offset
 }
 
 
