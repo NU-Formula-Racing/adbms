@@ -64,7 +64,8 @@ typedef enum
     C_Channel_Read = 0,
     S_Channel_Read,
     AUX_Read,
-    Accumulate_Read_2950
+    Accumulate_Read_2950,
+    C_Channel_Filtered_Read
 }voltage_read_type_;
 
 

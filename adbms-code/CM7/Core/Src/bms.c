@@ -68,7 +68,7 @@ void update_values()
 	ADBMS_WakeUP_ICs();
 
 	//read voltages
-	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_c, C_Channel_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
+	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_c, C_Channel_Filtered_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
 	//Parse 6830 voltage
 	ADBMS_6830_Parse_Voltage(&mainboard.adbms_raw.read_raw_c, &mainboard.adbms_6830.voltage);
 
