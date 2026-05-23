@@ -61,6 +61,8 @@
 #define DATA_LEN 6                                                        /* Number of Data Bytes in Register Groups*/
 #define PEC_LEN  2                                                        /* Number of PEC Bytes                   */
 #define DATABUF_LEN (CMD_LEN + PEC_LEN) + (DATA_LEN + PEC_LEN)*NUM_CHIPS  /* CMD Msg + PEC and (DATA + PEC) per IC */
+#define MIN_6830_ADC_READING ((int16_t)0x8000)	
+#define FAULT_6830_ADC_READING ((int16_t)0xFFFF)									  /* From the datasheet as the min mapping for the adcs */
 
 //for SOC calculations
 #define CELL_CAPACITY 4.876

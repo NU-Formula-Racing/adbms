@@ -11,9 +11,6 @@ void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_pa
         return;
     }
 
-    //reset current pec failures if there are no read pec failures
-    voltage_parsed->pec_counts = 0;
-
 
     //initialize
     voltage_parsed->avg_v = 0;
@@ -34,6 +31,15 @@ void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_pa
                     if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_VOLTAGES_EVEN_CHIP) break;  //stop processing registers when desired voltage reading count is reached
                     int16_t raw_val = (((uint16_t)raw_return->read_return[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | raw_return->read_return[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte];
                     float curr_voltage = ADBMS_6830_Transfer_Voltage(raw_val);
+
+                    // check if adcs are turned off or
+                    if(raw_val == MIN_6830_ADC_READING || raw_val == FAULT_6830_ADC_READING)
+                    {
+                        // register as a pec failure and set adc off flag
+                        voltage_parsed->pec_counts += 1;
+                        voltage_parsed->adc_off = true;
+                        return;
+                    }
                     
                     voltage_parsed->voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2] = curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
 
@@ -59,6 +65,15 @@ void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_pa
                     int16_t raw_val = (((uint16_t)raw_return->read_return[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | raw_return->read_return[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte];
                     float curr_voltage = ADBMS_6830_Transfer_Voltage(raw_val);
                     
+                    // check if adcs are turned off
+                    if(raw_val == MIN_6830_ADC_READING || raw_val == FAULT_6830_ADC_READING)
+                    {
+                        // register as a pec failure and set adc off flag
+                        voltage_parsed->pec_counts += 1;
+                        voltage_parsed->adc_off = true;
+                        return;
+                    }
+
                     voltage_parsed->voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2] = curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
 
                     odd_total += curr_voltage;
@@ -81,6 +96,10 @@ void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_pa
     else{
         voltage_parsed->avg_v = 0.0;
     }
+
+    //reset current pec failures if there are no read pec failures
+    voltage_parsed->pec_counts = 0;
+    voltage_parsed->adc_off = false;
 }
 
 

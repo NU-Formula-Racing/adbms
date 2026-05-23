@@ -22,6 +22,8 @@ typedef struct
 
     int pec_counts;
 
+    bool adc_off;
+
 }adbms_6830_voltage_parsed_;
 
 typedef struct

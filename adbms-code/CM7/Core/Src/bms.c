@@ -85,10 +85,15 @@ void update_values()
     ADBMS_2950_Calculate_Values(&mainboard.adbms_raw.read_raw_2950_filtered, &mainboard.adbms_2950, mainboard.adbms_raw.command_parameters.parameter_2950.cfa2950.acci);
 
     //Update Faults
-    //this is just 6830 faults -> 2950 faults still need to come
     Update_6830_InternalFault(&mainboard.adbms_6830);
 	Update_2950_InternalFault(&mainboard.adbms_2950);
 
+
+	// restart adcs if needed
+    if (mainboard.adbms_6830.voltage.adc_off)
+    {
+		ADBMS_Initialize(&mainboard.adbms_raw, mainboard.adbms_raw.SPI_data.hspi);
+    }
 
 	if (mainboard.internal_state == Charging)
 	{
