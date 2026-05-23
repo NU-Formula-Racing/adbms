@@ -225,6 +225,7 @@ void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
                     dcc |= 1 << cvoltage;
                 }
             }
+            dcc = 0;
             adbms_raw->command_parameters.parameter_6830.cfb6830[cic].dcc = dcc;
         }
         else //odd chip, 11 voltages
@@ -238,6 +239,7 @@ void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
                     dcc |= 1 << cvoltage;
                 }
             }
+            dcc = 0;
             adbms_raw->command_parameters.parameter_6830.cfb6830[cic].dcc = dcc;
         }
     }

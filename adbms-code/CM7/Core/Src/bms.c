@@ -60,6 +60,12 @@ void adbms_owc_loop()
 	Owc_s_channel_update(&mainboard.adbms_raw, &mainboard.adbms_6830);
 
 	owc_can_loop();
+
+	// turn back on cb
+	if (mainboard.internal_state == Charging)
+	{
+		cell_Balance_On(&mainboard.adbms_raw,&mainboard.adbms_6830);
+	}
 }
 
 void update_values()
@@ -89,11 +95,6 @@ void update_values()
     Update_6830_InternalFault(&mainboard.adbms_6830);
 	Update_2950_InternalFault(&mainboard.adbms_2950);
 
-
-	if (mainboard.internal_state == Charging)
-	{
-		cell_Balance_On(&mainboard.adbms_raw,&mainboard.adbms_6830);
-	}
 
 	// update STM32 Pin values
     mainboard.shutdown_present = HAL_GPIO_ReadPin(GPIOD, Shutdown_Contactors_Pin); 	   		  // shutdown status
