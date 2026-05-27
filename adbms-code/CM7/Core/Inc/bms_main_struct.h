@@ -64,6 +64,10 @@ typedef struct
 	enum bms_states internal_state;
 	enum vcu_states vcu_state_request;
 	enum charging_states charging_state;
+
+	//charger
+	uint16_t max_charge_current;
+	bool received_charging_current;
 	
 } mainboard_;
 
