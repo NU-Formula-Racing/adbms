@@ -2,7 +2,7 @@
 ../Core/Src/bms.c:34:6:Tick_Mainboard_Timers	1
 ../Core/Src/bms.c:40:6:bms_mainboard_loop	1
 ../Core/Src/bms.c:51:6:adbms_owc_loop	1
-../Core/Src/bms.c:61:6:update_values	4
-../Core/Src/bms.c:100:6:check_faults	14
-../Core/Src/bms.c:146:6:HAL_TIM_PeriodElapsedCallback	3
-../Core/Src/bms.c:162:6:send_data_over_printf	1
+../Core/Src/bms.c:61:6:update_values	6
+../Core/Src/bms.c:141:6:check_faults	12
+../Core/Src/bms.c:187:6:HAL_TIM_PeriodElapsedCallback	3
+../Core/Src/bms.c:203:6:send_data_over_printf	1

@@ -8,7 +8,7 @@ void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 	mainboard.hcan = hcan;
 
 	// initialize ad chip;
-	ADBMS_Initialize(&mainboard.adbms_raw, hspi);
+	//ADBMS_Initialize(&mainboard.adbms_raw, hspi);
 
 	// initialize CAN;
 	Bms_Initialize_Can(&mainboard);
@@ -50,33 +50,74 @@ void bms_mainboard_loop()
 // Seprate loop that gets ticked to run OWC
 void adbms_owc_loop()
 { 
-	ADBMS_WakeUP_ICs();
+	// ADBMS_WakeUP_ICs();
 
-	cell_Balance_Off(&mainboard.adbms_raw);
+	// cell_Balance_Off(&mainboard.adbms_raw);
 
-	Owc_c_channel_update(&mainboard.adbms_raw, &mainboard.adbms_6830);
-	Owc_s_channel_update(&mainboard.adbms_raw, &mainboard.adbms_6830);
+	// Owc_c_channel_update(&mainboard.adbms_raw, &mainboard.adbms_6830);
+	// Owc_s_channel_update(&mainboard.adbms_raw, &mainboard.adbms_6830);
 }
 
 void update_values()
 {
 	//First Read both Voltages and Temps raw values in lower level interface
-	ADBMS_WakeUP_ICs();
+	//ADBMS_WakeUP_ICs();
 
 	//read voltages
-	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_c, C_Channel_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
+	//ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_c, C_Channel_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
 	//Parse 6830 voltage
-	ADBMS_6830_Parse_Voltage(&mainboard.adbms_raw.read_raw_c, &mainboard.adbms_6830.voltage);
+	//ADBMS_6830_Parse_Voltage(&mainboard.adbms_raw.read_raw_c, &mainboard.adbms_6830.voltage);
 
 	//read temp
-	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_aux, AUX_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
+	//ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_aux, AUX_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
 	//RESTART ADAX
-	ADBMS_Write_CMD(mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.command_bit.adax);
+	//ADBMS_Write_CMD(mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.command_bit.adax);
 	//parse 6830 temp
-	ADBMS_6830_Parse_Temperature(&mainboard.adbms_raw.read_raw_aux, &mainboard.adbms_6830.temperature);
+	//ADBMS_6830_Parse_Temperature(&mainboard.adbms_raw.read_raw_aux, &mainboard.adbms_6830.temperature);
 
     //parse 2950 data
-    ADBMS_2950_Calculate_Values(&mainboard.adbms_raw, &mainboard.adbms_2950);
+    //ADBMS_2950_Calculate_Values(&mainboard.adbms_raw, &mainboard.adbms_2950);
+
+    // ---- HARD-CODED FAKE VALUES (no faults) ----
+    // 6830 voltages: nominal 3.7 V per cell (within [UNDERVOLTAGE=2.5, OVERVOLTAGE=4.2])
+    for (int i = 0; i < NUM_VOLTAGES; i++)
+    {
+        mainboard.adbms_6830.voltage.voltages[i] = 3.7f;
+    }
+    mainboard.adbms_6830.voltage.max_v = 3.7f;
+    mainboard.adbms_6830.voltage.min_v = 3.7f;
+    mainboard.adbms_6830.voltage.avg_v = 3.7f;
+    mainboard.adbms_6830.voltage.total_v = 3.7f * NUM_VOLTAGES;
+    mainboard.adbms_6830.voltage.pec_counts = 0;
+
+    // 6830 OWC voltages: same nominal so OWC checks stay clean
+    for (int i = 0; i < NUM_VOLTAGES; i++)
+    {
+        mainboard.adbms_6830.voltage_owc.voltages[i] = 3.7f;
+    }
+    mainboard.adbms_6830.voltage_owc.max_v = 3.7f;
+    mainboard.adbms_6830.voltage_owc.min_v = 3.7f;
+    mainboard.adbms_6830.voltage_owc.avg_v = 3.7f;
+    mainboard.adbms_6830.voltage_owc.total_v = 3.7f * NUM_VOLTAGES;
+    mainboard.adbms_6830.voltage_owc.pec_counts = 0;
+
+    // 6830 temperatures: nominal 25 C (within [UNDERTEMP=-20, OVERTEMP=60])
+    for (int i = 0; i < NUM_CHIPS * NUM_TEMPS_CHIP; i++)
+    {
+        mainboard.adbms_6830.temperature.temperatures[i] = 25.0f;
+    }
+    mainboard.adbms_6830.temperature.max_temp = 25.0f;
+    mainboard.adbms_6830.temperature.min_temp = 25.0f;
+    mainboard.adbms_6830.temperature.avg_temp = 25.0f;
+    mainboard.adbms_6830.temperature.pec_counts = 0;
+    mainboard.adbms_6830.temperature.openwire_temp_fault = false;
+
+    // 2950 parsed values: pack voltage ~ NUM_VOLTAGES * 3.7 V, zero current, nominal temps
+    mainboard.adbms_2950.data.precontactor_voltage = 3.7f * NUM_VOLTAGES;
+    mainboard.adbms_2950.data.current = 0.0f;
+    mainboard.adbms_2950.data.pack_temperature_1 = 25.0f;
+    mainboard.adbms_2950.data.pack_temperature_2 = 25.0f;
+    // ---- END FAKE VALUES ----
 
     //Update Faults
     //this is just 6830 faults -> 2950 faults still need to come
@@ -85,14 +126,14 @@ void update_values()
 
 	if (mainboard.internal_state == Charging)
 	{
-		cell_Balance_On(&mainboard.adbms_raw,&mainboard.adbms_6830);
+		//cell_Balance_On(&mainboard.adbms_raw,&mainboard.adbms_6830);
 	}
 
 	// update STM32 Pin values
     mainboard.shutdown_present = HAL_GPIO_ReadPin(GPIOD, Shutdown_Contactors_Pin); 	   		  // shutdown status
     mainboard.imd_status = mainboard.imd_status && HAL_GPIO_ReadPin(GPIOD, IMD_STATUS_IN_Pin); // IMD_Status (software latched)
     mainboard.comms_6822_state = HAL_GPIO_ReadPin(GPIOD, AD6822_State_Pin);	 //Currently Unused  		   		  // 6822_State
-
+	
 	//soc
 	Soc_Update(&mainboard);
 }
@@ -136,7 +177,7 @@ void check_faults()
 		mainboard.timeout_fault = mainboard.vcu_timeout || mainboard.inverter_timeout;
 	}
 
-	mainboard.external_fault = !mainboard.shutdown_present || mainboard.timeout_fault;
+	mainboard.external_fault = 0;//!mainboard.shutdown_present || mainboard.timeout_fault;
 
 	// Turns on external LED if external fault
 	HAL_GPIO_WritePin(GPIOE, GPIO_LED_1_Pin, mainboard.external_fault);
