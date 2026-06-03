@@ -66,7 +66,7 @@ typedef struct
 	enum charging_states charging_state;
 
 	//charger
-	uint16_t max_charge_current;
+	float max_charge_current;
 	bool received_charging_current;
 	
 } mainboard_;

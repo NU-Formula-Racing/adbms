@@ -155,7 +155,8 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hcan, uint32_t RxFifo0ITs)
 		   // add to identifier
 		   if(bms_can.RxHeader_.Identifier == 0x130)
 		   {
-				bms_can.mainboard->max_charge_current = (bms_can.rxData_[1] << 8) | (bms_can.rxData_[0] & 0xFF);
+				uint16_t raw_max_charge_current = ((bms_can.rxData_[1] << 8) | (bms_can.rxData_[0] & 0xFF));
+				bms_can.mainboard->max_charge_current = ((float)raw_max_charge_current) * 0.1;
 				bms_can.mainboard->received_charging_current = true;
 			
 		   }
