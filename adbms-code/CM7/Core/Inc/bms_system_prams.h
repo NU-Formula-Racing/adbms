@@ -30,7 +30,7 @@
 
 #define MAX_CHARGER_VOLTAGE 480
 #define MAX_CHARGER_CURRENT 3
-#define CB_THRESHOLD 0.01					/* Threshold Away From Lowest Cell to Start Cell Balancing when CB is enabled */
+#define CB_THRESHOLD 0.005					/* Threshold Away From Lowest Cell to Start Cell Balancing when CB is enabled */
 #define CB_MIN_V_THRESHOLD 3			/* Cells under this threshold will not be balanced even when CB is enabled */
 
 #define ENABLE_PRINTF_DEBUG_COMMS 0		/* Flag to enable Printf debug comms */
