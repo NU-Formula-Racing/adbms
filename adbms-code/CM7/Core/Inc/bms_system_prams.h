@@ -18,13 +18,19 @@
 #define OVERTEMP 60						/* Over Temp Threshold 		*/
 #define UNDERTEMP -20					/* Under Temp Threshold 	*/
 
+// FTTI values
+#define FTTI_VOLTAGE_TH_1 0.05
+#define FTTI_VOLTAGE_TH_1_COUNTS 50
+#define FTTI_VOLTAGE_TH_2 0.1
+#define FTTI_VOLTAGE_TH_2_COUNTS 5
+
 
 #define PEC_FAILURE_THRESHOLD 10		/* Number of consecutive PEC failures that can happen before a pec fault occurs*/
 #define OWC_VOLTAGE_THRESHOLD 0.5
 
 #define MAX_CHARGER_VOLTAGE 480
-#define MAX_CHARGER_CURRENT 4
-#define CB_THRESHOLD 0.01					/* Threshold Away From Lowest Cell to Start Cell Balancing when CB is enabled */
+#define MAX_CHARGER_CURRENT 3
+#define CB_THRESHOLD 0.005					/* Threshold Away From Lowest Cell to Start Cell Balancing when CB is enabled */
 #define CB_MIN_V_THRESHOLD 3			/* Cells under this threshold will not be balanced even when CB is enabled */
 
 #define ENABLE_PRINTF_DEBUG_COMMS 0		/* Flag to enable Printf debug comms */
