@@ -155,7 +155,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hcan, uint32_t RxFifo0ITs)
 		   // add to identifier
 		   if(bms_can.RxHeader_.Identifier == 0x130)
 		   {
-				bms_can.mainboard->max_charge_current = (bms_can.rxData_[0] << 8) | (bms_can.rxData_[1] & 0xFF);
+				bms_can.mainboard->max_charge_current = (bms_can.rxData_[1] << 8) | (bms_can.rxData_[0] & 0xFF);
 				bms_can.mainboard->received_charging_current = true;
 			
 		   }
@@ -358,16 +358,10 @@ void populateCharger_Msg(uint8_t *data)
 
 	uint16_t voltage = MAX_CHARGER_VOLTAGE * 10;
 
-	
-	uint16_t current = 0;
-
+	uint16_t current = MAX_CHARGER_CURRENT * 10;
 	if (bms_can.mainboard->received_charging_current)
 	{
-		current = (bms_can.mainboard->max_charge_current) * 10; //i dont know why we have this 10
-	}
-	else
-	{
-		current = MAX_CHARGER_CURRENT * 10;
+		current = (bms_can.mainboard->max_charge_current) * 10;
 	}
 
 
