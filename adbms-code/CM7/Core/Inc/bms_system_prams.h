@@ -18,6 +18,12 @@
 #define OVERTEMP 60						/* Over Temp Threshold 		*/
 #define UNDERTEMP -20					/* Under Temp Threshold 	*/
 
+// FTTI values
+#define FTTI_VOLTAGE_TH_1 0.05
+#define FTTI_VOLTAGE_TH_1_COUNTS 500
+#define FTTI_VOLTAGE_TH_2 0.01
+#define FTTI_VOLTAGE_TH_2_COUNTS 50
+
 
 #define PEC_FAILURE_THRESHOLD 10		/* Number of consecutive PEC failures that can happen before a pec fault occurs*/
 #define OWC_VOLTAGE_THRESHOLD 0.5
