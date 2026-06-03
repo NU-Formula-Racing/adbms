@@ -330,27 +330,28 @@ void Update_6830_FTTI(adbms_6830_* adbms_6830)
     // overvoltage
     if (adbms_6830->voltage.max_v > OVERVOLTAGE) {
         adbms_6830->faults.overvoltage_th_1_counts++;
-
-        if (adbms_6830->voltage.max_v > OVERVOLTAGE + FTTI_VOLTAGE_TH_1) {
-            adbms_6830->faults.overvoltage_th_2_counts++;
-        } else {
-            adbms_6830->faults.overvoltage_th_2_counts = 0;
-        }
     } else {
         adbms_6830->faults.overvoltage_th_1_counts = 0;
     }
 
+    if (adbms_6830->voltage.max_v > OVERVOLTAGE + FTTI_VOLTAGE_TH_1) {
+            adbms_6830->faults.overvoltage_th_2_counts++;
+    } else {
+        adbms_6830->faults.overvoltage_th_2_counts = 0;
+    }
+
+
     // undervoltage
     if (adbms_6830->voltage.min_v < UNDERVOLTAGE) {
         adbms_6830->faults.undervoltage_th_1_counts++;
-
-        if (adbms_6830->voltage.min_v < UNDERVOLTAGE - FTTI_VOLTAGE_TH_1) {
-            adbms_6830->faults.undervoltage_th_2_counts++;
-        } else {
-            adbms_6830->faults.undervoltage_th_2_counts = 0;
-        }
     } else {
         adbms_6830->faults.undervoltage_th_1_counts = 0;
+    }
+    
+    if (adbms_6830->voltage.min_v < UNDERVOLTAGE - FTTI_VOLTAGE_TH_1) {
+            adbms_6830->faults.undervoltage_th_2_counts++;
+    } else {
+        adbms_6830->faults.undervoltage_th_2_counts = 0;
     }
 }
 
