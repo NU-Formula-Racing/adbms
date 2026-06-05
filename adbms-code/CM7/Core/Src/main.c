@@ -170,7 +170,11 @@ Error_Handler();
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_SDMMC1_SD_Init();
+
+  //i am commenting this out so it doesn't throw me an error
+  //MX_SDMMC1_SD_Init();
+
+
   MX_SPI1_Init();
   MX_USB_DEVICE_Init();
   MX_FDCAN1_Init();
