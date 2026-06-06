@@ -126,8 +126,8 @@ float ADBMS_2950_Transfer_Accumulator_Current(int32_t current_1_raw, int32_t cur
     // float current2 = (float) current_2_raw/ (94.0 * accn);
 
     // new shunt transfer function
-    float current1 = (float) -current_1_raw/ (510.2 * accn);
-    float current2 = (float) current_2_raw/ (510.2 * accn);
+    float current1 = (float) -current_1_raw/ (512 * accn);
+    float current2 = (float) current_2_raw/ (512 * accn);
 
 
     return (current1 + current2)/2;
