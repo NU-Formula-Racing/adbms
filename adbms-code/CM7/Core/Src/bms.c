@@ -9,7 +9,6 @@ void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 
 	// initialize ad chip;
 	ADBMS_Initialize(&mainboard.adbms_raw, hspi);
-
 	// initialize CAN;
 	Bms_Initialize_Can(&mainboard);
 
@@ -44,7 +43,17 @@ void bms_mainboard_loop()
 	Control_Loop(&mainboard);
 	Can_Loop();
 	
-	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
+	// Test: once, OC_PIN_TEST_DELAY_MS after boot, drive the selected OCA/OCB pin(s) high
+	static bool oc_pin_test_done = false;
+	if (OC_PIN_TEST && !oc_pin_test_done && (HAL_GetTick() - mainboard.start_time) >= OC_PIN_TEST_DELAY_MS)
+	{
+		ADBMS_2950_OC_Pin_Test(&mainboard.adbms_raw, OC_PIN_TEST_OCA, OC_PIN_TEST_OCB);
+		oc_pin_test_done = true;
+		if (ENABLE_PRINTF_DEBUG_COMMS) printf("\n*** OC pin test: OCA -> %s, OCB -> %s ***\n",
+		                                      OC_PIN_TEST_OCA ? "HIGH" : "LOW", OC_PIN_TEST_OCB ? "HIGH" : "LOW");
+	}
+
+	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf();
 
 	if(mainboard.internal_state == Fault) HAL_Delay(10);	// delay loop to send values slower in fault
 }
@@ -186,17 +195,19 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) //TSSI Callback
 void send_data_over_printf()
 {
 	// AD Prints for both chips
-    ADBMS_6830_Print_Vals(&mainboard.adbms_6830);
-	ADBMS_2950_Print_Vals(&mainboard.adbms_2950);
+//    ADBMS_6830_Print_Vals(&mainboard.adbms_6830);
+//	ADBMS_2950_Print_Vals(&mainboard.adbms_2950);
+//	ADBMS_2950_Print_I1_Diff(&mainboard.adbms_2950, mainboard.adbms_raw.command_parameters.parameter_2950.cfa2950.acci);
+	ADBMS_2950_Print_Raw_ADC(&mainboard.adbms_raw);
 
 
 	// Mainboard Prints
-	printf("Time: %d\n", (int)(HAL_GetTick() - mainboard.start_time));
-	printf("BMS fault: %d\n", mainboard.bms_fault);
-	printf("External fault: %d\n", mainboard.external_fault);
-	printf("BMS State: %d\n", mainboard.internal_state);
-	printf("Charging State: %d\n", mainboard.charging_state);
-	printf("SOC: %f\n", mainboard.soc);
+//	printf("Time: %d\n", (int)(HAL_GetTick() - mainboard.start_time));
+//	printf("BMS fault: %d\n", mainboard.bms_fault);
+//	printf("External fault: %d\n", mainboard.external_fault);
+//	printf("BMS State: %d\n", mainboard.internal_state);
+//	printf("Charging State: %d\n", mainboard.charging_state);
+//	printf("SOC: %f\n", mainboard.soc);
 	
 	// TODO Add more prints as needed
 }

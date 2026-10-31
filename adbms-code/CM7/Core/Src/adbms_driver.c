@@ -270,7 +270,7 @@ void ADBMS_Set_ADAX2(adax2_ adax2, uint16_t *adax2_cmd_buffer)
 void ADBMS_Set_ADV(adv_ adv, uint16_t* adv_cmd_buffer){
 
     *adv_cmd_buffer = (0x1 << 10)
-                    | (adv.ow & 0x3 << 6)
+                    | ((adv.ow & 0x3) << 6)
                     | (0x3 << 4)
                     | (adv.vch & 0xF);
 
@@ -354,7 +354,7 @@ void ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf,
     if (HAL_SPI_TransmitReceive(hspi, spi_tx_dataBuf, spi_dataBuf, DATABUF_LEN, SPI_TIME_OUT) != HAL_OK)
     {
         // TODO: do something if fails
-    	printf("spi failed");
+//    	printf("spi failed");
     }
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
 

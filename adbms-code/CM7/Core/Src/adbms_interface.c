@@ -15,8 +15,37 @@ void ADBMS_Initialize(adbms_raw_* adbms_raw, SPI_HandleTypeDef *hspi)
     ADBMS_WakeUP_ICs();
 
     //write data and commands
-    ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGA, adbms_raw->command_bit.cfg_a, adbms_raw->SPI_data.spi_dataBuf);
+    // 2950 overcurrent config (CFGB) is only latched on a 0->1 edge of OCEN (CFGA), so:
+    // WRCFGB first, then WRCFGA with OCEN = 0, then WRCFGA with OCEN = 1.
+    cfa2950_ *cfa2950 = &adbms_raw->command_parameters.parameter_2950.cfa2950;
     ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGB, adbms_raw->command_bit.cfg_b, adbms_raw->SPI_data.spi_dataBuf);
+
+    cfa2950->ocen = 0;
+    ADBMS_Set_Config_A_2950(cfa2950, adbms_raw->command_bit.cfg_a, NUM_2950, POSITION_2950);
+    ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGA, adbms_raw->command_bit.cfg_a, adbms_raw->SPI_data.spi_dataBuf);
+    HAL_Delay(1); // > one OCxADC conversion (tOCEN,DLY1)
+
+    // Clear all FLAG latches. CLRFLAG (0x0717): write 1 to clear.
+    //  - OC latches survive an MCU reset (the 2950 keeps them while powered).
+    //  - Fault bits (OCMM, OCAGD, OCBGD, VDDUV, NOCLK, REFFLT, VREG/VDIG OV/UV, MEDx, VDE, TMODE, OSCFLT)
+    //    force OCA/OCB into the fault state (driven LOW) while set. OCMM resets to 1 at power-up,
+    //    so without this the OC outputs can never go high. (Datasheet Table 73, note 2)
+    // FLAG byte 0: [5]VDRUV [4]OCMM [3]OC3L [2]OCAGD [1]OCAL [0]OC1L
+    // FLAG byte 1: [5]VDDUV [4]NOCLK [3]REFFLT [2]OCBGD [1]OCBL [0]OC2L
+    // FLAG byte 2/3: read-only counters
+    // FLAG byte 4: VREGOV VREGUV VDIGOV VDIGUV SED1 MED1 SED2 MED2
+    // FLAG byte 5: VDEL VDE 0 SPIFLT RESET THSD TMODE OSCFLT
+    uint8_t clr_flag[NUM_CHIPS * DATA_LEN] = {0};
+    uint8_t *clr_2950 = &clr_flag[(POSITION_2950 * NUM_6830) * DATA_LEN];
+    clr_2950[0] = 0x3F;
+    clr_2950[1] = 0x3F;
+    clr_2950[4] = 0xFF;
+    clr_2950[5] = 0xDF;
+    ADBMS_Write_Data(adbms_raw->SPI_data.hspi, CLRFLAG, clr_flag, adbms_raw->SPI_data.spi_dataBuf);
+
+    cfa2950->ocen = 1;
+    ADBMS_Set_Config_A_2950(cfa2950, adbms_raw->command_bit.cfg_a, NUM_2950, POSITION_2950);
+    ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGA, adbms_raw->command_bit.cfg_a, adbms_raw->SPI_data.spi_dataBuf);
 
     // Turn on sensing
     ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adcv);
@@ -107,11 +136,56 @@ void ADBMS_2950_Config(command_parameters_2950_* parameters, config_command_bits
     ADBMS_Set_Config_A_2950(&parameters->cfa2950,command_bits->cfg_a, NUM_2950,POSITION_2950); //2950 is the last chip on the daisychain
 
     //
-    //no cfb configs for now
+    //cfb configs: overcurrent (datasheet Tables 71/72, "Overcurrent Management")
     //
+    // OCxADC LSB = 2.5 mV with gain 2, so the smallest real threshold is 1 LSB = 2.5 mV
+    // (OCxTH = 0 means "always asserted", not 0 V). With a 500 uOhm shunt, 2.5 mV = 5 A.
+    // OC1 = I1A-I1B, OC2 = I2A-I2B, OC3 = I3A-I3B. OCA/OCB follow a 2-of-3 majority vote of OC1..OC3.
+    // (Pin test: see ADBMS_2950_OC_Pin_Test / OC_PIN_TEST in bms_system_prams.h)
+#define OC_THRESHOLD_LSB   1   // 1 LSB = 2.5 mV
+
+    parameters->cfb2950.oc1gc  = 1;     // gain 2 -> 2.5 mV/LSB
+    parameters->cfb2950.oc2gc  = 1;
+    parameters->cfb2950.oc3gc  = 1;
+    parameters->cfb2950.oc1th  = OC_THRESHOLD_LSB;   // trip at |I1A-I1B| >= 2.5 mV
+    parameters->cfb2950.oc2th  = OC_THRESHOLD_LSB;   // trip at |I2A-I2B| >= 2.5 mV
+    parameters->cfb2950.oc3th  = OC_THRESHOLD_LSB;   // trip at |I3A-I3B| >= 2.5 mV
+    parameters->cfb2950.ocdgt  = 0b00;  // no deglitch (1oo1)
+    parameters->cfb2950.ocdp   = 1;     // short safety interval after OCEN rising edge
+    parameters->cfb2950.ocmode = 0b11;  // static mode: latched, cleared only by CLRFLAG
+    parameters->cfb2950.ocax   = 0;     // active high
+    parameters->cfb2950.ocbx   = 0;     // active high
+    parameters->cfb2950.ocod   = 0;     // push-pull: driven low normally, driven to VREG on overcurrent
+
     ADBMS_Set_Config_B_2950(&parameters->cfb2950,command_bits->cfg_b, NUM_2950,POSITION_2950); //2950 is the last chip on the daisychain
 
     
+}
+
+// Test helper: drive OCA / OCB high individually without an overcurrent event.
+// In static mode the pin = OC latch XOR OCxX, so with no overcurrent (latch = 0) setting OCAX/OCBX = 1
+// drives that pin high. The datasheet recommends this (static mode + OCAX/OCBX) for pin connectivity tests.
+// Uses the datasheet update sequence: WRCFGB, WRCFGA (OCEN = 0), wait, WRCFGA (OCEN = 1).
+void ADBMS_2950_OC_Pin_Test(adbms_raw_* adbms_raw, bool oca_high, bool ocb_high)
+{
+    cfb2950_ *cfb = &adbms_raw->command_parameters.parameter_2950.cfb2950;
+    cfa2950_ *cfa = &adbms_raw->command_parameters.parameter_2950.cfa2950;
+
+    cfb->ocax = oca_high ? 1 : 0;
+    cfb->ocbx = ocb_high ? 1 : 0;
+    ADBMS_Set_Config_B_2950(cfb, adbms_raw->command_bit.cfg_b, NUM_2950, POSITION_2950);
+
+    ADBMS_WakeUP_ICs();
+    ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGB, adbms_raw->command_bit.cfg_b, adbms_raw->SPI_data.spi_dataBuf);
+
+    cfa->ocen = 0;
+    ADBMS_Set_Config_A_2950(cfa, adbms_raw->command_bit.cfg_a, NUM_2950, POSITION_2950);
+    ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGA, adbms_raw->command_bit.cfg_a, adbms_raw->SPI_data.spi_dataBuf);
+    HAL_Delay(1); // > one OCxADC conversion (tOCEN,DLY1)
+
+    cfa->ocen = 1;
+    ADBMS_Set_Config_A_2950(cfa, adbms_raw->command_bit.cfg_a, NUM_2950, POSITION_2950);
+    ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGA, adbms_raw->command_bit.cfg_a, adbms_raw->SPI_data.spi_dataBuf);
 }
 
 void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bits_* command_bits){
@@ -142,7 +216,7 @@ void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bi
     //adv configs
     //
     parameters->adv.ow = 0;  //open_wire source off
-    parameters->adv.vch = 0; //vch = 0 (this is complicated, for reference check datasheet table 57/58)
+    parameters->adv.vch = 9; //vch = 9: multi-measurement V1..V8 + VREF2 (~2.4 ms). vch = 0 only converts V1. See ADBMS2950B datasheet Tables 57/58
 
     ADBMS_Set_ADV(parameters->adv, &command_bits->adv); //set adv
 }

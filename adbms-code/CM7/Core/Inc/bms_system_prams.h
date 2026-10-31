@@ -1,7 +1,7 @@
 #ifndef AD_SYSTEM_PARAMS_H
 #define AD_SYSTEM_PARAMS_H
 
-#define NUM_6830  10
+#define NUM_6830  0
 #define NUM_2950  1
 #define POSITION_2950 1					/*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
 #define POSITION_6830 (POSITION_2950 ^ 1) /*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
@@ -33,8 +33,12 @@
 #define CB_THRESHOLD 0.005					/* Threshold Away From Lowest Cell to Start Cell Balancing when CB is enabled */
 #define CB_MIN_V_THRESHOLD 3			/* Cells under this threshold will not be balanced even when CB is enabled */
 
-#define ENABLE_PRINTF_DEBUG_COMMS 0		/* Flag to enable Printf debug comms */
-#define ENABLE_USB_COMMS 0				/* Flag to enable USB comms */
+#define ENABLE_PRINTF_DEBUG_COMMS 1		/* Flag to enable Printf debug comms */
+#define ENABLE_USB_COMMS 1				/* Flag to enable USB comms */
+#define OC_PIN_TEST 0				/* TEST ONLY: drive selected 2950 OC pins high after a delay. Set 0 for normal operation */
+#define OC_PIN_TEST_DELAY_MS 10000		/* Delay from boot before the pin(s) go high */
+#define OC_PIN_TEST_OCA 0				/* 1 = drive OCA high at the delay */
+#define OC_PIN_TEST_OCB 1				/* 1 = drive OCB high at the delay */
 #define ENABLE_SD_LOGGING_BIN 0			/* Flag to enable logging to SD Card as binary files */
 #define ENABLE_SD_LOGGING_CSV 0			/* Flag to enable logging to SD Card as CSV files (ASCII)*/
 

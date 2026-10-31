@@ -165,7 +165,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hcan, uint32_t RxFifo0ITs)
        }
        else
        {
-           printf("CAN RX Error");
+//           printf("CAN RX Error");
 		    return;
        }
     }
