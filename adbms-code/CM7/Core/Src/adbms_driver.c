@@ -374,7 +374,9 @@ void ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf,
         uint16_t rx_pec = (uint16_t)(((rx_dataBuf[DATA_LEN + (DATA_LEN+PEC_LEN)*cic] & 0x03) << 8) | rx_dataBuf[DATA_LEN + 1 + (DATA_LEN+PEC_LEN)*cic]);
         uint16_t calc_pec = (uint16_t)Pec10_Calc(true, DATA_LEN, (rx_dataBuf + cic * (DATA_LEN + PEC_LEN)));		// Needs the PEC to calculate the PEC, thus have to pass full buffer
         
-        if (cic == NUM_CHIPS-1){
+        // 2950 slot(s): after the 6830s when POSITION_2950 = 1, before them when 0
+        const uint8_t first_2950 = POSITION_2950 * NUM_6830;
+        if (NUM_2950 > 0 && cic >= first_2950 && cic < first_2950 + NUM_2950){
             pec_error_2950 |= (rx_pec != calc_pec);
         }
         else{

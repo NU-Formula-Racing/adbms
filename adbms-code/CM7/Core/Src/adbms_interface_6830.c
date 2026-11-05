@@ -201,6 +201,23 @@ void Update_6830_InternalFault(adbms_6830_* adbms_6830)
 
 void Update_6830_Owc_Faults(adbms_6830_voltage_parsed_* voltage_owc, adbms_6830_faults_* faults, Owc_Channel_ channel)
 {
+    // Debug: show what each OW pass measured (called once for the even pass, then the odd pass)
+    if (ENABLE_PRINTF_DEBUG_COMMS)
+    {
+        printf("OW %c pass:", channel == C_Channel ? 'C' : 'S');
+        if (voltage_owc->pec_counts)
+        {
+            printf(" skipped - %s (count %d)\n",
+                   voltage_owc->adc_off ? "ADC returned cleared/fault value" : "PEC failure", voltage_owc->pec_counts);
+        }
+        else
+        {
+            for (int i = 0; i < NUM_VOLTAGES; i++)
+                printf(" %d:%.3f%s", i + 1, voltage_owc->voltages[i], voltage_owc->voltages[i] < OWC_VOLTAGE_THRESHOLD ? "*" : "");
+            printf("   (* = below %.2f V -> open)\n", OWC_VOLTAGE_THRESHOLD);
+        }
+    }
+
     // pec check
     if (voltage_owc->pec_counts > PEC_FAILURE_THRESHOLD)
     {
@@ -433,4 +450,21 @@ void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
     printf("overtemperature: %d\t", adbms_6830->faults.overtemperature_fault);
     printf("openwire: %d\t", adbms_6830->faults.openwire_voltage_fault);
     printf("openwire_temp: %d\n", adbms_6830->faults.openwire_temp_fault);
+}
+
+// Compact cell voltage print for bench testing
+void ADBMS_6830_Print_Voltages(adbms_6830_* adbms_6830)
+{
+    adbms_6830_voltage_parsed_ *v = &adbms_6830->voltage;
+
+    printf("\n--- ADBMS6830 cell voltages (t=%lu ms) ---\n", (unsigned long)HAL_GetTick());
+    if (v->pec_counts) printf("PEC failures in a row: %d (values below are from the last good read)\n", v->pec_counts);
+    if (v->adc_off)    printf("ADC returned cleared/fault value - ADCs restarted\n");
+
+    for (int i = 0; i < NUM_VOLTAGES; i++)
+    {
+        printf("C%-2d %7.4f V%s", i + 1, v->voltages[i], ((i + 1) % 4 == 0 || i == NUM_VOLTAGES - 1) ? "\n" : "   ");
+    }
+    printf("total %8.4f V   max %7.4f V   min %7.4f V   avg %7.4f V   max-min %7.4f V\n",
+           v->total_v, v->max_v, v->min_v, v->avg_v, v->max_v - v->min_v);
 }

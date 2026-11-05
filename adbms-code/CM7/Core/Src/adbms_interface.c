@@ -35,6 +35,7 @@ void ADBMS_Initialize(adbms_raw_* adbms_raw, SPI_HandleTypeDef *hspi)
     // FLAG byte 2/3: read-only counters
     // FLAG byte 4: VREGOV VREGUV VDIGOV VDIGUV SED1 MED1 SED2 MED2
     // FLAG byte 5: VDEL VDE 0 SPIFLT RESET THSD TMODE OSCFLT
+#if NUM_2950 > 0
     uint8_t clr_flag[NUM_CHIPS * DATA_LEN] = {0};
     uint8_t *clr_2950 = &clr_flag[(POSITION_2950 * NUM_6830) * DATA_LEN];
     clr_2950[0] = 0x3F;
@@ -42,6 +43,7 @@ void ADBMS_Initialize(adbms_raw_* adbms_raw, SPI_HandleTypeDef *hspi)
     clr_2950[4] = 0xFF;
     clr_2950[5] = 0xDF;
     ADBMS_Write_Data(adbms_raw->SPI_data.hspi, CLRFLAG, clr_flag, adbms_raw->SPI_data.spi_dataBuf);
+#endif
 
     cfa2950->ocen = 1;
     ADBMS_Set_Config_A_2950(cfa2950, adbms_raw->command_bit.cfg_a, NUM_2950, POSITION_2950);
@@ -254,7 +256,8 @@ void ADBMS_Owc_Config(adbms_raw_* adbms, Owc_Channel_ channel, Owc_Mode_ mode)
         
             ADBMS_Set_ADCV(adbms->command_parameters.parameter_joint.adcv, &adbms->command_bit.adcv);
             ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adcv);
-            HAL_Delay(1);
+            HAL_Delay(OWC_SETTLE_MS); // let the OW current pull an open input through the input filter
+            ADBMS_WakeUP_ICs();       // isoSPI may have gone idle during the wait
             break;
         
             
@@ -277,7 +280,8 @@ void ADBMS_Owc_Config(adbms_raw_* adbms, Owc_Channel_ channel, Owc_Mode_ mode)
             }
             ADBMS_Set_ADSV(adbms->command_parameters.parameter_joint.adsv, &adbms->command_bit.adsv);
             ADBMS_Write_CMD(adbms->SPI_data.hspi,adbms->command_bit.adsv);
-            HAL_Delay(1);
+            HAL_Delay(OWC_SETTLE_MS); // let the OW current pull an open input through the input filter
+            ADBMS_WakeUP_ICs();       // isoSPI may have gone idle during the wait
             break;
     }
 }

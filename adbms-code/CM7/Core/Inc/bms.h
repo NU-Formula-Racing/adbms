@@ -20,6 +20,7 @@ void update_values();
 void check_faults();
 
 void send_data_over_printf();
+void print_owc_results();
 void send_data_over_USB();
 
 #endif // ADBMS_MAINBOARD_H

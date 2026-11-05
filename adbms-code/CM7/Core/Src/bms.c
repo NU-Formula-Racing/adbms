@@ -17,7 +17,7 @@ void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 
 	// initialize the timers: adbms_mainboard_loop, drive_can, data_can
 	timer_ t_adbms = Create_Timer(19, bms_mainboard_loop); // bc of timer group delay is +1ms of the duration
-	timer_ t_adbms_owc_check = Create_Timer(30000, adbms_owc_loop);
+	timer_ t_adbms_owc_check = Create_Timer(OWC_PERIOD_MS, adbms_owc_loop);
 	timer_ timers[NUM_TIMERS] = {t_adbms, t_adbms_owc_check};
 	mainboard.tg = Create_Timer_Group(timers);
 
@@ -58,17 +58,62 @@ void bms_mainboard_loop()
 	if(mainboard.internal_state == Fault) HAL_Delay(10);	// delay loop to send values slower in fault
 }
 
+// Last open-wire check result, for the periodic printout
+static uint32_t owc_last_time  = 0;
+static int      owc_last_c_pec = 0;
+static int      owc_last_s_pec = 0;
+static bool     owc_has_run    = false;
+
 // Seprate loop that gets ticked to run OWC
 void adbms_owc_loop()
-{ 
+{
+	if (!ENABLE_OWC || NUM_6830 == 0) return;
+ 
 	ADBMS_WakeUP_ICs();
 
 	cell_Balance_Off(&mainboard.adbms_raw);
 
+	// Clear the per-channel results so they show this run only.
+	// (openwire_voltage_fault and bms_fault stay latched as before.)
+	adbms_6830_faults_ *f = &mainboard.adbms_6830.faults;
+	memset(f->owc_c_faults, 0, sizeof(f->owc_c_faults));
+	memset(f->owc_s_faults, 0, sizeof(f->owc_s_faults));
+
 	Owc_c_channel_update(&mainboard.adbms_raw, &mainboard.adbms_6830);
+	owc_last_c_pec = mainboard.adbms_6830.voltage_owc.pec_counts;
 	Owc_s_channel_update(&mainboard.adbms_raw, &mainboard.adbms_6830);
+	owc_last_s_pec = mainboard.adbms_6830.voltage_owc.pec_counts;
+	owc_last_time  = HAL_GetTick();
+	owc_has_run    = true;
+
+	if (ENABLE_PRINTF_DEBUG_COMMS)
+	{
+		printf("\n=== Open wire check ===\n");
+		print_owc_results();
+	}
 
 	owc_can_loop();
+}
+
+// Print the result of the most recent open-wire check (OW voltage < OWC_VOLTAGE_THRESHOLD = open).
+// owc_c_faults / owc_s_faults are cleared at the start of each run, so they hold the last run only.
+void print_owc_results()
+{
+	if (!ENABLE_OWC || NUM_6830 == 0) return;
+	if (!owc_has_run)
+	{
+		printf("Last OWC: not run yet (first check at ~%d ms)\n", OWC_PERIOD_MS);
+		return;
+	}
+
+	adbms_6830_faults_ *f = &mainboard.adbms_6830.faults;
+	int n_c = 0, n_s = 0;
+
+	printf("Last OWC (t=%lu ms, %lu ms ago)  C open:", (unsigned long)owc_last_time, (unsigned long)(HAL_GetTick() - owc_last_time));
+	for (int i = 0; i < NUM_VOLTAGES; i++) if (f->owc_c_faults[i]) { printf(" C%d", i + 1); n_c++; }
+	printf("%s%s   S open:", n_c ? "" : " none", owc_last_c_pec ? " (PEC FAIL - not updated)" : "");
+	for (int i = 0; i < NUM_VOLTAGES; i++) if (f->owc_s_faults[i]) { printf(" S%d", i + 1); n_s++; }
+	printf("%s%s\n", n_s ? "" : " none", owc_last_s_pec ? " (PEC FAIL - not updated)" : "");
 }
 
 
@@ -198,7 +243,12 @@ void send_data_over_printf()
 //    ADBMS_6830_Print_Vals(&mainboard.adbms_6830);
 //	ADBMS_2950_Print_Vals(&mainboard.adbms_2950);
 //	ADBMS_2950_Print_I1_Diff(&mainboard.adbms_2950, mainboard.adbms_raw.command_parameters.parameter_2950.cfa2950.acci);
-	ADBMS_2950_Print_Raw_ADC(&mainboard.adbms_raw);
+	if (NUM_6830 > 0)
+	{
+		ADBMS_6830_Print_Voltages(&mainboard.adbms_6830);
+		print_owc_results();
+	}
+	if (NUM_2950 > 0) ADBMS_2950_Print_Raw_ADC(&mainboard.adbms_raw);
 
 
 	// Mainboard Prints

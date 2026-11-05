@@ -1,8 +1,8 @@
 #ifndef AD_SYSTEM_PARAMS_H
 #define AD_SYSTEM_PARAMS_H
 
-#define NUM_6830  0
-#define NUM_2950  1
+#define NUM_6830  1
+#define NUM_2950  0
 #define POSITION_2950 1					/*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
 #define POSITION_6830 (POSITION_2950 ^ 1) /*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
 #define NUM_CHIPS (NUM_6830+NUM_2950)	/* Number of ICs 					*/
@@ -35,6 +35,9 @@
 
 #define ENABLE_PRINTF_DEBUG_COMMS 1		/* Flag to enable Printf debug comms */
 #define ENABLE_USB_COMMS 1				/* Flag to enable USB comms */
+#define ENABLE_OWC 1					/* Run the open-wire check loop (6830) */
+#define OWC_SETTLE_MS 10				/* Wait after enabling OW current before reading (was 1) */
+#define OWC_PERIOD_MS 5000				/* How often the open-wire check runs (was 30000) */
 #define OC_PIN_TEST 0				/* TEST ONLY: drive selected 2950 OC pins high after a delay. Set 0 for normal operation */
 #define OC_PIN_TEST_DELAY_MS 10000		/* Delay from boot before the pin(s) go high */
 #define OC_PIN_TEST_OCA 0				/* 1 = drive OCA high at the delay */
