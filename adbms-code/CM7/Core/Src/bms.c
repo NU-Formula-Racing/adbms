@@ -461,18 +461,9 @@ void check_faults()
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) //TSSI Callback
 {
-	//Currently not checking which timer caused interrupt, should only be one
-	//TSSI Logic
-	if (!mainboard.imd_status || mainboard.bms_fault)
-	{
-		HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_TogglePin(GPIOB, TSSI_R_Pin);
-	}
-	else
-	{
-		HAL_GPIO_WritePin(GPIOB, TSSI_R_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin, GPIO_PIN_SET);
-	}
+	/* STM light test: keep both TSSI outputs high. */
+	(void)htim;
+	HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin|TSSI_R_Pin, GPIO_PIN_SET);
 }
 
 void send_data_over_printf()

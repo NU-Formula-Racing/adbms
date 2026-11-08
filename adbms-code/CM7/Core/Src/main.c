@@ -528,8 +528,11 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(BMS_STATUS_OUT_GPIO_Port, BMS_STATUS_OUT_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin|TSSI_R_Pin|CONTACTOR_N_CTRL_Pin|CONTACTOR_P_CTRL_Pin
+  HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin|CONTACTOR_P_CTRL_Pin
                           |CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
+
+  /* STM light test: PB4 (TSSI_G) and PB5 (TSSI_R) high. */
+  HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin|TSSI_R_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin : SD_CARD_DETECT_Pin */
   GPIO_InitStruct.Pin = SD_CARD_DETECT_Pin;
