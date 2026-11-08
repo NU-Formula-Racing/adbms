@@ -426,8 +426,11 @@ void check_faults()
 							|| mainboard.adbms_6830.faults.openwire_temp_fault
 							|| mainboard.adbms_6830.faults.pec_fault;
 
+	// Preserve PD7's startup LOW while the hold-low override is enabled.
+#if !PD7_HOLD_LOW_ENABLED
 	// write BMS_Status - healthy is high
 	HAL_GPIO_WritePin(BMS_STATUS_OUT_GPIO_Port, BMS_STATUS_OUT_Pin, !mainboard.bms_fault);
+#endif
 
 	// set external faults
 	// timeouts

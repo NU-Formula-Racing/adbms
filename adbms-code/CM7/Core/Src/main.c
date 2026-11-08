@@ -97,6 +97,16 @@ static void MX_TIM4_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+static void Wait_TIM2_Seconds(uint32_t seconds)
+{
+  /* APB1 uses DIV1 and TIM2 has prescaler 0, so its counter runs at PCLK1. */
+  const uint32_t ticks = seconds * HAL_RCC_GetPCLK1Freq();
+  __HAL_TIM_SET_COUNTER(&htim2, 0U);
+  while (__HAL_TIM_GET_COUNTER(&htim2) < ticks)
+  {
+    /* Poll the hardware timer; no SysTick interrupt is needed. */
+  }
+}
 
 /* USER CODE END 0 */
 
@@ -165,11 +175,49 @@ Error_Handler();
 /* USER CODE END Boot_Mode_Sequence_2 */
 
   /* USER CODE BEGIN SysInit */
+  /* Run pin tests before USB and other peripheral initialization. */
+  MX_GPIO_Init();
+  MX_TIM2_Init();
+
+  if (HAL_TIM_Base_Start(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+#if CONTACTOR_PULSE_TEST_ENABLED
+  /* Start PB7/PB8 (5 s) and PB9 (2 s) HIGH together, once per reset. */
+  HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin|CONTACTOR_P_CTRL_Pin
+                          |CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_SET);
+#endif
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+  Wait_TIM2_Seconds(2U);
+
+  GPIO_InitTypeDef pb6_input = {0};
+  pb6_input.Pin = GPIO_PIN_6;
+  pb6_input.Mode = GPIO_MODE_INPUT;
+  pb6_input.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &pb6_input);
+
+#if CONTACTOR_PULSE_TEST_ENABLED
+  /* Two seconds elapsed: PB9 goes LOW; PB7/PB8 stay HIGH for 3 s more. */
+  HAL_GPIO_WritePin(CONTACTOR_PRE_CTRL_GPIO_Port, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
+  Wait_TIM2_Seconds(3U);
+  HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin|CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
+  Wait_TIM2_Seconds(2U);
+#endif
+
+  HAL_TIM_Base_Stop(&htim2);
+
+#if CONTACTOR_PULSE_TEST_ENABLED
+  /* Test complete: leave PB7/PB8/PB9 LOW until reset, without BMS writes. */
+  while (1)
+  {
+    __NOP();
+  }
+#endif
 
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_GPIO_Init();
 
   //i am commenting this out so it doesn't throw me an error
   //MX_SDMMC1_SD_Init();
@@ -179,7 +227,6 @@ Error_Handler();
   MX_USB_DEVICE_Init();
   MX_FDCAN1_Init();
   MX_FATFS_Init();
-  MX_TIM2_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   Bms_Mainboard_Setup(&hspi1, &hfdcan1);
@@ -524,7 +571,7 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, GPIO_LED_3_Pin|GPIO_LED_2_Pin|GPIO_LED_1_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
+  /* Hold PD7 (BMS_STATUS_OUT) low from GPIO initialization onward. */
   HAL_GPIO_WritePin(BMS_STATUS_OUT_GPIO_Port, BMS_STATUS_OUT_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
@@ -532,7 +579,7 @@ static void MX_GPIO_Init(void)
                           |CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
 
   /* STM light test: PB4 (TSSI_G) and PB5 (TSSI_R) high. */
-  HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin|TSSI_R_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin|TSSI_R_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : SD_CARD_DETECT_Pin */
   GPIO_InitStruct.Pin = SD_CARD_DETECT_Pin;
@@ -577,6 +624,13 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
+  /* Configure PB6 low; main() runs the timed test. */
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+  GPIO_InitStruct.Pin = GPIO_PIN_6;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* USER CODE END MX_GPIO_Init_2 */
 }

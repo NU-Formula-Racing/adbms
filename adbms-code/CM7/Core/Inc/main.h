@@ -91,6 +91,10 @@ void Error_Handler(void);
 #define CONTACTOR_PRE_CTRL_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
+/* Hold PD7 low; suppress normal BMS status writes while enabled. */
+#define PD7_HOLD_LOW_ENABLED 1
+/* Pulse PB7/PB8 for 5 s and PB9 for 2 s, then hold LOW in pin-test mode. */
+#define CONTACTOR_PULSE_TEST_ENABLED 1
 
 /* USER CODE END Private defines */
 
