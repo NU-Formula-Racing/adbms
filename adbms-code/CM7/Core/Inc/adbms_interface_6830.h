@@ -29,6 +29,7 @@ typedef struct
 typedef struct
 {
     float temperatures[NUM_CHIPS * NUM_TEMPS_CHIP];
+    float gpio_v[NUM_CHIPS * NUM_TEMPS_CHIP];     // raw GPIO (thermistor divider) voltage behind each temperature
 
     float max_temp;
     float min_temp;
@@ -98,3 +99,12 @@ float ADBMS_6830_Transfer_Temp(float raw_temp_voltage, float Vref);
 //Prints
 void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830);
 void ADBMS_6830_Print_Voltages(adbms_6830_* adbms_6830);
+void ADBMS_6830_Print_Temps(adbms_6830_* adbms_6830);
+
+// Which 6830 (0-based) a global cell index belongs to; local cell index = i - CHIP_VOLTAGE_OFFSET(chip)
+static inline int ADBMS_6830_Cell_Chip(int i)
+{
+    int cic = 0;
+    while (cic < NUM_6830 - 1 && i >= CHIP_VOLTAGE_OFFSET(cic + 1)) cic++;
+    return cic;
+}

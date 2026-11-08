@@ -1,15 +1,17 @@
 #ifndef AD_SYSTEM_PARAMS_H
 #define AD_SYSTEM_PARAMS_H
 
-#define NUM_6830  1
+#define NUM_6830  2
 #define NUM_2950  0
 #define POSITION_2950 1					/*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
 #define POSITION_6830 (POSITION_2950 ^ 1) /*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
 #define NUM_CHIPS (NUM_6830+NUM_2950)	/* Number of ICs 					*/
-#define NUM_VOLTAGES_EVEN_CHIP 12		/* Nmber of Cells in even number ICs starting at 0 ending at 8*/
-#define NUM_VOLTAGES_ODD_CHIP  11  	   	/* Nmber of Cells in odd number ICs starting at 1 ending at 9*/
-#define NUM_VOLTAGES (NUM_6830 * NUM_VOLTAGES_ODD_CHIP + ((NUM_6830 + 1)/2))
-#define NUM_TEMPS_CHIP 10				/* Number of Temps to read per IC 	*/
+#define NUM_VOLTAGES_EVEN_CHIP 10		/* Cells on even-numbered ICs (0, 2, 4...). Pack = 12, daughterboard = 10 */
+#define NUM_VOLTAGES_ODD_CHIP  10  	   	/* Cells on odd-numbered ICs (1, 3, 5...). Pack = 11, daughterboard = 10 */
+/* Index of the first cell of chip cic in the voltage arrays (sum of the cells on all chips before it) */
+#define CHIP_VOLTAGE_OFFSET(cic) ((((cic) + 1) / 2) * NUM_VOLTAGES_EVEN_CHIP + ((cic) / 2) * NUM_VOLTAGES_ODD_CHIP)
+#define NUM_VOLTAGES CHIP_VOLTAGE_OFFSET(NUM_6830)	/* Total cells across all 6830s */
+#define NUM_TEMPS_CHIP 8				/* Thermistors per IC, read from GPIO1..GPIO<n> (max 10). Daughterboard = 8 */
 #define NUM_TEMPS (NUM_6830 * NUM_TEMPS_CHIP)
 
 #define OVERVOLTAGE 4.2					/* Overvoltage Threshold 	*/
@@ -36,9 +38,20 @@
 #define ENABLE_PRINTF_DEBUG_COMMS 1		/* Flag to enable Printf debug comms */
 #define ENABLE_USB_COMMS 1				/* Flag to enable USB comms */
 #define ENABLE_OWC 1					/* Run the open-wire check loop (6830) */
-#define OWC_SETTLE_MS 10				/* Wait after enabling OW current before reading (was 1) */
+#define OWC_SETTLE_MS 1				/* Wait after enabling OW current before reading (original value; 10 also tried) */
 #define OWC_PERIOD_MS 5000				/* How often the open-wire check runs (was 30000) */
-#define OC_PIN_TEST 0				/* TEST ONLY: drive selected 2950 OC pins high after a delay. Set 0 for normal operation */
+#define ENABLE_TEMP_PRINT 1				/* Print each thermistor input (GPIO voltage, resistance, temp, OPEN/SHORT) in the debug output */
+#define TEMP_PRINT_IC 2					/* Which IC's thermistors to print: 0 = all, 1 = IC1 only, 2 = IC2 only, ... */
+#define BALANCE_DIAG_TEST 0				/* TEST ONLY: read back DCC/PWM/mute registers, then MUTE discharge for a window so balance current can be measured. Set 0 for normal operation */
+#define BALANCE_DIAG_START_MS 8000		/* Delay from boot before the diag starts */
+#define BALANCE_DIAG_MUTE_MS 30000		/* How long discharge stays muted (measure the 22 ohm resistors during this window) */
+#define BALANCE_DIAG_R_OHMS 22.0f		/* Each external balance resistor (2 per channel: tap->SxP and SxN->tap) */
+#define CB_TEST 1						/* TEST ONLY: close one balance FET (DIS channel) at a time for multimeter checks. Set 0 for normal operation */
+#define CB_TEST_START_MS 2000			/* Delay from boot before the FET is closed */
+#define CB_TEST_IC 2					/* Which 6830 the CB test drives (1 = IC1, 2 = IC2, ...) */
+#define CB_TEST_CHANNEL 10				/* DIS channel on CB_TEST_IC to close first (1..10). Change + reflash to test another channel */
+#define CB_TEST_STEP_MS 0				/* 0 = hold CB_TEST_CHANNEL forever. > 0 = auto-advance to the next channel every this many ms (e.g. 20000) */
+#define OC_PIN_TEST 0			/* TEST ONLY: drive selected 2950 OC pins high after a delay. Set 0 for normal operation */
 #define OC_PIN_TEST_DELAY_MS 10000		/* Delay from boot before the pin(s) go high */
 #define OC_PIN_TEST_OCA 0				/* 1 = drive OCA high at the delay */
 #define OC_PIN_TEST_OCB 1				/* 1 = drive OCB high at the delay */

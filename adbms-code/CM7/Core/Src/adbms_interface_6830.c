@@ -21,7 +21,7 @@ void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_pa
     float odd_total = 0;
     for (uint8_t cic = 0; cic < (NUM_6830); cic++)
     {
-        if (cic % 2 == 0) //even chip, 12 voltages
+        if (cic % 2 == 0) //even chip, NUM_VOLTAGES_EVEN_CHIP voltages
         {
             uint8_t num_reg_grps = NUM_VOLTAGES_EVEN_CHIP / VOLTAGES_REG_GRP + (NUM_VOLTAGES_EVEN_CHIP % VOLTAGES_REG_GRP != 0);//find how many register groups used to store voltages
             for (uint8_t creg_grp = 0; creg_grp < num_reg_grps; creg_grp++) //index register groups, each contain 3 registers that represent a voltage
@@ -41,7 +41,7 @@ void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_pa
                         return;
                     }
                     
-                    voltage_parsed->voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2] = curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
+                    voltage_parsed->voltages[CHIP_VOLTAGE_OFFSET(cic) + creg_grp*DATA_LEN/2 + cbyte/2] = curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
 
                     even_total += curr_voltage;
                     if (curr_voltage > voltage_parsed->max_v){
@@ -74,7 +74,7 @@ void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_pa
                         return;
                     }
 
-                    voltage_parsed->voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2] = curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
+                    voltage_parsed->voltages[CHIP_VOLTAGE_OFFSET(cic) + creg_grp*DATA_LEN/2 + cbyte/2] = curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
 
                     odd_total += curr_voltage;
                     if (curr_voltage > voltage_parsed->max_v){
@@ -91,7 +91,7 @@ void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_pa
     voltage_parsed->total_v = even_total + odd_total;
     // calculate the avg voltage
     if(NUM_6830 > 0){
-        voltage_parsed->avg_v = voltage_parsed->total_v / ((NUM_6830) * NUM_VOLTAGES_ODD_CHIP + (((NUM_6830+1))/2));
+        voltage_parsed->avg_v = voltage_parsed->total_v / NUM_VOLTAGES;
     }
     else{
         voltage_parsed->avg_v = 0.0;
@@ -127,7 +127,7 @@ void ADBMS_6830_Parse_Temperature(adbms_read_raw_* raw_return, adbms_6830_temper
         {
             for (uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte+=2)
             {
-            	if(creg_grp*DATA_LEN/2 + cbyte/2 >= AUX_GPIO) continue;	// only 10 gpio's
+            	if(creg_grp*DATA_LEN/2 + cbyte/2 >= NUM_TEMPS_CHIP) continue;	// only GPIO1..NUM_TEMPS_CHIP have thermistors
 
                 int16_t raw_val = (((uint16_t)raw_return->read_return[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte + 1]) << 8) | raw_return->read_return[creg_grp * (NUM_CHIPS) * DATA_LEN + cic * DATA_LEN + cbyte];
                 float raw_temp_voltage = ADBMS_6830_Transfer_Voltage(raw_val);
@@ -140,6 +140,7 @@ void ADBMS_6830_Parse_Temperature(adbms_read_raw_* raw_return, adbms_6830_temper
 
                 float curr_temp = ADBMS_6830_Transfer_Temp(raw_temp_voltage, vref);
                 temp_parsed->temperatures[cic*NUM_TEMPS_CHIP + creg_grp*DATA_LEN/2 + cbyte/2] = curr_temp;
+                temp_parsed->gpio_v[cic*NUM_TEMPS_CHIP + creg_grp*DATA_LEN/2 + cbyte/2] = raw_temp_voltage;
                 total_temp += curr_temp;
                 if (curr_temp > temp_parsed->max_temp)
                     temp_parsed->max_temp = curr_temp;
@@ -150,12 +151,7 @@ void ADBMS_6830_Parse_Temperature(adbms_read_raw_* raw_return, adbms_6830_temper
     }
 
     // calculate the avg temp
-    if (NUM_CHIPS > 1){
-        temp_parsed->avg_temp = total_temp / ((NUM_6830) * NUM_TEMPS_CHIP);
-    }
-    else{
-        temp_parsed->avg_temp = 0.0;
-    }
+    temp_parsed->avg_temp = total_temp / NUM_TEMPS;
 
 }
 
@@ -213,7 +209,11 @@ void Update_6830_Owc_Faults(adbms_6830_voltage_parsed_* voltage_owc, adbms_6830_
         else
         {
             for (int i = 0; i < NUM_VOLTAGES; i++)
-                printf(" %d:%.3f%s", i + 1, voltage_owc->voltages[i], voltage_owc->voltages[i] < OWC_VOLTAGE_THRESHOLD ? "*" : "");
+            {
+                int cic = ADBMS_6830_Cell_Chip(i);
+                if (i == CHIP_VOLTAGE_OFFSET(cic)) printf("%s IC%d:", cic ? " |" : "", cic + 1);
+                printf(" %d:%.3f%s", i - CHIP_VOLTAGE_OFFSET(cic) + 1, voltage_owc->voltages[i], voltage_owc->voltages[i] < OWC_VOLTAGE_THRESHOLD ? "*" : "");
+            }
             printf("   (* = below %.2f V -> open)\n", OWC_VOLTAGE_THRESHOLD);
         }
     }
@@ -258,12 +258,12 @@ void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
  
     for (int cic = 0; cic < (NUM_6830); cic++)
     {
-        if (cic % 2 == 0) //even chip, 12 voltages
+        if (cic % 2 == 0) //even chip, NUM_VOLTAGES_EVEN_CHIP voltages
         {
             uint16_t dcc = 0;
             for (int cvoltage = 0; cvoltage < NUM_VOLTAGES_EVEN_CHIP; cvoltage++)
             {
-                float curr_v = adbms_6830->voltage.voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + cvoltage];
+                float curr_v = adbms_6830->voltage.voltages[CHIP_VOLTAGE_OFFSET(cic) + cvoltage];
                 if ((curr_v - adbms_6830->voltage.min_v) > CB_THRESHOLD && curr_v > CB_MIN_V_THRESHOLD)
                 {
                     dcc |= 1 << cvoltage;
@@ -276,7 +276,7 @@ void cell_Balance_On(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
             uint16_t dcc = 0;
             for (int cvoltage = 0; cvoltage < NUM_VOLTAGES_ODD_CHIP; cvoltage++)
             {
-                float curr_v = adbms_6830->voltage.voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + cvoltage];
+                float curr_v = adbms_6830->voltage.voltages[CHIP_VOLTAGE_OFFSET(cic) + cvoltage];
                 if ((curr_v - adbms_6830->voltage.min_v) > CB_THRESHOLD && curr_v > CB_MIN_V_THRESHOLD)
                 {
                     dcc |= 1 << cvoltage;
@@ -415,14 +415,14 @@ void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
         {
             for (int j = 0; j < NUM_VOLTAGES_EVEN_CHIP; j++)
             {
-                printf("C%d=%fV\t", ((i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j + 1), adbms_6830->voltage.voltages[(i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j]);
+                printf("C%d=%fV\t", (CHIP_VOLTAGE_OFFSET(i) + j + 1), adbms_6830->voltage.voltages[CHIP_VOLTAGE_OFFSET(i) + j]);
             }
         }
         else
         {
             for (int j = 0; j < NUM_VOLTAGES_ODD_CHIP; j++)
             {
-                printf("C%d=%fV\t", ((i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j + 1), adbms_6830->voltage.voltages[(i * NUM_VOLTAGES_ODD_CHIP + (i + 1)/2) + j]);
+                printf("C%d=%fV\t", (CHIP_VOLTAGE_OFFSET(i) + j + 1), adbms_6830->voltage.voltages[CHIP_VOLTAGE_OFFSET(i) + j]);
             }
         }
     }
@@ -461,10 +461,42 @@ void ADBMS_6830_Print_Voltages(adbms_6830_* adbms_6830)
     if (v->pec_counts) printf("PEC failures in a row: %d (values below are from the last good read)\n", v->pec_counts);
     if (v->adc_off)    printf("ADC returned cleared/fault value - ADCs restarted\n");
 
-    for (int i = 0; i < NUM_VOLTAGES; i++)
+    // one block per 6830, cells numbered locally (IC1 C1..C10, IC2 C1..C10, ...), 5 per row
+    for (int cic = 0; cic < NUM_6830; cic++)
     {
-        printf("C%-2d %7.4f V%s", i + 1, v->voltages[i], ((i + 1) % 4 == 0 || i == NUM_VOLTAGES - 1) ? "\n" : "   ");
+        int first = CHIP_VOLTAGE_OFFSET(cic);
+        int n = CHIP_VOLTAGE_OFFSET(cic + 1) - first;
+        float chip_total = 0;
+        for (int j = 0; j < n; j++) chip_total += v->voltages[first + j];
+
+        printf("IC%d (%.4f V)\n", cic + 1, chip_total);
+        for (int j = 0; j < n; j++)
+            printf("  C%-2d %7.4f V%s", j + 1, v->voltages[first + j], ((j + 1) % 5 == 0 || j == n - 1) ? "\n" : " ");
     }
     printf("total %8.4f V   max %7.4f V   min %7.4f V   avg %7.4f V   max-min %7.4f V\n",
            v->total_v, v->max_v, v->min_v, v->avg_v, v->max_v - v->min_v);
+}
+
+// Thermistor input print for bench testing. Divider: VREF2 (3 V) -> 10k pull-up -> GPIO -> NTC -> V-
+//   open (nothing connected)  -> GPIO ~3.0 V
+//   shorted                   -> GPIO ~0 V
+//   10k resistor (= 25 C NTC) -> GPIO ~1.5 V
+void ADBMS_6830_Print_Temps(adbms_6830_* adbms_6830)
+{
+    adbms_6830_temperature_parsed_ *t = &adbms_6830->temperature;
+
+    if (t->pec_counts) printf("TEMP PEC failures in a row: %d (values below are from the last good read)\n", t->pec_counts);
+    for (int i = 0; i < NUM_TEMPS; i++)
+    {
+        int cic = i / NUM_TEMPS_CHIP, j = i % NUM_TEMPS_CHIP;	// thermistor j is on GPIO(j+1) of chip cic
+        if (TEMP_PRINT_IC && cic + 1 != TEMP_PRINT_IC) continue;	// only print the selected IC
+        float v = t->gpio_v[i];
+        float r = (v < 2.999f) ? v * SeriesResistance / (3.0f - v) : -1.0f;
+        const char *state = (v > 2.9f) ? "OPEN" : (v < 0.05f) ? "SHORT" : "ok";
+        if (j == 0) printf("IC%d temps\n", cic + 1);
+        printf("  T%-2d %6.3f V  %8.0f ohm  %7.1f C  %-5s%s", j + 1, v, r, t->temperatures[i], state,
+               ((j + 1) % 2 == 0 || j == NUM_TEMPS_CHIP - 1) ? "\n" : "   |");
+    }
+    printf("temp max %.1f C   min %.1f C   avg %.1f C   openwire_temp_fault %d\n",
+           t->max_temp, t->min_temp, t->avg_temp, adbms_6830->faults.openwire_temp_fault);
 }
