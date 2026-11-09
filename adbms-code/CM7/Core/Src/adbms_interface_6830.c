@@ -90,12 +90,8 @@ void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_pa
     
     voltage_parsed->total_v = even_total + odd_total;
     // calculate the avg voltage
-    if(NUM_6830 > 0){
-        voltage_parsed->avg_v = voltage_parsed->total_v / NUM_VOLTAGES;
-    }
-    else{
-        voltage_parsed->avg_v = 0.0;
-    }
+    const unsigned cell_count = NUM_VOLTAGES;
+    voltage_parsed->avg_v = cell_count > 0 ? voltage_parsed->total_v / cell_count : 0.0f;
 
     //reset current pec failures if there are no read pec failures
     voltage_parsed->pec_counts = 0;
@@ -151,7 +147,8 @@ void ADBMS_6830_Parse_Temperature(adbms_read_raw_* raw_return, adbms_6830_temper
     }
 
     // calculate the avg temp
-    temp_parsed->avg_temp = total_temp / NUM_TEMPS;
+    const unsigned thermistor_count = NUM_TEMPS;
+    temp_parsed->avg_temp = thermistor_count > 0 ? total_temp / thermistor_count : 0.0f;
 
 }
 

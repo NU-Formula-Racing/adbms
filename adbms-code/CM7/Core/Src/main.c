@@ -26,16 +26,43 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "adbms_driver.h"
+#include "adbms_interface_2950.h"
 #include "bms.h"
 
-int _write(int le, char *ptr, int len)
+#if defined(DEBUG) && defined(CORE_CM7) && ISOSPI1_PACKBOARD_TEST_ENABLED
+#define CM7_BENCH_SEMIHOSTING 1
+/* Set to 1 from GDB after enabling semihosting and connecting the TCP Console. */
+static volatile uint32_t bms_semihosting_armed;
+#else
+#define CM7_BENCH_SEMIHOSTING 0
+#endif
+
+#if ISOSPI1_PACKBOARD_TEST_ENABLED
+/* Keep the last complete report readable over SWD while the next one is built. */
+static char isospi1_console_buffers[2][4096];
+static char *volatile isospi1_console = isospi1_console_buffers[0];
+static char *isospi1_console_pending = isospi1_console_buffers[1];
+static size_t isospi1_console_length;
+#endif
+
+int _write(int file, char *ptr, int len)
 {
-	int DataIdx;
-	for(DataIdx = 0; DataIdx < len; DataIdx++)
-	{
-		ITM_SendChar(*ptr++);
-	}
-	return len;
+  (void)file;
+#if ISOSPI1_PACKBOARD_TEST_ENABLED
+  if (len > 0)
+  {
+    const size_t remaining = sizeof(isospi1_console_buffers[0]) - isospi1_console_length - 1U;
+    const size_t count = (size_t)len < remaining ? (size_t)len : remaining;
+    memcpy(isospi1_console_pending + isospi1_console_length, ptr, count);
+    isospi1_console_length += count;
+    isospi1_console_pending[isospi1_console_length] = '\0';
+  }
+
+#else
+  (void)ptr;
+#endif
+  return len;
 }
 /* USER CODE END Includes */
 
@@ -78,6 +105,20 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
+#if ISOSPI1_PACKBOARD_TEST_ENABLED
+/* Inspect these fields in the debugger during the single-packboard test. */
+static volatile struct
+{
+  HAL_StatusTypeDef spi_status;
+  uint32_t attempts;
+  uint32_t good_reads;
+  uint32_t pec_errors;
+  uint32_t spi_errors;
+  GPIO_PinState pd9_idle;
+  GPIO_PinState pd9_after_wake;
+  uint8_t response[DATA_LEN + PEC_LEN];
+} isospi1_test;
+#endif
 
 /* USER CODE END PV */
 
@@ -97,16 +138,163 @@ static void MX_TIM4_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-static void Wait_TIM2_Seconds(uint32_t seconds)
+void Wait_TIM2_Milliseconds(uint32_t milliseconds)
 {
   /* APB1 uses DIV1 and TIM2 has prescaler 0, so its counter runs at PCLK1. */
-  const uint32_t ticks = seconds * HAL_RCC_GetPCLK1Freq();
+  const uint32_t ticks = milliseconds * (HAL_RCC_GetPCLK1Freq() / 1000U);
   __HAL_TIM_SET_COUNTER(&htim2, 0U);
   while (__HAL_TIM_GET_COUNTER(&htim2) < ticks)
   {
     /* Poll the hardware timer; no SysTick interrupt is needed. */
   }
 }
+
+#if ISOSPI1_PACKBOARD_TEST_ENABLED
+static void Publish_IsoSPI1_Console(void)
+{
+  fflush(stdout);
+  if (isospi1_console_length == 0U) return;
+
+  char *previous = isospi1_console;
+  isospi1_console = isospi1_console_pending;
+  isospi1_console_pending = previous;
+  isospi1_console_pending[0] = '\0';
+  isospi1_console_length = 0U;
+
+#if CM7_BENCH_SEMIHOSTING
+  /* One trap per report, in thread mode between SPI passes. */
+  if (bms_semihosting_armed == 1U && __get_IPSR() == 0U &&
+      (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) != 0U)
+  {
+    /* Arm M-profile semihosting SYS_WRITE0 takes a NUL-terminated string. */
+    register uint32_t operation __asm__("r0") = 0x04U;
+    register const char *report __asm__("r1") = isospi1_console;
+    __asm__ volatile ("bkpt 0xab" : "+r"(operation) : "r"(report) : "memory");
+  }
+#endif
+}
+
+static void Run_IsoSPI1_Packboard_Test(void)
+{
+  static adbms_raw_ packboard;
+  static adbms_2950_ measurements;
+  bool configured = false;
+  packboard.SPI_data.hspi = &hspi1;
+
+  /* One device: command and command PEC, then six data and two PEC bytes. */
+  uint8_t tx[CMD_LEN + PEC_LEN + DATA_LEN + PEC_LEN] = {
+    (uint8_t)(RDCFGA >> 8), (uint8_t)RDCFGA
+  };
+  const uint16_t command_pec = Pec15_Calc(CMD_LEN, tx);
+  tx[CMD_LEN] = (uint8_t)(command_pec >> 8);
+  tx[CMD_LEN + 1U] = (uint8_t)command_pec;
+
+  while (1)
+  {
+    uint8_t rx[sizeof(tx)] = {0};
+    Publish_IsoSPI1_Console();
+    Wait_TIM2_Milliseconds(1000U);
+    isospi1_test.attempts++;
+    if (ENABLE_PRINTF_DEBUG_COMMS)
+    	 printf("CM7 bench | isoSPI 1 attempt %lu\n",
+
+    	           (unsigned long)isospi1_test.attempts);
+
+    	    fflush(stdout);
+    isospi1_test.pd9_idle = HAL_GPIO_ReadPin(AD6822_State_GPIO_Port, AD6822_State_Pin);
+    ADBMS_WakeUP_ICs();
+    isospi1_test.pd9_after_wake = HAL_GPIO_ReadPin(AD6822_State_GPIO_Port, AD6822_State_Pin);
+
+    HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_RESET);
+    const HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(&hspi1, tx, rx, sizeof(tx), 10U);
+    HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_SET);
+    isospi1_test.spi_status = status;
+    if (ENABLE_PRINTF_DEBUG_COMMS)
+      printf("PD9 status: idle=%u after CS wake=%u\n",
+             (unsigned)isospi1_test.pd9_idle, (unsigned)isospi1_test.pd9_after_wake);
+
+    if (status != HAL_OK)
+    {
+      isospi1_test.spi_errors++;
+      configured = false;
+      if (ENABLE_PRINTF_DEBUG_COMMS)
+        printf("isoSPI 1 / ADBMS2950 SPI error (HAL status %d)\n", (int)status);
+      continue;
+    }
+
+    uint8_t *reply = rx + CMD_LEN + PEC_LEN;
+    for (size_t i = 0; i < sizeof(isospi1_test.response); i++)
+    {
+      isospi1_test.response[i] = reply[i];
+    }
+
+    const uint16_t received_pec = ((uint16_t)(reply[DATA_LEN] & 0x03U) << 8)
+                                  | reply[DATA_LEN + 1U];
+    if (Pec10_Calc(true, DATA_LEN, reply) != received_pec)
+    {
+      isospi1_test.pec_errors++;
+      configured = false;
+      if (ENABLE_PRINTF_DEBUG_COMMS)
+        printf("isoSPI 1 / ADBMS2950 CFGA PEC FAIL (RX=%03X)\n", (unsigned)received_pec);
+      continue;
+    }
+
+    isospi1_test.good_reads++;
+    if (!ENABLE_PRINTF_DEBUG_COMMS) continue;
+
+    printf("\nisoSPI 1 / ADBMS2950 CFGA PEC OK (valid replies %lu)\n",
+           (unsigned long)isospi1_test.good_reads);
+    if (configured)
+    {
+      /* Reconfigure if a packboard reset cleared OCEN, REFUP, or ACCI. */
+      const uint8_t *expected = packboard.command_bit.cfg_a;
+      configured = ((reply[0] ^ expected[0]) & 0x80U) == 0U
+                   && ((reply[5] ^ expected[5]) & 0x17U) == 0U;
+    }
+    /* Console output may have lasted long enough for the link to go idle. */
+    ADBMS_WakeUP_ICs();
+    if (!configured)
+    {
+      /* Use the packboard's existing ADC and sense input configuration. */
+      command_parameters_2950_ *params = &packboard.command_parameters.parameter_2950;
+      config_command_bits_ *commands = &packboard.command_bit;
+      ADBMS_2950_Config(params, commands);
+      ADBMS_joint_Config(&packboard.command_parameters.parameter_joint, commands);
+      ADBMS_Write_Data(&hspi1, WRCFGB, commands->cfg_b, packboard.SPI_data.spi_dataBuf);
+      params->cfa2950.ocen = 0;
+      ADBMS_Set_Config_A_2950(&params->cfa2950, commands->cfg_a, NUM_2950, POSITION_2950);
+      ADBMS_Write_Data(&hspi1, WRCFGA, commands->cfg_a, packboard.SPI_data.spi_dataBuf);
+      Wait_TIM2_Milliseconds(1U);
+      params->cfa2950.ocen = 1;
+      ADBMS_Set_Config_A_2950(&params->cfa2950, commands->cfg_a, NUM_2950, POSITION_2950);
+      ADBMS_Write_Data(&hspi1, WRCFGA, commands->cfg_a, packboard.SPI_data.spi_dataBuf);
+      ADBMS_Write_CMD(&hspi1, commands->adcv);
+      ADBMS_Write_CMD(&hspi1, commands->adsv);
+      ADBMS_Write_CMD(&hspi1, commands->adv);
+      configured = true;
+      /* Read on the next pass, after the ADCs have settled. */
+      continue;
+    }
+
+    adbms_read_raw_ *acc = &packboard.read_raw_2950_filtered;
+    ADBMS_Read_Voltages(acc, Accumulate_Read_2950, &hspi1, packboard.SPI_data.spi_dataBuf);
+    const bool accumulator_pec_failed = ADBMS_2950_Pec_Failure(acc, &measurements);
+    Update_2950_InternalFault(&measurements);
+    if (accumulator_pec_failed)
+    {
+      printf("ADBMS2950 accumulated current/voltage PEC FAIL\n");
+    }
+    else
+    {
+      const uint8_t acci = packboard.command_parameters.parameter_2950.cfa2950.acci;
+      ADBMS_2950_Calculate_Accumulator_Vbat(acc, &measurements, acci);
+      ADBMS_2950_Calculate_Accumulator_Current(acc, &measurements, acci);
+      ADBMS_2950_Print_Vals(&measurements);
+    }
+    ADBMS_2950_Print_Raw_ADC(&packboard);
+  }
+}
+#endif
 
 /* USER CODE END 0 */
 
@@ -183,13 +371,22 @@ Error_Handler();
   {
     Error_Handler();
   }
+#if ISOSPI1_PACKBOARD_TEST_ENABLED
+#if CM7_BENCH_SEMIHOSTING
+  printf("Semihosting initialized\n");
+  printf("Test value: %d\n", 123);
+  Publish_IsoSPI1_Console();
+#endif
+  MX_SPI1_Init();
+  Run_IsoSPI1_Packboard_Test();
+#endif
 #if CONTACTOR_PULSE_TEST_ENABLED
   /* Start PB7/PB8 (5 s) and PB9 (2 s) HIGH together, once per reset. */
   HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin|CONTACTOR_P_CTRL_Pin
                           |CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_SET);
 #endif
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-  Wait_TIM2_Seconds(2U);
+  Wait_TIM2_Milliseconds(2000U);
 
   GPIO_InitTypeDef pb6_input = {0};
   pb6_input.Pin = GPIO_PIN_6;
@@ -200,9 +397,9 @@ Error_Handler();
 #if CONTACTOR_PULSE_TEST_ENABLED
   /* Two seconds elapsed: PB9 goes LOW; PB7/PB8 stay HIGH for 3 s more. */
   HAL_GPIO_WritePin(CONTACTOR_PRE_CTRL_GPIO_Port, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
-  Wait_TIM2_Seconds(3U);
+  Wait_TIM2_Milliseconds(3000U);
   HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin|CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
-  Wait_TIM2_Seconds(2U);
+  Wait_TIM2_Milliseconds(2000U);
 #endif
 
   HAL_TIM_Base_Stop(&htim2);
@@ -431,7 +628,11 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
+#if ISOSPI1_PACKBOARD_TEST_ENABLED
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
+#else
   hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
+#endif
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -566,7 +767,11 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+#if ISOSPI1_PACKBOARD_TEST_ENABLED
+  HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_SET);
+#else
   HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_RESET);
+#endif
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, GPIO_LED_3_Pin|GPIO_LED_2_Pin|GPIO_LED_1_Pin, GPIO_PIN_RESET);

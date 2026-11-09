@@ -282,23 +282,22 @@ void ADBMS_2950_Print_Raw_ADC(adbms_raw_* adbms_raw)
     ADBMS_WakeUP_ICs();
     printf("\n--- ADBMS2950 ADC (t=%lu ms) ---\n", (unsigned long)HAL_GetTick());
 
-    // Only V1 and V2 for now (RDV1A). Set PRINT_ALL_2950_GROUPS to 1 to dump every group again.
-#define PRINT_ALL_2950_GROUPS 0
 #if PRINT_ALL_2950_GROUPS
     for (unsigned g = 0; g < sizeof(raw_groups_2950) / sizeof(raw_groups_2950[0]); g++)
     {
         const raw_group_ *grp = &raw_groups_2950[g];
+        if (PRINT_2950_VBAT && grp->cmd == 0x0006) continue; // Printed in the VBAT section below.
         ADBMS_Read_Data(adbms_raw->SPI_data.hspi, grp->cmd, buf, adbms_raw->SPI_data.spi_dataBuf, &pec);
         print_raw_group(grp, &buf[offset], pec.pec_2950, 1.0f);
+        if (PRINT_2950_V1V2 && grp->cmd == 0x000A)
+        {
+            float difference = (decode_signed(&buf[offset], 2) - decode_signed(&buf[offset + 2], 2)) * LSB_V_V;
+            printf("V1-V2          %11.6f V%s\n", difference, pec.pec_2950 ? "  (PEC FAIL)" : "");
+        }
     }
-#else
-// Sections of the periodic printout (1 = print)
-#define PRINT_2950_V1V2        1
-#define PRINT_2950_VBAT        0
-#define PRINT_2950_THERMISTORS 0
-#define PRINT_2950_OC          0
+#endif
 
-#if PRINT_2950_V1V2
+#if PRINT_2950_V1V2 && !PRINT_ALL_2950_GROUPS
     // RDV1A (0x000A): V1A bytes 0-1, V2A bytes 2-3, 100 uV/LSB (V1ADC). Needs ADV VCH = 9.
     // VS1 = VS2 = 00 (default): each measured vs SGND; difference computed here.
     ADBMS_Read_Data(adbms_raw->SPI_data.hspi, 0x000A, buf, adbms_raw->SPI_data.spi_dataBuf, &pec);
@@ -408,7 +407,6 @@ void ADBMS_2950_Print_Raw_ADC(adbms_raw_* adbms_raw)
     printf("OC3 (I3A-I3B) %8.4f V  latch=%u\n", oc3, oc3l);
     printf("OCA pin %s (latch=%u)   OCB pin %s (latch=%u)%s\n",
            ocap ? "HIGH" : "LOW", ocal, ocbp ? "HIGH" : "LOW", ocbl, oc_pec ? "  (PEC FAIL)" : "");
-#endif
 #endif
 
     // ADV is single-shot: retrigger so the V registers are fresh on the next loop

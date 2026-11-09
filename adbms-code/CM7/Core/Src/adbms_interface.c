@@ -94,9 +94,14 @@ void ADBMS_Read_Voltages(adbms_read_raw_* read_raw, voltage_read_type_ type, SPI
             break;
 
         case Accumulate_Read_2950:
-            ADBMS_Read_Data(hspi, RDACA, (read_raw->read_return + 0 * NUM_CHIPS * DATA_LEN), spi_dataBuf,&read_raw->read_pec_failure);
+        {
+            pec_return_ current_pec;
+            ADBMS_Read_Data(hspi, RDACA, read_raw->read_return, spi_dataBuf, &current_pec);
             ADBMS_Read_Data(hspi, RDACB, (read_raw->read_return + 1 * NUM_CHIPS * DATA_LEN), spi_dataBuf,&read_raw->read_pec_failure);
-            break;       
+            read_raw->read_pec_failure.pec_2950 |= current_pec.pec_2950;
+            read_raw->read_pec_failure.pec_6830 |= current_pec.pec_6830;
+            break;
+        }
     }
 
 }

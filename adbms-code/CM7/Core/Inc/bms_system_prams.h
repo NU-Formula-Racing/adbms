@@ -1,8 +1,14 @@
 #ifndef AD_SYSTEM_PARAMS_H
 #define AD_SYSTEM_PARAMS_H
 
+#define ISOSPI1_PACKBOARD_TEST_ENABLED 1 /* Run the isoSPI 1 bench console for a single packboard. */
+#if ISOSPI1_PACKBOARD_TEST_ENABLED
+#define NUM_6830  0
+#define NUM_2950  1
+#else
 #define NUM_6830  2
 #define NUM_2950  0
+#endif
 #define POSITION_2950 1					/*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
 #define POSITION_6830 (POSITION_2950 ^ 1) /*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
 #define NUM_CHIPS (NUM_6830+NUM_2950)	/* Number of ICs 					*/
@@ -36,6 +42,11 @@
 #define CB_MIN_V_THRESHOLD 3			/* Cells under this threshold will not be balanced even when CB is enabled */
 
 #define ENABLE_PRINTF_DEBUG_COMMS 1		/* Flag to enable Printf debug comms */
+#define PRINT_ALL_2950_GROUPS  ISOSPI1_PACKBOARD_TEST_ENABLED
+#define PRINT_2950_V1V2       1
+#define PRINT_2950_VBAT       ISOSPI1_PACKBOARD_TEST_ENABLED
+#define PRINT_2950_THERMISTORS ISOSPI1_PACKBOARD_TEST_ENABLED
+#define PRINT_2950_OC         ISOSPI1_PACKBOARD_TEST_ENABLED
 #define ENABLE_USB_COMMS 1				/* Flag to enable USB comms */
 #define ENABLE_OWC 1					/* Run the open-wire check loop (6830) */
 #define OWC_SETTLE_MS 1				/* Wait after enabling OW current before reading (original value; 10 also tried) */

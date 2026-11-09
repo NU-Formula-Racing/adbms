@@ -53,6 +53,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
+void Wait_TIM2_Milliseconds(uint32_t milliseconds);
 
 /* USER CODE END EFP */
 
@@ -94,7 +95,7 @@ void Error_Handler(void);
 /* Hold PD7 low; suppress normal BMS status writes while enabled. */
 #define PD7_HOLD_LOW_ENABLED 1
 /* Pulse PB7/PB8 for 5 s and PB9 for 2 s, then hold LOW in pin-test mode. */
-#define CONTACTOR_PULSE_TEST_ENABLED 1
+#define CONTACTOR_PULSE_TEST_ENABLED 0
 
 /* USER CODE END Private defines */
 
