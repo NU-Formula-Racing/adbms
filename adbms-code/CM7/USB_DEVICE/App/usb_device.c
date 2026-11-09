@@ -70,23 +70,25 @@ void MX_USB_DEVICE_Init(void)
   /* Init Device Library, add supported class and start the library. */
   if (USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS) != USBD_OK)
   {
-    Error_Handler();
+    return; /* Debug USB is optional. */
   }
   if (USBD_RegisterClass(&hUsbDeviceFS, &USBD_CDC) != USBD_OK)
   {
-    Error_Handler();
+    (void)USBD_DeInit(&hUsbDeviceFS);
+    return;
   }
   if (USBD_CDC_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops_FS) != USBD_OK)
   {
-    Error_Handler();
+    (void)USBD_DeInit(&hUsbDeviceFS);
+    return;
   }
   if (USBD_Start(&hUsbDeviceFS) != USBD_OK)
   {
-    Error_Handler();
+    (void)USBD_DeInit(&hUsbDeviceFS);
+    return;
   }
 
   /* USER CODE BEGIN USB_DEVICE_Init_PostTreatment */
-  HAL_PWREx_EnableUSBVoltageDetector();
 
   /* USER CODE END USB_DEVICE_Init_PostTreatment */
 }

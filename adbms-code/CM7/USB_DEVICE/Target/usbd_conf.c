@@ -66,7 +66,6 @@ USBD_StatusTypeDef USBD_Get_USB_Status(HAL_StatusTypeDef hal_status);
 void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
   if(pcdHandle->Instance==USB_OTG_FS)
   {
   /* USER CODE BEGIN USB_OTG_FS_MspInit 0 */
@@ -75,12 +74,7 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
 
   /** Initializes the peripherals clock
   */
-    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USB;
-    PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-    {
-      Error_Handler();
-    }
+    __HAL_RCC_USB_CONFIG(RCC_USBCLKSOURCE_HSI48);
 
   /** Enable USB Voltage detector
   */
@@ -105,7 +99,17 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
     HAL_NVIC_SetPriority(OTG_FS_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(OTG_FS_IRQn);
   /* USER CODE BEGIN USB_OTG_FS_MspInit 1 */
-
+    /* OTG FS is USB2 on this H7. Trim HSI48 against the host's 1 kHz SOF. */
+    __HAL_RCC_CRS_CLK_ENABLE();
+    RCC_CRSInitTypeDef crs = {
+      .Prescaler = RCC_CRS_SYNC_DIV1,
+      .Source = RCC_CRS_SYNC_SOURCE_USB2,
+      .Polarity = RCC_CRS_SYNC_POLARITY_RISING,
+      .ReloadValue = RCC_CRS_RELOADVALUE_DEFAULT,
+      .ErrorLimitValue = RCC_CRS_ERRORLIMIT_DEFAULT,
+      .HSI48CalibrationValue = RCC_CRS_HSI48CALIBRATION_DEFAULT
+    };
+    HAL_RCCEx_CRSConfig(&crs);
   /* USER CODE END USB_OTG_FS_MspInit 1 */
   }
 }
@@ -339,6 +343,7 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
 {
   /* Init USB Ip. */
   if (pdev->id == DEVICE_FS) {
+  if (!__HAL_RCC_GET_FLAG(RCC_FLAG_HSI48RDY)) return USBD_FAIL;
   /* Link the driver to the stack. */
   hpcd_USB_OTG_FS.pData = pdev;
   pdev->pData = &hpcd_USB_OTG_FS;
@@ -356,7 +361,8 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
   hpcd_USB_OTG_FS.Init.use_dedicated_ep1 = DISABLE;
   if (HAL_PCD_Init(&hpcd_USB_OTG_FS) != HAL_OK)
   {
-    Error_Handler( );
+    HAL_PCD_MspDeInit(&hpcd_USB_OTG_FS);
+    return USBD_FAIL;
   }
 
 #if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)

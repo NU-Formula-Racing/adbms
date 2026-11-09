@@ -74,6 +74,8 @@
 #define USBD_LPM_ENABLED     1U
 /*---------- -----------*/
 #define USBD_SELF_POWERED     1U
+/* The board draws no operating power from USB VBUS. */
+#define USBD_MAX_POWER        0U
 
 /****************************************/
 /* #define for FS and HS identification */

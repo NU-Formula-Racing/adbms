@@ -29,14 +29,7 @@
 #include "adbms_driver.h"
 #include "adbms_interface_2950.h"
 #include "bms.h"
-
-#if defined(DEBUG) && defined(CORE_CM7) && ISOSPI1_PACKBOARD_TEST_ENABLED
-#define CM7_BENCH_SEMIHOSTING 1
-/* Set to 1 from GDB after enabling semihosting and connecting the TCP Console. */
-static volatile uint32_t bms_semihosting_armed;
-#else
-#define CM7_BENCH_SEMIHOSTING 0
-#endif
+#include "usbd_cdc_if.h"
 
 #if ISOSPI1_PACKBOARD_TEST_ENABLED
 /* Keep the last complete report readable over SWD while the next one is built. */
@@ -49,8 +42,8 @@ static size_t isospi1_console_length;
 int _write(int file, char *ptr, int len)
 {
   (void)file;
+  if (len <= 0 || __get_IPSR() != 0U || !ENABLE_PRINTF_DEBUG_COMMS) return len;
 #if ISOSPI1_PACKBOARD_TEST_ENABLED
-  if (len > 0)
   {
     const size_t remaining = sizeof(isospi1_console_buffers[0]) - isospi1_console_length - 1U;
     const size_t count = (size_t)len < remaining ? (size_t)len : remaining;
@@ -58,10 +51,11 @@ int _write(int file, char *ptr, int len)
     isospi1_console_length += count;
     isospi1_console_pending[isospi1_console_length] = '\0';
   }
-
-#else
-  (void)ptr;
 #endif
+#if ENABLE_USB_COMMS
+  CDC_Log_Write_FS((const uint8_t *)ptr, (uint32_t)len);
+#endif
+  (void)ptr;
   return len;
 }
 /* USER CODE END Includes */
@@ -138,15 +132,26 @@ static void MX_TIM4_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void Wait_TIM2_Milliseconds(uint32_t milliseconds)
+static void Wait_TIM2(uint32_t milliseconds, bool service_usb)
 {
   /* APB1 uses DIV1 and TIM2 has prescaler 0, so its counter runs at PCLK1. */
-  const uint32_t ticks = milliseconds * (HAL_RCC_GetPCLK1Freq() / 1000U);
+  const uint32_t ticks_per_ms = HAL_RCC_GetPCLK1Freq() / 1000U;
+  const uint32_t ticks = milliseconds * ticks_per_ms;
+  uint32_t next_usb_poll = 0U;
   __HAL_TIM_SET_COUNTER(&htim2, 0U);
-  while (__HAL_TIM_GET_COUNTER(&htim2) < ticks)
+  for (uint32_t elapsed = 0U; elapsed < ticks; elapsed = __HAL_TIM_GET_COUNTER(&htim2))
   {
-    /* Poll the hardware timer; no SysTick interrupt is needed. */
+    if (ENABLE_USB_COMMS && service_usb && elapsed >= next_usb_poll)
+    {
+      CDC_Log_Service_FS();
+      next_usb_poll = elapsed + ticks_per_ms;
+    }
   }
+}
+
+void Wait_TIM2_Milliseconds(uint32_t milliseconds)
+{
+  Wait_TIM2(milliseconds, false);
 }
 
 #if ISOSPI1_PACKBOARD_TEST_ENABLED
@@ -160,18 +165,6 @@ static void Publish_IsoSPI1_Console(void)
   isospi1_console_pending = previous;
   isospi1_console_pending[0] = '\0';
   isospi1_console_length = 0U;
-
-#if CM7_BENCH_SEMIHOSTING
-  /* One trap per report, in thread mode between SPI passes. */
-  if (bms_semihosting_armed == 1U && __get_IPSR() == 0U &&
-      (CoreDebug->DHCSR & CoreDebug_DHCSR_C_DEBUGEN_Msk) != 0U)
-  {
-    /* Arm M-profile semihosting SYS_WRITE0 takes a NUL-terminated string. */
-    register uint32_t operation __asm__("r0") = 0x04U;
-    register const char *report __asm__("r1") = isospi1_console;
-    __asm__ volatile ("bkpt 0xab" : "+r"(operation) : "r"(report) : "memory");
-  }
-#endif
 }
 
 static void Run_IsoSPI1_Packboard_Test(void)
@@ -179,6 +172,8 @@ static void Run_IsoSPI1_Packboard_Test(void)
   static adbms_raw_ packboard;
   static adbms_2950_ measurements;
   bool configured = false;
+  bool usb_announced = false;
+  uint32_t usb_test_counter = 0U;
   packboard.SPI_data.hspi = &hspi1;
 
   /* One device: command and command PEC, then six data and two PEC bytes. */
@@ -193,14 +188,20 @@ static void Run_IsoSPI1_Packboard_Test(void)
   {
     uint8_t rx[sizeof(tx)] = {0};
     Publish_IsoSPI1_Console();
-    Wait_TIM2_Milliseconds(1000U);
+    Wait_TIM2(1000U, true);
+    if (ENABLE_USB_COMMS && ENABLE_PRINTF_DEBUG_COMMS && CDC_Log_Ready_FS())
+    {
+      if (!usb_announced) printf("CM7 USB CDC initialized\n");
+      usb_announced = true;
+      printf("USB CDC test: %lu\n", (unsigned long)usb_test_counter++);
+    }
+    else
+    {
+      usb_announced = false;
+    }
     isospi1_test.attempts++;
     if (ENABLE_PRINTF_DEBUG_COMMS)
-    	 printf("CM7 bench | isoSPI 1 attempt %lu\n",
-
-    	           (unsigned long)isospi1_test.attempts);
-
-    	    fflush(stdout);
+      printf("CM7 bench | isoSPI 1 attempt %lu\n", (unsigned long)isospi1_test.attempts);
     isospi1_test.pd9_idle = HAL_GPIO_ReadPin(AD6822_State_GPIO_Port, AD6822_State_Pin);
     ADBMS_WakeUP_ICs();
     isospi1_test.pd9_after_wake = HAL_GPIO_ReadPin(AD6822_State_GPIO_Port, AD6822_State_Pin);
@@ -240,7 +241,6 @@ static void Run_IsoSPI1_Packboard_Test(void)
     }
 
     isospi1_test.good_reads++;
-    if (!ENABLE_PRINTF_DEBUG_COMMS) continue;
 
     printf("\nisoSPI 1 / ADBMS2950 CFGA PEC OK (valid replies %lu)\n",
            (unsigned long)isospi1_test.good_reads);
@@ -306,6 +306,13 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+#if ENABLE_USB_COMMS && ISOSPI1_PACKBOARD_TEST_ENABLED
+  /* USB IRQs and the HAL tick must use the CM7 application vector table. */
+  extern const uint32_t g_pfnVectors[];
+  SCB->VTOR = (uint32_t)g_pfnVectors;
+  __DSB();
+  __ISB();
+#endif
 
   /* USER CODE END 1 */
 /* USER CODE BEGIN Boot_Mode_Sequence_0 */
@@ -372,10 +379,11 @@ Error_Handler();
     Error_Handler();
   }
 #if ISOSPI1_PACKBOARD_TEST_ENABLED
-#if CM7_BENCH_SEMIHOSTING
-  printf("Semihosting initialized\n");
-  printf("Test value: %d\n", 123);
-  Publish_IsoSPI1_Console();
+#if ENABLE_USB_COMMS
+  /* The USB HAL uses SysTick for mode switching and timeout checks. */
+  const uint32_t usb_tick_start = HAL_GetTick();
+  Wait_TIM2_Milliseconds(3U);
+  if (HAL_GetTick() != usb_tick_start) MX_USB_DEVICE_Init();
 #endif
   MX_SPI1_Init();
   Run_IsoSPI1_Packboard_Test();
@@ -421,7 +429,7 @@ Error_Handler();
 
 
   MX_SPI1_Init();
-  MX_USB_DEVICE_Init();
+  if (ENABLE_USB_COMMS) MX_USB_DEVICE_Init();
   MX_FDCAN1_Init();
   MX_FATFS_Init();
   MX_TIM4_Init();
@@ -439,6 +447,7 @@ Error_Handler();
 
     /* USER CODE BEGIN 3 */
 	  Tick_Mainboard_Timers();
+    if (ENABLE_USB_COMMS) CDC_Log_Service_FS();
   }
   /* USER CODE END 3 */
 }

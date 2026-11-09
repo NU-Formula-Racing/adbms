@@ -22,6 +22,7 @@
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN INCLUDE */
+#include <string.h>
 
 /* USER CODE END INCLUDE */
 
@@ -62,6 +63,8 @@
   */
 
 /* USER CODE BEGIN PRIVATE_DEFINES */
+#define CDC_LOG_CAPACITY 4096U
+#define CDC_LOG_CHUNK 256U
 /* USER CODE END PRIVATE_DEFINES */
 
 /**
@@ -94,6 +97,12 @@ uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
 uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 
 /* USER CODE BEGIN PRIVATE_VARIABLES */
+static uint8_t log_queue[CDC_LOG_CAPACITY];
+static uint32_t log_head;
+static uint32_t log_tail;
+static volatile uint8_t log_terminal_open;
+static volatile uint8_t log_session_changed;
+static uint8_t line_coding[7] = {0x00, 0xC2, 0x01, 0x00, 0, 0, 8};
 
 /* USER CODE END PRIVATE_VARIABLES */
 
@@ -152,6 +161,8 @@ USBD_CDC_ItfTypeDef USBD_Interface_fops_FS =
 static int8_t CDC_Init_FS(void)
 {
   /* USER CODE BEGIN 3 */
+  log_terminal_open = 0U;
+  log_session_changed = 1U;
   /* Set Application Buffers */
   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
@@ -166,6 +177,8 @@ static int8_t CDC_Init_FS(void)
 static int8_t CDC_DeInit_FS(void)
 {
   /* USER CODE BEGIN 4 */
+  log_terminal_open = 0U;
+  log_session_changed = 1U;
   return (USBD_OK);
   /* USER CODE END 4 */
 }
@@ -220,15 +233,21 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   /* 6      | bDataBits  |   1   | Number Data bits (5, 6, 7, 8 or 16).          */
   /*******************************************************************************/
     case CDC_SET_LINE_CODING:
-
+    if (length >= sizeof(line_coding)) memcpy(line_coding, pbuf, sizeof(line_coding));
     break;
 
     case CDC_GET_LINE_CODING:
-
+    if (length >= sizeof(line_coding)) memcpy(pbuf, line_coding, sizeof(line_coding));
     break;
 
     case CDC_SET_CONTROL_LINE_STATE:
-
+    /* The ST CDC class passes the setup packet for this zero-length request. */
+    {
+      const USBD_SetupReqTypedef *request = (const USBD_SetupReqTypedef *)pbuf;
+      const uint8_t open = (uint8_t)(request->wValue & 1U); /* DTR */
+      if (open != log_terminal_open) log_session_changed = 1U;
+      log_terminal_open = open;
+    }
     break;
 
     case CDC_SEND_BREAK:
@@ -283,6 +302,10 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
   uint8_t result = USBD_OK;
   /* USER CODE BEGIN 7 */
   USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
+  if (__get_IPSR() != 0U || hUsbDeviceFS.dev_state != USBD_STATE_CONFIGURED || hcdc == NULL)
+  {
+    return USBD_FAIL;
+  }
   if (hcdc->TxState != 0){
     return USBD_BUSY;
   }
@@ -316,6 +339,57 @@ static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
 }
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
+uint8_t CDC_Log_Ready_FS(void)
+{
+  return log_terminal_open && hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED;
+}
+
+void CDC_Log_Write_FS(const uint8_t *data, uint32_t length)
+{
+  if (__get_IPSR() != 0U) return;
+  if (log_session_changed) CDC_Log_Service_FS();
+  if (!CDC_Log_Ready_FS()) return;
+
+  /* Only foreground code owns the queue. Drop excess debug text under load. */
+  uint32_t available = CDC_LOG_CAPACITY - (log_head - log_tail);
+  uint32_t count = length < available ? length : available;
+  uint32_t offset = log_head % CDC_LOG_CAPACITY;
+  uint32_t first = count < CDC_LOG_CAPACITY - offset ? count : CDC_LOG_CAPACITY - offset;
+  memcpy(log_queue + offset, data, first);
+  memcpy(log_queue, data + first, count - first);
+  log_head += count;
+}
+
+void CDC_Log_Service_FS(void)
+{
+  if (__get_IPSR() != 0U) return;
+  if (!log_session_changed && log_head == log_tail) return;
+
+  /* Protect class state and the TX buffer from reset/deinit during submission. */
+  const uint32_t irq_enabled = NVIC_GetEnableIRQ(OTG_FS_IRQn);
+  NVIC_DisableIRQ(OTG_FS_IRQn);
+  if (log_session_changed || !CDC_Log_Ready_FS())
+  {
+    log_tail = log_head;
+    log_session_changed = 0U;
+  }
+  else
+  {
+    const USBD_CDC_HandleTypeDef *hcdc = hUsbDeviceFS.pClassData;
+    if (hcdc != NULL && hcdc->TxState == 0U && log_tail != log_head)
+    {
+      uint32_t count = log_head - log_tail;
+      if (count > CDC_LOG_CHUNK) count = CDC_LOG_CHUNK;
+      const uint32_t offset = log_tail % CDC_LOG_CAPACITY;
+      const uint32_t first = count < CDC_LOG_CAPACITY - offset ? count : CDC_LOG_CAPACITY - offset;
+      /* The USB stack owns this staging buffer until TxState clears. */
+      memcpy(UserTxBufferFS, log_queue + offset, first);
+      memcpy(UserTxBufferFS + first, log_queue, count - first);
+      if (CDC_Transmit_FS(UserTxBufferFS, (uint16_t)count) == USBD_OK) log_tail += count;
+    }
+  }
+  if (irq_enabled) NVIC_EnableIRQ(OTG_FS_IRQn);
+}
 
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */
 
