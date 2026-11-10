@@ -53,7 +53,6 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-void Wait_TIM2_Milliseconds(uint32_t milliseconds);
 
 /* USER CODE END EFP */
 
@@ -92,10 +91,10 @@ void Wait_TIM2_Milliseconds(uint32_t milliseconds);
 #define CONTACTOR_PRE_CTRL_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
-/* Hold PD7 low; suppress normal BMS status writes while enabled. */
+/* !!! TESTING OVERRIDE !!!
+   1 = hold PD7 (BMS_STATUS_OUT, the BMS shutdown output) LOW permanently: the BMS never closes
+   the shutdown circuit, regardless of faults. Set to 0 for normal operation (driven by bms_fault). */
 #define PD7_HOLD_LOW_ENABLED 1
-/* Pulse PB7/PB8 for 5 s and PB9 for 2 s, then hold LOW in pin-test mode. */
-#define CONTACTOR_PULSE_TEST_ENABLED 0
 
 /* USER CODE END Private defines */
 

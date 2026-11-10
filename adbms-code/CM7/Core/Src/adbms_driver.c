@@ -284,15 +284,9 @@ void ADBMS_Set_ADV(adv_ adv, uint16_t* adv_cmd_buffer){
 void ADBMS_WakeUP_ICs()
 {
     HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_RESET);
-#if ISOSPI1_PACKBOARD_TEST_ENABLED
-    Wait_TIM2_Milliseconds(1U);
-    HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_SET);
-    Wait_TIM2_Milliseconds(2U);
-#else
     HAL_Delay(1);
     HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_SET);
     HAL_Delay(2);
-#endif
 }
 
 void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd)

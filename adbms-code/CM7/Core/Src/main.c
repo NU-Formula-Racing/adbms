@@ -26,32 +26,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "adbms_driver.h"
-#include "adbms_interface_2950.h"
 #include "bms.h"
 #include "usbd_cdc_if.h"
-
-#if ISOSPI1_PACKBOARD_TEST_ENABLED
-/* Keep the last complete report readable over SWD while the next one is built. */
-static char isospi1_console_buffers[2][4096];
-static char *volatile isospi1_console = isospi1_console_buffers[0];
-static char *isospi1_console_pending = isospi1_console_buffers[1];
-static size_t isospi1_console_length;
-#endif
 
 int _write(int file, char *ptr, int len)
 {
   (void)file;
   if (len <= 0 || __get_IPSR() != 0U || !ENABLE_PRINTF_DEBUG_COMMS) return len;
-#if ISOSPI1_PACKBOARD_TEST_ENABLED
-  {
-    const size_t remaining = sizeof(isospi1_console_buffers[0]) - isospi1_console_length - 1U;
-    const size_t count = (size_t)len < remaining ? (size_t)len : remaining;
-    memcpy(isospi1_console_pending + isospi1_console_length, ptr, count);
-    isospi1_console_length += count;
-    isospi1_console_pending[isospi1_console_length] = '\0';
-  }
-#endif
 #if ENABLE_USB_COMMS
   CDC_Log_Write_FS((const uint8_t *)ptr, (uint32_t)len);
 #endif
@@ -99,20 +80,6 @@ TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
-#if ISOSPI1_PACKBOARD_TEST_ENABLED
-/* Inspect these fields in the debugger during the single-packboard test. */
-static volatile struct
-{
-  HAL_StatusTypeDef spi_status;
-  uint32_t attempts;
-  uint32_t good_reads;
-  uint32_t pec_errors;
-  uint32_t spi_errors;
-  GPIO_PinState pd10_idle;
-  GPIO_PinState pd10_after_wake;
-  uint8_t response[DATA_LEN + PEC_LEN];
-} isospi1_test;
-#endif
 
 /* USER CODE END PV */
 
@@ -181,171 +148,6 @@ static void Service_Bootloader_Request(void)
   NVIC_SystemReset();
 #endif
 }
-
-static void Wait_TIM2(uint32_t milliseconds, bool service_usb)
-{
-  /* APB1 uses DIV1 and TIM2 has prescaler 0, so its counter runs at PCLK1. */
-  const uint32_t ticks_per_ms = HAL_RCC_GetPCLK1Freq() / 1000U;
-  const uint32_t ticks = milliseconds * ticks_per_ms;
-  uint32_t next_usb_poll = 0U;
-  __HAL_TIM_SET_COUNTER(&htim2, 0U);
-  for (uint32_t elapsed = 0U; elapsed < ticks; elapsed = __HAL_TIM_GET_COUNTER(&htim2))
-  {
-    if (ENABLE_USB_COMMS && service_usb && elapsed >= next_usb_poll)
-    {
-      CDC_Log_Service_FS();
-      next_usb_poll = elapsed + ticks_per_ms;
-    }
-  }
-}
-
-void Wait_TIM2_Milliseconds(uint32_t milliseconds)
-{
-  Wait_TIM2(milliseconds, false);
-}
-
-#if ISOSPI1_PACKBOARD_TEST_ENABLED
-static void Publish_IsoSPI1_Console(void)
-{
-  fflush(stdout);
-  if (isospi1_console_length == 0U) return;
-
-  char *previous = isospi1_console;
-  isospi1_console = isospi1_console_pending;
-  isospi1_console_pending = previous;
-  isospi1_console_pending[0] = '\0';
-  isospi1_console_length = 0U;
-}
-
-static void Run_IsoSPI2_Packboard_Test(void)
-{
-  static adbms_raw_ packboard;
-  static adbms_2950_ measurements;
-  bool configured = false;
-  bool usb_announced = false;
-  uint32_t usb_test_counter = 0U;
-  packboard.SPI_data.hspi = &hspi2;
-
-  /* One device: command and command PEC, then six data and two PEC bytes. */
-  uint8_t tx[CMD_LEN + PEC_LEN + DATA_LEN + PEC_LEN] = {
-    (uint8_t)(RDCFGA >> 8), (uint8_t)RDCFGA
-  };
-  const uint16_t command_pec = Pec15_Calc(CMD_LEN, tx);
-  tx[CMD_LEN] = (uint8_t)(command_pec >> 8);
-  tx[CMD_LEN + 1U] = (uint8_t)command_pec;
-
-  while (1)
-  {
-    uint8_t rx[sizeof(tx)] = {0};
-    Publish_IsoSPI1_Console();
-    Wait_TIM2(1000U, true);
-    Service_Bootloader_Request();
-    if (ENABLE_USB_COMMS && ENABLE_PRINTF_DEBUG_COMMS && CDC_Log_Ready_FS())
-    {
-      if (!usb_announced) printf("CM7 USB CDC initialized\n");
-      usb_announced = true;
-      printf("USB CDC test: %lu\n", (unsigned long)usb_test_counter++);
-    }
-    else
-    {
-      usb_announced = false;
-    }
-    isospi1_test.attempts++;
-    if (ENABLE_PRINTF_DEBUG_COMMS)
-      printf("CM7 bench | isoSPI 2 attempt %lu\n", (unsigned long)isospi1_test.attempts);
-    isospi1_test.pd10_idle = HAL_GPIO_ReadPin(AD6822_State_GPIO_Port, AD6822_State_Pin);
-    ADBMS_WakeUP_ICs();
-    isospi1_test.pd10_after_wake = HAL_GPIO_ReadPin(AD6822_State_GPIO_Port, AD6822_State_Pin);
-
-    HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_RESET);
-    const HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(&hspi2, tx, rx, sizeof(tx), 10U);
-    HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_SET);
-    isospi1_test.spi_status = status;
-    if (ENABLE_PRINTF_DEBUG_COMMS)
-      printf("PD10 status: idle=%u after CS wake=%u\n",
-             (unsigned)isospi1_test.pd10_idle, (unsigned)isospi1_test.pd10_after_wake);
-
-    if (status != HAL_OK)
-    {
-      isospi1_test.spi_errors++;
-      configured = false;
-      if (ENABLE_PRINTF_DEBUG_COMMS)
-        printf("isoSPI 2 / ADBMS2950 SPI error (HAL status %d)\n", (int)status);
-      continue;
-    }
-
-    uint8_t *reply = rx + CMD_LEN + PEC_LEN;
-    for (size_t i = 0; i < sizeof(isospi1_test.response); i++)
-    {
-      isospi1_test.response[i] = reply[i];
-    }
-
-    const uint16_t received_pec = ((uint16_t)(reply[DATA_LEN] & 0x03U) << 8)
-                                  | reply[DATA_LEN + 1U];
-    if (Pec10_Calc(true, DATA_LEN, reply) != received_pec)
-    {
-      isospi1_test.pec_errors++;
-      configured = false;
-      if (ENABLE_PRINTF_DEBUG_COMMS)
-        printf("isoSPI 2 / ADBMS2950 CFGA PEC FAIL (RX=%03X)\n", (unsigned)received_pec);
-      continue;
-    }
-
-    isospi1_test.good_reads++;
-
-    printf("\nisoSPI 2 / ADBMS2950 CFGA PEC OK (valid replies %lu)\n",
-           (unsigned long)isospi1_test.good_reads);
-    if (configured)
-    {
-      /* Reconfigure if a packboard reset cleared OCEN, REFUP, or ACCI. */
-      const uint8_t *expected = packboard.command_bit.cfg_a;
-      configured = ((reply[0] ^ expected[0]) & 0x80U) == 0U
-                   && ((reply[5] ^ expected[5]) & 0x17U) == 0U;
-    }
-    /* Console output may have lasted long enough for the link to go idle. */
-    ADBMS_WakeUP_ICs();
-    if (!configured)
-    {
-      /* Use the packboard's existing ADC and sense input configuration. */
-      command_parameters_2950_ *params = &packboard.command_parameters.parameter_2950;
-      config_command_bits_ *commands = &packboard.command_bit;
-      ADBMS_2950_Config(params, commands);
-      ADBMS_joint_Config(&packboard.command_parameters.parameter_joint, commands);
-      ADBMS_Write_Data(&hspi2, WRCFGB, commands->cfg_b, packboard.SPI_data.spi_dataBuf);
-      params->cfa2950.ocen = 0;
-      ADBMS_Set_Config_A_2950(&params->cfa2950, commands->cfg_a, NUM_2950, POSITION_2950);
-      ADBMS_Write_Data(&hspi2, WRCFGA, commands->cfg_a, packboard.SPI_data.spi_dataBuf);
-      Wait_TIM2_Milliseconds(1U);
-      params->cfa2950.ocen = 1;
-      ADBMS_Set_Config_A_2950(&params->cfa2950, commands->cfg_a, NUM_2950, POSITION_2950);
-      ADBMS_Write_Data(&hspi2, WRCFGA, commands->cfg_a, packboard.SPI_data.spi_dataBuf);
-      ADBMS_Write_CMD(&hspi2, commands->adcv);
-      ADBMS_Write_CMD(&hspi2, commands->adsv);
-      ADBMS_Write_CMD(&hspi2, commands->adv);
-      configured = true;
-      /* Read on the next pass, after the ADCs have settled. */
-      continue;
-    }
-
-    adbms_read_raw_ *acc = &packboard.read_raw_2950_filtered;
-    ADBMS_Read_Voltages(acc, Accumulate_Read_2950, &hspi2, packboard.SPI_data.spi_dataBuf);
-    const bool accumulator_pec_failed = ADBMS_2950_Pec_Failure(acc, &measurements);
-    Update_2950_InternalFault(&measurements);
-    if (accumulator_pec_failed)
-    {
-      printf("ADBMS2950 accumulated current/voltage PEC FAIL\n");
-    }
-    else
-    {
-      const uint8_t acci = packboard.command_parameters.parameter_2950.cfa2950.acci;
-      ADBMS_2950_Calculate_Accumulator_Vbat(acc, &measurements, acci);
-      ADBMS_2950_Calculate_Accumulator_Current(acc, &measurements, acci);
-      ADBMS_2950_Print_Vals(&measurements);
-    }
-    ADBMS_2950_Print_Raw_ADC(&packboard);
-  }
-}
-#endif
 
 /* USER CODE END 0 */
 
@@ -423,78 +225,21 @@ Error_Handler();
 /* USER CODE END Boot_Mode_Sequence_2 */
 
   /* USER CODE BEGIN SysInit */
-  /* Run pin tests before USB and other peripheral initialization. */
-  MX_GPIO_Init();
-  MX_TIM2_Init();
-
-  if (HAL_TIM_Base_Start(&htim2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-#if ISOSPI1_PACKBOARD_TEST_ENABLED
-#if ENABLE_USB_COMMS
-  /* The USB HAL uses SysTick for mode switching and timeout checks. */
-  const uint32_t usb_tick_start = HAL_GetTick();
-  Wait_TIM2_Milliseconds(3U);
-  if (HAL_GetTick() != usb_tick_start) MX_USB_DEVICE_Init();
-#endif
-  MX_SPI2_Init();
-  Run_IsoSPI2_Packboard_Test();
-#endif
-#if CONTACTOR_PULSE_TEST_ENABLED
-  /* Start PB7/PB8 (5 s) and PB9 (2 s) HIGH together, once per reset. */
-  HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin|CONTACTOR_P_CTRL_Pin
-                          |CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_SET);
-#endif
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-  Wait_TIM2_Milliseconds(2000U);
-
-  GPIO_InitTypeDef pb6_input = {0};
-  pb6_input.Pin = GPIO_PIN_6;
-  pb6_input.Mode = GPIO_MODE_INPUT;
-  pb6_input.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &pb6_input);
-
-#if CONTACTOR_PULSE_TEST_ENABLED
-  /* Two seconds elapsed: PB9 goes LOW; PB7/PB8 stay HIGH for 3 s more. */
-  HAL_GPIO_WritePin(CONTACTOR_PRE_CTRL_GPIO_Port, CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
-  Wait_TIM2_Milliseconds(3000U);
-  HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin|CONTACTOR_P_CTRL_Pin, GPIO_PIN_RESET);
-  Wait_TIM2_Milliseconds(2000U);
-#endif
-
-  HAL_TIM_Base_Stop(&htim2);
-
-#if CONTACTOR_PULSE_TEST_ENABLED
-  /* Test complete: leave PB7/PB8/PB9 LOW until reset, without BMS writes. */
-  while (1)
-  {
-    __NOP();
-  }
-#endif
 
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
+  MX_GPIO_Init();
 
   //i am commenting this out so it doesn't throw me an error
   //MX_SDMMC1_SD_Init();
 
 
   MX_SPI2_Init();
-  /* FDCAN before USB so a USB init problem can never block CAN. */
-  MX_FDCAN1_Init();
-#if ENABLE_USB_COMMS
-  {
-    /* USB init spins on HAL_Delay; only start it if the HAL tick is actually running. */
-    const uint32_t usb_tick_start = HAL_GetTick();
-    HAL_TIM_Base_Start(&htim2);
-    Wait_TIM2_Milliseconds(3U);
-    HAL_TIM_Base_Stop(&htim2);
-    if (HAL_GetTick() != usb_tick_start) MX_USB_DEVICE_Init();
-  }
-#endif
+  MX_FDCAN1_Init();   /* FDCAN before USB so a USB init problem can never block CAN */
+  MX_USB_DEVICE_Init();
   MX_FATFS_Init();
+  MX_TIM2_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   Bms_Mainboard_Setup(&hspi2, &hfdcan1);
@@ -721,11 +466,6 @@ static void MX_SPI2_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN SPI2_Init 2 */
-#if ISOSPI1_PACKBOARD_TEST_ENABLED
-  /* HAL_SPI_Init leaves SPI disabled. Use 1 MHz SCK for the bench test. */
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
-  MODIFY_REG(hspi2.Instance->CFG1, SPI_CFG1_MBR, hspi2.Init.BaudRatePrescaler);
-#endif
 
   /* USER CODE END SPI2_Init 2 */
 
@@ -841,24 +581,17 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-#if ISOSPI1_PACKBOARD_TEST_ENABLED
-  HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_SET);
-#else
   HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_RESET);
-#endif
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, GPIO_LED_3_Pin|GPIO_LED_2_Pin|GPIO_LED_1_Pin, GPIO_PIN_RESET);
 
-  /* Hold PD7 (BMS_STATUS_OUT) low from GPIO initialization onward. */
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(BMS_STATUS_OUT_GPIO_Port, BMS_STATUS_OUT_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, CONTACTOR_N_CTRL_Pin|CONTACTOR_P_CTRL_Pin
+  HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin|TSSI_R_Pin|CONTACTOR_N_CTRL_Pin|CONTACTOR_P_CTRL_Pin
                           |CONTACTOR_PRE_CTRL_Pin, GPIO_PIN_RESET);
-
-  /* STM light test: PB4 (TSSI_G) and PB5 (TSSI_R) high. */
-  HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin|TSSI_R_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : SD_CARD_DETECT_Pin */
   GPIO_InitStruct.Pin = SD_CARD_DETECT_Pin;
@@ -903,14 +636,6 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
-  /* Configure PB6 low; main() runs the timed test. */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-  GPIO_InitStruct.Pin = GPIO_PIN_6;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
   /* USER CODE END MX_GPIO_Init_2 */
 }
 

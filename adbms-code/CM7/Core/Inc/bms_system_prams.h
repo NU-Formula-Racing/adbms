@@ -1,14 +1,21 @@
 #ifndef AD_SYSTEM_PARAMS_H
 #define AD_SYSTEM_PARAMS_H
 
-#define ISOSPI1_PACKBOARD_TEST_ENABLED 0 /* Run the single-packboard isoSPI bench test. (1 = test loops forever and CAN never starts) */
-#define PACKBOARD_ONLY_SETUP 1 /* 1 = single packboard (one 2950) on isoSPI2 / J4. 0 = two daughterboards (6830s). Independent of the bench test above. */
-#if PACKBOARD_ONLY_SETUP || ISOSPI1_PACKBOARD_TEST_ENABLED
+/* isoSPI daisy chain on isoSPI2 / J4: mainboard 6822 -> [6830 daughterboard chips] -> [2950 packboard].
+   The 2950 is always at the END of the chain (POSITION_2950 = 1); the 2950 parsing code assumes this. */
+#define CHAIN_PACKBOARD_ONLY      0	/* 1x 2950 */
+#define CHAIN_DAUGHTERBOARD_ONLY  1	/* 2x 6830 */
+#define CHAIN_FULL                2	/* 2x 6830 (daughterboard) then 1x 2950 (packboard) */
+#define CHAIN_SETUP CHAIN_FULL
+#if CHAIN_SETUP == CHAIN_PACKBOARD_ONLY
 #define NUM_6830  0
 #define NUM_2950  1
-#else
+#elif CHAIN_SETUP == CHAIN_DAUGHTERBOARD_ONLY
 #define NUM_6830  2
 #define NUM_2950  0
+#else
+#define NUM_6830  2
+#define NUM_2950  1
 #endif
 #define POSITION_2950 1					/*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
 #define POSITION_6830 (POSITION_2950 ^ 1) /*Position of the 2950 chip (0 is beginning of daisy chain and 1 is end of daisy chain) */
@@ -42,32 +49,9 @@
 #define CB_THRESHOLD 0.005					/* Threshold Away From Lowest Cell to Start Cell Balancing when CB is enabled */
 #define CB_MIN_V_THRESHOLD 3			/* Cells under this threshold will not be balanced even when CB is enabled */
 
-#define ENABLE_PRINTF_DEBUG_COMMS 1		/* Flag to enable Printf debug comms */
-#define PRINT_ALL_2950_GROUPS  ISOSPI1_PACKBOARD_TEST_ENABLED
-#define PRINT_2950_V1V2       1
-#define PRINT_2950_VBAT       (ISOSPI1_PACKBOARD_TEST_ENABLED || PACKBOARD_ONLY_SETUP)
-#define PRINT_2950_THERMISTORS (ISOSPI1_PACKBOARD_TEST_ENABLED || PACKBOARD_ONLY_SETUP)
-#define PRINT_2950_OC         (ISOSPI1_PACKBOARD_TEST_ENABLED || PACKBOARD_ONLY_SETUP)
-#define PACKBOARD_PRINT_PERIOD_MS 500  /* How often the packboard (2950) data is printed over USB */
-#define ENABLE_USB_COMMS 1				/* Flag to enable USB comms */
-#define ENABLE_OWC 1					/* Run the open-wire check loop (6830) */
-#define OWC_SETTLE_MS 1				/* Wait after enabling OW current before reading (original value; 10 also tried) */
-#define OWC_PERIOD_MS 5000				/* How often the open-wire check runs (was 30000) */
-#define ENABLE_TEMP_PRINT 1				/* Print each thermistor input (GPIO voltage, resistance, temp, OPEN/SHORT) in the debug output */
-#define TEMP_PRINT_IC 2					/* Which IC's thermistors to print: 0 = all, 1 = IC1 only, 2 = IC2 only, ... */
-#define BALANCE_DIAG_TEST 0				/* TEST ONLY: read back DCC/PWM/mute registers, then MUTE discharge for a window so balance current can be measured. Set 0 for normal operation */
-#define BALANCE_DIAG_START_MS 8000		/* Delay from boot before the diag starts */
-#define BALANCE_DIAG_MUTE_MS 30000		/* How long discharge stays muted (measure the 22 ohm resistors during this window) */
-#define BALANCE_DIAG_R_OHMS 22.0f		/* Each external balance resistor (2 per channel: tap->SxP and SxN->tap) */
-#define CB_TEST 0					/* TEST ONLY: close one balance FET (DIS channel) at a time for multimeter checks. Set 0 for normal operation */
-#define CB_TEST_START_MS 2000			/* Delay from boot before the FET is closed */
-#define CB_TEST_IC 2					/* Which 6830 the CB test drives (1 = IC1, 2 = IC2, ...) */
-#define CB_TEST_CHANNEL 10				/* DIS channel on CB_TEST_IC to close first (1..10). Change + reflash to test another channel */
-#define CB_TEST_STEP_MS 0				/* 0 = hold CB_TEST_CHANNEL forever. > 0 = auto-advance to the next channel every this many ms (e.g. 20000) */
-#define OC_PIN_TEST 0			/* TEST ONLY: drive selected 2950 OC pins high after a delay. Set 0 for normal operation */
-#define OC_PIN_TEST_DELAY_MS 10000		/* Delay from boot before the pin(s) go high */
-#define OC_PIN_TEST_OCA 0				/* 1 = drive OCA high at the delay */
-#define OC_PIN_TEST_OCB 1				/* 1 = drive OCB high at the delay */
+#define ENABLE_PRINTF_DEBUG_COMMS 1		/* Flag to enable Printf debug comms (printed over USB CDC) */
+#define DEBUG_PRINT_PERIOD_MS 500		/* How often the debug data is printed (every loop overflows USB) */
+#define ENABLE_USB_COMMS 1				/* Flag to enable USB comms (also needed for flashing over USB DFU) */
 #define ENABLE_SD_LOGGING_BIN 0			/* Flag to enable logging to SD Card as binary files */
 #define ENABLE_SD_LOGGING_CSV 0			/* Flag to enable logging to SD Card as CSV files (ASCII)*/
 

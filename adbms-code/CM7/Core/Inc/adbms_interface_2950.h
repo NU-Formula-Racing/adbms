@@ -64,6 +64,3 @@ void Update_2950_InternalFault(adbms_2950_* adbms_2950);
 
 //Prints
 void ADBMS_2950_Print_Vals(adbms_2950_* adbms_2950);
-void ADBMS_2950_Print_I1_Diff(adbms_2950_* adbms_2950, uint8_t acci);
-void ADBMS_2950_Print_Raw_ADC(adbms_raw_* adbms_raw);
-float ADBMS_2950_Thermistor_Temp(float v);

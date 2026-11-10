@@ -136,7 +136,6 @@ void ADBMS_6830_Parse_Temperature(adbms_read_raw_* raw_return, adbms_6830_temper
 
                 float curr_temp = ADBMS_6830_Transfer_Temp(raw_temp_voltage, vref);
                 temp_parsed->temperatures[cic*NUM_TEMPS_CHIP + creg_grp*DATA_LEN/2 + cbyte/2] = curr_temp;
-                temp_parsed->gpio_v[cic*NUM_TEMPS_CHIP + creg_grp*DATA_LEN/2 + cbyte/2] = raw_temp_voltage;
                 total_temp += curr_temp;
                 if (curr_temp > temp_parsed->max_temp)
                     temp_parsed->max_temp = curr_temp;
@@ -194,27 +193,6 @@ void Update_6830_InternalFault(adbms_6830_* adbms_6830)
 
 void Update_6830_Owc_Faults(adbms_6830_voltage_parsed_* voltage_owc, adbms_6830_faults_* faults, Owc_Channel_ channel)
 {
-    // Debug: show what each OW pass measured (called once for the even pass, then the odd pass)
-    if (ENABLE_PRINTF_DEBUG_COMMS)
-    {
-        printf("OW %c pass:", channel == C_Channel ? 'C' : 'S');
-        if (voltage_owc->pec_counts)
-        {
-            printf(" skipped - %s (count %d)\n",
-                   voltage_owc->adc_off ? "ADC returned cleared/fault value" : "PEC failure", voltage_owc->pec_counts);
-        }
-        else
-        {
-            for (int i = 0; i < NUM_VOLTAGES; i++)
-            {
-                int cic = ADBMS_6830_Cell_Chip(i);
-                if (i == CHIP_VOLTAGE_OFFSET(cic)) printf("%s IC%d:", cic ? " |" : "", cic + 1);
-                printf(" %d:%.3f%s", i - CHIP_VOLTAGE_OFFSET(cic) + 1, voltage_owc->voltages[i], voltage_owc->voltages[i] < OWC_VOLTAGE_THRESHOLD ? "*" : "");
-            }
-            printf("   (* = below %.2f V -> open)\n", OWC_VOLTAGE_THRESHOLD);
-        }
-    }
-
     // pec check
     if (voltage_owc->pec_counts > PEC_FAILURE_THRESHOLD)
     {
@@ -447,53 +425,4 @@ void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
     printf("overtemperature: %d\t", adbms_6830->faults.overtemperature_fault);
     printf("openwire: %d\t", adbms_6830->faults.openwire_voltage_fault);
     printf("openwire_temp: %d\n", adbms_6830->faults.openwire_temp_fault);
-}
-
-// Compact cell voltage print for bench testing
-void ADBMS_6830_Print_Voltages(adbms_6830_* adbms_6830)
-{
-    adbms_6830_voltage_parsed_ *v = &adbms_6830->voltage;
-
-    printf("\n--- ADBMS6830 cell voltages (t=%lu ms) ---\n", (unsigned long)HAL_GetTick());
-    if (v->pec_counts) printf("PEC failures in a row: %d (values below are from the last good read)\n", v->pec_counts);
-    if (v->adc_off)    printf("ADC returned cleared/fault value - ADCs restarted\n");
-
-    // one block per 6830, cells numbered locally (IC1 C1..C10, IC2 C1..C10, ...), 5 per row
-    for (int cic = 0; cic < NUM_6830; cic++)
-    {
-        int first = CHIP_VOLTAGE_OFFSET(cic);
-        int n = CHIP_VOLTAGE_OFFSET(cic + 1) - first;
-        float chip_total = 0;
-        for (int j = 0; j < n; j++) chip_total += v->voltages[first + j];
-
-        printf("IC%d (%.4f V)\n", cic + 1, chip_total);
-        for (int j = 0; j < n; j++)
-            printf("  C%-2d %7.4f V%s", j + 1, v->voltages[first + j], ((j + 1) % 5 == 0 || j == n - 1) ? "\n" : " ");
-    }
-    printf("total %8.4f V   max %7.4f V   min %7.4f V   avg %7.4f V   max-min %7.4f V\n",
-           v->total_v, v->max_v, v->min_v, v->avg_v, v->max_v - v->min_v);
-}
-
-// Thermistor input print for bench testing. Divider: VREF2 (3 V) -> 10k pull-up -> GPIO -> NTC -> V-
-//   open (nothing connected)  -> GPIO ~3.0 V
-//   shorted                   -> GPIO ~0 V
-//   10k resistor (= 25 C NTC) -> GPIO ~1.5 V
-void ADBMS_6830_Print_Temps(adbms_6830_* adbms_6830)
-{
-    adbms_6830_temperature_parsed_ *t = &adbms_6830->temperature;
-
-    if (t->pec_counts) printf("TEMP PEC failures in a row: %d (values below are from the last good read)\n", t->pec_counts);
-    for (int i = 0; i < NUM_TEMPS; i++)
-    {
-        int cic = i / NUM_TEMPS_CHIP, j = i % NUM_TEMPS_CHIP;	// thermistor j is on GPIO(j+1) of chip cic
-        if (TEMP_PRINT_IC && cic + 1 != TEMP_PRINT_IC) continue;	// only print the selected IC
-        float v = t->gpio_v[i];
-        float r = (v < 2.999f) ? v * SeriesResistance / (3.0f - v) : -1.0f;
-        const char *state = (v > 2.9f) ? "OPEN" : (v < 0.05f) ? "SHORT" : "ok";
-        if (j == 0) printf("IC%d temps\n", cic + 1);
-        printf("  T%-2d %6.3f V  %8.0f ohm  %7.1f C  %-5s%s", j + 1, v, r, t->temperatures[i], state,
-               ((j + 1) % 2 == 0 || j == NUM_TEMPS_CHIP - 1) ? "\n" : "   |");
-    }
-    printf("temp max %.1f C   min %.1f C   avg %.1f C   openwire_temp_fault %d\n",
-           t->max_temp, t->min_temp, t->avg_temp, adbms_6830->faults.openwire_temp_fault);
 }

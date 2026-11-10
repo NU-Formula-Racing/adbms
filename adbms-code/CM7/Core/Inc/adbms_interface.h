@@ -64,6 +64,3 @@ void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bi
 //OWC Config Function
 void ADBMS_Owc_Config(adbms_raw_* adbms, Owc_Channel_ channel, Owc_Mode_ mode);
 
-//2950 overcurrent pin test: drive OCA / OCB high individually
-void ADBMS_2950_OC_Pin_Test(adbms_raw_* adbms_raw, bool oca_high, bool ocb_high);
-
