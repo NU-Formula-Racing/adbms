@@ -103,6 +103,11 @@ static uint32_t log_tail;
 static volatile uint8_t log_terminal_open;
 static volatile uint8_t log_session_changed;
 static uint8_t line_coding[7] = {0x00, 0xC2, 0x01, 0x00, 0, 0, 8};
+/* Set (from the USB IRQ) when the host asks to reboot into the ROM DFU bootloader:
+   either it opened the port at 1200 baud ("1200-baud touch") or typed "dfu". */
+static volatile uint8_t bootloader_requested;
+static char rx_history[3];
+#define CDC_BOOTLOADER_TOUCH_BAUD 1200U
 
 /* USER CODE END PRIVATE_VARIABLES */
 
@@ -233,7 +238,13 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
   /* 6      | bDataBits  |   1   | Number Data bits (5, 6, 7, 8 or 16).          */
   /*******************************************************************************/
     case CDC_SET_LINE_CODING:
-    if (length >= sizeof(line_coding)) memcpy(line_coding, pbuf, sizeof(line_coding));
+    if (length >= sizeof(line_coding))
+    {
+      memcpy(line_coding, pbuf, sizeof(line_coding));
+      const uint32_t baud = (uint32_t)line_coding[0] | ((uint32_t)line_coding[1] << 8)
+                          | ((uint32_t)line_coding[2] << 16) | ((uint32_t)line_coding[3] << 24);
+      if (baud == CDC_BOOTLOADER_TOUCH_BAUD) bootloader_requested = 1U;
+    }
     break;
 
     case CDC_GET_LINE_CODING:
@@ -280,6 +291,16 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
+  /* Watch for "dfu" (any case) typed in a terminal; keystrokes may arrive one per packet. */
+  for (uint32_t i = 0; i < *Len; i++)
+  {
+    char c = (char)Buf[i];
+    if (c >= 'A' && c <= 'Z') c = (char)(c - 'A' + 'a');
+    rx_history[0] = rx_history[1];
+    rx_history[1] = rx_history[2];
+    rx_history[2] = c;
+    if (rx_history[0] == 'd' && rx_history[1] == 'f' && rx_history[2] == 'u') bootloader_requested = 1U;
+  }
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   return (USBD_OK);
@@ -339,6 +360,11 @@ static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
 }
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
+uint8_t CDC_Bootloader_Requested_FS(void)
+{
+  return bootloader_requested;
+}
+
 uint8_t CDC_Log_Ready_FS(void)
 {
   return log_terminal_open && hUsbDeviceFS.dev_state == USBD_STATE_CONFIGURED;

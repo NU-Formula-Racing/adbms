@@ -132,6 +132,56 @@ static void MX_TIM4_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/* ---- Reboot into the ROM USB DFU bootloader (flash over USB, no ST-LINK / BOOT0) ----
+   Host opens the USB COM port at 1200 baud (or types "dfu") -> the app stores a magic
+   value in .noinit RAM and resets -> the first thing main() does is see the magic and
+   jump to the system bootloader, while the chip is still in its post-reset state.
+   STM32H74x/75x system bootloader: 0x1FF09800 (AN2606; verified on this board). */
+#define SYSTEM_BOOTLOADER_ADDR 0x1FF09800UL
+#define BOOTLOADER_MAGIC       0xB007D00DUL
+static volatile uint32_t bootloader_magic __attribute__((section(".noinit")));
+
+static void Jump_To_Bootloader_If_Requested(void)
+{
+  if (bootloader_magic != BOOTLOADER_MAGIC) return;
+  bootloader_magic = 0U; /* one shot: the next reset boots the app normally */
+
+  __disable_irq();
+  SysTick->CTRL = 0U;
+  SysTick->LOAD = 0U;
+  SysTick->VAL = 0U;
+  for (uint32_t i = 0U; i < 8U; i++)
+  {
+    NVIC->ICER[i] = 0xFFFFFFFFU;
+    NVIC->ICPR[i] = 0xFFFFFFFFU;
+  }
+  SCB->VTOR = SYSTEM_BOOTLOADER_ADDR;
+  __DSB();
+  __ISB();
+  __enable_irq();
+
+  const uint32_t boot_sp = *(volatile const uint32_t *)SYSTEM_BOOTLOADER_ADDR;
+  const uint32_t boot_pc = *(volatile const uint32_t *)(SYSTEM_BOOTLOADER_ADDR + 4U);
+  /* Load the bootloader's stack pointer and branch to its reset handler. */
+  __asm volatile ("msr msp, %0\n\tbx %1" : : "r" (boot_sp), "r" (boot_pc) : "memory");
+  while (1) { }
+}
+
+/* Call from the main loop: if the host requested DFU, reset into the bootloader. */
+static void Service_Bootloader_Request(void)
+{
+#if ENABLE_USB_COMMS
+  if (!CDC_Bootloader_Requested_FS()) return;
+  /* Let the USB control transfer that carried the request finish before dropping off the bus. */
+  const uint32_t start = HAL_GetTick();
+  while ((HAL_GetTick() - start) < 50U) { }
+  bootloader_magic = BOOTLOADER_MAGIC;
+  __DSB();
+  NVIC_SystemReset();
+#endif
+}
+
 static void Wait_TIM2(uint32_t milliseconds, bool service_usb)
 {
   /* APB1 uses DIV1 and TIM2 has prescaler 0, so its counter runs at PCLK1. */
@@ -189,6 +239,7 @@ static void Run_IsoSPI2_Packboard_Test(void)
     uint8_t rx[sizeof(tx)] = {0};
     Publish_IsoSPI1_Console();
     Wait_TIM2(1000U, true);
+    Service_Bootloader_Request();
     if (ENABLE_USB_COMMS && ENABLE_PRINTF_DEBUG_COMMS && CDC_Log_Ready_FS())
     {
       if (!usb_announced) printf("CM7 USB CDC initialized\n");
@@ -306,6 +357,9 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+  /* Must be first: enter the USB DFU bootloader if the app asked for it before resetting. */
+  Jump_To_Bootloader_If_Requested();
+
   /* SysTick (HAL_GetTick/HAL_Delay), USB and FDCAN IRQs must use the CM7 application
      vector table. Without this, HAL_Delay hangs forever. Must run in every build mode. */
   extern const uint32_t g_pfnVectors[];
@@ -457,6 +511,7 @@ Error_Handler();
     /* USER CODE BEGIN 3 */
 	  Tick_Mainboard_Timers();
     if (ENABLE_USB_COMMS) CDC_Log_Service_FS();
+    Service_Bootloader_Request();
   }
   /* USER CODE END 3 */
 }

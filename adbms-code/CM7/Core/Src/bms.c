@@ -355,6 +355,32 @@ void print_owc_results()
 }
 
 
+#if NUM_2950 > 0
+// Read back the 2950's CFGA and re-run ADBMS_Initialize if the chip lost its config
+// (power-up after the mainboard, or a reset). Same check as the isoSPI bench test:
+// OCEN (byte 0 bit 7) and REFUP/ACCI (byte 5 bits 4,2:0) must match what we wrote.
+// No re-init on a PEC failure: that just means no packboard is answering.
+static void Check_2950_Config(void)
+{
+	uint8_t buf[NUM_CHIPS * DATA_LEN];
+	pec_return_ pec;
+	const unsigned slot = (POSITION_2950 * NUM_6830) * DATA_LEN;
+	const uint8_t *expected = &mainboard.adbms_raw.command_bit.cfg_a[slot];
+
+	ADBMS_Read_Data(mainboard.adbms_raw.SPI_data.hspi, RDCFGA, buf, mainboard.adbms_raw.SPI_data.spi_dataBuf, &pec);
+	if (pec.pec_2950) return;
+
+	const bool config_ok = ((buf[slot + 0] ^ expected[0]) & 0x80U) == 0U
+	                    && ((buf[slot + 5] ^ expected[5]) & 0x17U) == 0U;
+	if (!config_ok)
+	{
+		if (ENABLE_PRINTF_DEBUG_COMMS) printf("\n*** ADBMS2950 config lost (packboard reset/plugged in) - reconfiguring ***\n");
+		ADBMS_Initialize(&mainboard.adbms_raw, mainboard.adbms_raw.SPI_data.hspi);
+		ADBMS_WakeUP_ICs();
+	}
+}
+#endif
+
 void update_values()
 {
 	//First Read both Voltages and Temps raw values in lower level interface
@@ -369,6 +395,9 @@ void update_values()
 	}
 
 	
+#if NUM_6830 > 0
+	// 6830-only reads/commands. Skipped with a packboard-only chain so 6830 opcodes
+	// (RDFCx, RDAUXx, ADAX) are never sent to the 2950.
 	//read voltages
 	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_c, C_Channel_Filtered_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
 	//Parse 6830 voltage
@@ -384,19 +413,28 @@ void update_values()
 	ADBMS_Write_CMD(mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.command_bit.adax);
 	//parse 6830 temp
 	ADBMS_6830_Parse_Temperature(&mainboard.adbms_raw.read_raw_aux, &mainboard.adbms_6830.temperature);
+#endif
+
+#if NUM_2950 > 0
+	// If the packboard was powered/plugged in after boot, or reset, its config is back at
+	// defaults (OCEN/REFUP/ACCI cleared) and the accumulators read garbage. Re-init if so.
+	Check_2950_Config();
 
 	// read filtered voltages
 	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_2950_filtered, Accumulate_Read_2950, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
     // parse 2950 data
     ADBMS_2950_Calculate_Values(&mainboard.adbms_raw.read_raw_2950_filtered, &mainboard.adbms_2950, mainboard.adbms_raw.command_parameters.parameter_2950.cfa2950.acci);
+#endif
 
     //Update Faults
+#if NUM_6830 > 0
     Update_6830_InternalFault(&mainboard.adbms_6830);
+#endif
 	Update_2950_InternalFault(&mainboard.adbms_2950);
 
 
 	// restart adcs if needed
-    if (mainboard.adbms_6830.voltage.adc_off)
+    if (NUM_6830 > 0 && mainboard.adbms_6830.voltage.adc_off)
     {
 		ADBMS_Initialize(&mainboard.adbms_raw, mainboard.adbms_raw.SPI_data.hspi);
     }
@@ -481,7 +519,24 @@ void send_data_over_printf()
 		if (ENABLE_TEMP_PRINT) ADBMS_6830_Print_Temps(&mainboard.adbms_6830);
 		print_owc_results();
 	}
-	if (NUM_2950 > 0) ADBMS_2950_Print_Raw_ADC(&mainboard.adbms_raw);
+#if NUM_2950 > 0
+	{
+		// The raw dump does ~8 SPI reads and a lot of text; at the 20 ms loop rate it would
+		// flood USB and slow CAN. Print the packboard data every PACKBOARD_PRINT_PERIOD_MS.
+		static uint32_t last_print = 0;
+		if (HAL_GetTick() - last_print >= PACKBOARD_PRINT_PERIOD_MS)
+		{
+			last_print = HAL_GetTick();
+			printf("\n=== t=%lu ms | state=%d bms_fault=%d ext_fault=%d | 2950 PEC fails in a row=%lu (latched warn=%d) ===\n",
+			       (unsigned long)(last_print - mainboard.start_time), (int)mainboard.internal_state,
+			       (int)mainboard.bms_fault, (int)mainboard.external_fault,
+			       (unsigned long)mainboard.adbms_2950.warnings.pec_warning_count,
+			       (int)mainboard.adbms_2950.warnings.pec_warning);
+			ADBMS_2950_Print_Vals(&mainboard.adbms_2950);
+			ADBMS_2950_Print_Raw_ADC(&mainboard.adbms_raw);
+		}
+	}
+#endif
 
 
 	// Mainboard Prints

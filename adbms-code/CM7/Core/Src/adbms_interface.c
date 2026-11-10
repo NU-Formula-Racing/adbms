@@ -52,8 +52,10 @@ void ADBMS_Initialize(adbms_raw_* adbms_raw, SPI_HandleTypeDef *hspi)
     // Turn on sensing
     ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adcv);
     HAL_Delay(1); // ADCs are updated at their conversion rate of 1ms
-    ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adax);
-    HAL_Delay(1); 
+#if NUM_6830 > 0
+    ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adax); // 6830-only (aux/thermistors)
+    HAL_Delay(1);
+#endif
     ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adsv);
     HAL_Delay(1);
     ADBMS_Write_CMD(adbms_raw->SPI_data.hspi, adbms_raw->command_bit.adv); //new 2950 command to start V1adc and V2adc

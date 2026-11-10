@@ -167,6 +167,16 @@ SECTIONS
     __bss_end__ = _ebss;
   } >RAM_D1
 
+  /* Not initialized or zeroed by startup, so it survives a software reset.
+     Used for the "reboot into the USB DFU bootloader" flag (see main.c). */
+  .noinit (NOLOAD) :
+  {
+    . = ALIGN(4);
+    *(.noinit)
+    *(.noinit*)
+    . = ALIGN(4);
+  } >RAM_D1
+
   /* User_heap_stack section, used to check that there is enough "RAM" Ram  type memory left */
   ._user_heap_stack :
   {

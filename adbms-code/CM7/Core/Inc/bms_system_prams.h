@@ -2,7 +2,8 @@
 #define AD_SYSTEM_PARAMS_H
 
 #define ISOSPI1_PACKBOARD_TEST_ENABLED 0 /* Run the single-packboard isoSPI bench test. (1 = test loops forever and CAN never starts) */
-#if ISOSPI1_PACKBOARD_TEST_ENABLED
+#define PACKBOARD_ONLY_SETUP 1 /* 1 = single packboard (one 2950) on isoSPI2 / J4. 0 = two daughterboards (6830s). Independent of the bench test above. */
+#if PACKBOARD_ONLY_SETUP || ISOSPI1_PACKBOARD_TEST_ENABLED
 #define NUM_6830  0
 #define NUM_2950  1
 #else
@@ -44,9 +45,10 @@
 #define ENABLE_PRINTF_DEBUG_COMMS 1		/* Flag to enable Printf debug comms */
 #define PRINT_ALL_2950_GROUPS  ISOSPI1_PACKBOARD_TEST_ENABLED
 #define PRINT_2950_V1V2       1
-#define PRINT_2950_VBAT       ISOSPI1_PACKBOARD_TEST_ENABLED
-#define PRINT_2950_THERMISTORS ISOSPI1_PACKBOARD_TEST_ENABLED
-#define PRINT_2950_OC         ISOSPI1_PACKBOARD_TEST_ENABLED
+#define PRINT_2950_VBAT       (ISOSPI1_PACKBOARD_TEST_ENABLED || PACKBOARD_ONLY_SETUP)
+#define PRINT_2950_THERMISTORS (ISOSPI1_PACKBOARD_TEST_ENABLED || PACKBOARD_ONLY_SETUP)
+#define PRINT_2950_OC         (ISOSPI1_PACKBOARD_TEST_ENABLED || PACKBOARD_ONLY_SETUP)
+#define PACKBOARD_PRINT_PERIOD_MS 500  /* How often the packboard (2950) data is printed over USB */
 #define ENABLE_USB_COMMS 1				/* Flag to enable USB comms */
 #define ENABLE_OWC 1					/* Run the open-wire check loop (6830) */
 #define OWC_SETTLE_MS 1				/* Wait after enabling OW current before reading (original value; 10 also tried) */

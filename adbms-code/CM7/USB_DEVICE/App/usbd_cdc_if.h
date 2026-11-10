@@ -112,6 +112,8 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 uint8_t CDC_Log_Ready_FS(void);
 void CDC_Log_Write_FS(const uint8_t *data, uint32_t length);
 void CDC_Log_Service_FS(void);
+/* 1 once the host asked to reboot into the USB DFU bootloader (1200-baud open or "dfu"). */
+uint8_t CDC_Bootloader_Requested_FS(void);
 
 /* USER CODE END EXPORTED_FUNCTIONS */
 

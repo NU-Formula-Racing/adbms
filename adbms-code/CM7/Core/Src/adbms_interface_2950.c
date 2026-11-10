@@ -137,7 +137,8 @@ float ADBMS_2950_Transfer_Accumulator_Current(int32_t current_1_raw, int32_t cur
 float ADBMS_2950_Transfer_Shunt_Temp(int16_t voltage){
 
 //write this later :)
-
+    (void)voltage;
+    return 0.0f; // was missing a return (undefined value went into pack_temperature_1/2)
 }
 
 bool ADBMS_2950_Pec_Failure(adbms_read_raw_* adbms_2950_read_raw, adbms_2950_* adbms_2950)
