@@ -233,6 +233,9 @@ void send_data_over_printf()
 	printf("SOC: %f\n", mainboard.soc);
 	printf("Discharge temp: %f V, %f C%s\n", mainboard.discharge_temp_v, mainboard.discharge_temp,
 	       mainboard.discharge_temp_valid ? "" : " (ADC read failed)");
+	printf("Clock: PLL1 from %s, SYSCLK %lu Hz\n",
+	       ((RCC->PLLCKSELR & RCC_PLLCKSELR_PLLSRC) == RCC_PLLCKSELR_PLLSRC_HSE) ? "HSE 8 MHz crystal" : "HSI (internal, HSE failed to start)",
+	       (unsigned long)HAL_RCC_GetSysClockFreq());
 	
 	// TODO Add more prints as needed
 }
