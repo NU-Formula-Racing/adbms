@@ -306,13 +306,12 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-#if ENABLE_USB_COMMS && ISOSPI1_PACKBOARD_TEST_ENABLED
-  /* USB IRQs and the HAL tick must use the CM7 application vector table. */
+  /* SysTick (HAL_GetTick/HAL_Delay), USB and FDCAN IRQs must use the CM7 application
+     vector table. Without this, HAL_Delay hangs forever. Must run in every build mode. */
   extern const uint32_t g_pfnVectors[];
   SCB->VTOR = (uint32_t)g_pfnVectors;
   __DSB();
   __ISB();
-#endif
 
   /* USER CODE END 1 */
 /* USER CODE BEGIN Boot_Mode_Sequence_0 */
@@ -429,8 +428,18 @@ Error_Handler();
 
 
   MX_SPI2_Init();
-  if (ENABLE_USB_COMMS) MX_USB_DEVICE_Init();
+  /* FDCAN before USB so a USB init problem can never block CAN. */
   MX_FDCAN1_Init();
+#if ENABLE_USB_COMMS
+  {
+    /* USB init spins on HAL_Delay; only start it if the HAL tick is actually running. */
+    const uint32_t usb_tick_start = HAL_GetTick();
+    HAL_TIM_Base_Start(&htim2);
+    Wait_TIM2_Milliseconds(3U);
+    HAL_TIM_Base_Stop(&htim2);
+    if (HAL_GetTick() != usb_tick_start) MX_USB_DEVICE_Init();
+  }
+#endif
   MX_FATFS_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */

@@ -1,7 +1,7 @@
 #ifndef AD_SYSTEM_PARAMS_H
 #define AD_SYSTEM_PARAMS_H
 
-#define ISOSPI1_PACKBOARD_TEST_ENABLED 1 /* Run the single-packboard isoSPI bench test. */
+#define ISOSPI1_PACKBOARD_TEST_ENABLED 0 /* Run the single-packboard isoSPI bench test. (1 = test loops forever and CAN never starts) */
 #if ISOSPI1_PACKBOARD_TEST_ENABLED
 #define NUM_6830  0
 #define NUM_2950  1
@@ -57,7 +57,7 @@
 #define BALANCE_DIAG_START_MS 8000		/* Delay from boot before the diag starts */
 #define BALANCE_DIAG_MUTE_MS 30000		/* How long discharge stays muted (measure the 22 ohm resistors during this window) */
 #define BALANCE_DIAG_R_OHMS 22.0f		/* Each external balance resistor (2 per channel: tap->SxP and SxN->tap) */
-#define CB_TEST 1						/* TEST ONLY: close one balance FET (DIS channel) at a time for multimeter checks. Set 0 for normal operation */
+#define CB_TEST 0					/* TEST ONLY: close one balance FET (DIS channel) at a time for multimeter checks. Set 0 for normal operation */
 #define CB_TEST_START_MS 2000			/* Delay from boot before the FET is closed */
 #define CB_TEST_IC 2					/* Which 6830 the CB test drives (1 = IC1, 2 = IC2, ...) */
 #define CB_TEST_CHANNEL 10				/* DIS channel on CB_TEST_IC to close first (1..10). Change + reflash to test another channel */
