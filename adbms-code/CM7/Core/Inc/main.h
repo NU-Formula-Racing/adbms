@@ -60,8 +60,8 @@ void Wait_TIM2_Milliseconds(uint32_t milliseconds);
 /* Private defines -----------------------------------------------------------*/
 #define SD_CARD_DETECT_Pin GPIO_PIN_13
 #define SD_CARD_DETECT_GPIO_Port GPIOC
-#define SPI_CSB_Pin GPIO_PIN_4
-#define SPI_CSB_GPIO_Port GPIOA
+#define SPI_CSB_Pin GPIO_PIN_12
+#define SPI_CSB_GPIO_Port GPIOB
 #define GPIO_LED_3_Pin GPIO_PIN_10
 #define GPIO_LED_3_GPIO_Port GPIOE
 #define GPIO_LED_2_Pin GPIO_PIN_11
@@ -70,7 +70,7 @@ void Wait_TIM2_Milliseconds(uint32_t milliseconds);
 #define GPIO_LED_1_GPIO_Port GPIOE
 #define Shutdown_Contactors_Pin GPIO_PIN_8
 #define Shutdown_Contactors_GPIO_Port GPIOD
-#define AD6822_State_Pin GPIO_PIN_9
+#define AD6822_State_Pin GPIO_PIN_10
 #define AD6822_State_GPIO_Port GPIOD
 #define CAN_RX_Pin GPIO_PIN_0
 #define CAN_RX_GPIO_Port GPIOD

@@ -1,7 +1,7 @@
 #ifndef AD_SYSTEM_PARAMS_H
 #define AD_SYSTEM_PARAMS_H
 
-#define ISOSPI1_PACKBOARD_TEST_ENABLED 1 /* Run the isoSPI 1 bench console for a single packboard. */
+#define ISOSPI1_PACKBOARD_TEST_ENABLED 1 /* Run the single-packboard isoSPI bench test. */
 #if ISOSPI1_PACKBOARD_TEST_ENABLED
 #define NUM_6830  0
 #define NUM_2950  1

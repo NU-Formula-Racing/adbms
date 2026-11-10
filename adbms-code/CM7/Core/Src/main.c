@@ -93,7 +93,7 @@ FDCAN_HandleTypeDef hfdcan1;
 
 SD_HandleTypeDef hsd1;
 
-SPI_HandleTypeDef hspi1;
+SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim4;
@@ -108,8 +108,8 @@ static volatile struct
   uint32_t good_reads;
   uint32_t pec_errors;
   uint32_t spi_errors;
-  GPIO_PinState pd9_idle;
-  GPIO_PinState pd9_after_wake;
+  GPIO_PinState pd10_idle;
+  GPIO_PinState pd10_after_wake;
   uint8_t response[DATA_LEN + PEC_LEN];
 } isospi1_test;
 #endif
@@ -122,7 +122,7 @@ void PeriphCommonClock_Config(void);
 static void MPU_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SDMMC1_SD_Init(void);
-static void MX_SPI1_Init(void);
+static void MX_SPI2_Init(void);
 static void MX_FDCAN1_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_TIM4_Init(void);
@@ -167,14 +167,14 @@ static void Publish_IsoSPI1_Console(void)
   isospi1_console_length = 0U;
 }
 
-static void Run_IsoSPI1_Packboard_Test(void)
+static void Run_IsoSPI2_Packboard_Test(void)
 {
   static adbms_raw_ packboard;
   static adbms_2950_ measurements;
   bool configured = false;
   bool usb_announced = false;
   uint32_t usb_test_counter = 0U;
-  packboard.SPI_data.hspi = &hspi1;
+  packboard.SPI_data.hspi = &hspi2;
 
   /* One device: command and command PEC, then six data and two PEC bytes. */
   uint8_t tx[CMD_LEN + PEC_LEN + DATA_LEN + PEC_LEN] = {
@@ -201,25 +201,25 @@ static void Run_IsoSPI1_Packboard_Test(void)
     }
     isospi1_test.attempts++;
     if (ENABLE_PRINTF_DEBUG_COMMS)
-      printf("CM7 bench | isoSPI 1 attempt %lu\n", (unsigned long)isospi1_test.attempts);
-    isospi1_test.pd9_idle = HAL_GPIO_ReadPin(AD6822_State_GPIO_Port, AD6822_State_Pin);
+      printf("CM7 bench | isoSPI 2 attempt %lu\n", (unsigned long)isospi1_test.attempts);
+    isospi1_test.pd10_idle = HAL_GPIO_ReadPin(AD6822_State_GPIO_Port, AD6822_State_Pin);
     ADBMS_WakeUP_ICs();
-    isospi1_test.pd9_after_wake = HAL_GPIO_ReadPin(AD6822_State_GPIO_Port, AD6822_State_Pin);
+    isospi1_test.pd10_after_wake = HAL_GPIO_ReadPin(AD6822_State_GPIO_Port, AD6822_State_Pin);
 
     HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_RESET);
-    const HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(&hspi1, tx, rx, sizeof(tx), 10U);
+    const HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(&hspi2, tx, rx, sizeof(tx), 10U);
     HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_SET);
     isospi1_test.spi_status = status;
     if (ENABLE_PRINTF_DEBUG_COMMS)
-      printf("PD9 status: idle=%u after CS wake=%u\n",
-             (unsigned)isospi1_test.pd9_idle, (unsigned)isospi1_test.pd9_after_wake);
+      printf("PD10 status: idle=%u after CS wake=%u\n",
+             (unsigned)isospi1_test.pd10_idle, (unsigned)isospi1_test.pd10_after_wake);
 
     if (status != HAL_OK)
     {
       isospi1_test.spi_errors++;
       configured = false;
       if (ENABLE_PRINTF_DEBUG_COMMS)
-        printf("isoSPI 1 / ADBMS2950 SPI error (HAL status %d)\n", (int)status);
+        printf("isoSPI 2 / ADBMS2950 SPI error (HAL status %d)\n", (int)status);
       continue;
     }
 
@@ -236,13 +236,13 @@ static void Run_IsoSPI1_Packboard_Test(void)
       isospi1_test.pec_errors++;
       configured = false;
       if (ENABLE_PRINTF_DEBUG_COMMS)
-        printf("isoSPI 1 / ADBMS2950 CFGA PEC FAIL (RX=%03X)\n", (unsigned)received_pec);
+        printf("isoSPI 2 / ADBMS2950 CFGA PEC FAIL (RX=%03X)\n", (unsigned)received_pec);
       continue;
     }
 
     isospi1_test.good_reads++;
 
-    printf("\nisoSPI 1 / ADBMS2950 CFGA PEC OK (valid replies %lu)\n",
+    printf("\nisoSPI 2 / ADBMS2950 CFGA PEC OK (valid replies %lu)\n",
            (unsigned long)isospi1_test.good_reads);
     if (configured)
     {
@@ -260,24 +260,24 @@ static void Run_IsoSPI1_Packboard_Test(void)
       config_command_bits_ *commands = &packboard.command_bit;
       ADBMS_2950_Config(params, commands);
       ADBMS_joint_Config(&packboard.command_parameters.parameter_joint, commands);
-      ADBMS_Write_Data(&hspi1, WRCFGB, commands->cfg_b, packboard.SPI_data.spi_dataBuf);
+      ADBMS_Write_Data(&hspi2, WRCFGB, commands->cfg_b, packboard.SPI_data.spi_dataBuf);
       params->cfa2950.ocen = 0;
       ADBMS_Set_Config_A_2950(&params->cfa2950, commands->cfg_a, NUM_2950, POSITION_2950);
-      ADBMS_Write_Data(&hspi1, WRCFGA, commands->cfg_a, packboard.SPI_data.spi_dataBuf);
+      ADBMS_Write_Data(&hspi2, WRCFGA, commands->cfg_a, packboard.SPI_data.spi_dataBuf);
       Wait_TIM2_Milliseconds(1U);
       params->cfa2950.ocen = 1;
       ADBMS_Set_Config_A_2950(&params->cfa2950, commands->cfg_a, NUM_2950, POSITION_2950);
-      ADBMS_Write_Data(&hspi1, WRCFGA, commands->cfg_a, packboard.SPI_data.spi_dataBuf);
-      ADBMS_Write_CMD(&hspi1, commands->adcv);
-      ADBMS_Write_CMD(&hspi1, commands->adsv);
-      ADBMS_Write_CMD(&hspi1, commands->adv);
+      ADBMS_Write_Data(&hspi2, WRCFGA, commands->cfg_a, packboard.SPI_data.spi_dataBuf);
+      ADBMS_Write_CMD(&hspi2, commands->adcv);
+      ADBMS_Write_CMD(&hspi2, commands->adsv);
+      ADBMS_Write_CMD(&hspi2, commands->adv);
       configured = true;
       /* Read on the next pass, after the ADCs have settled. */
       continue;
     }
 
     adbms_read_raw_ *acc = &packboard.read_raw_2950_filtered;
-    ADBMS_Read_Voltages(acc, Accumulate_Read_2950, &hspi1, packboard.SPI_data.spi_dataBuf);
+    ADBMS_Read_Voltages(acc, Accumulate_Read_2950, &hspi2, packboard.SPI_data.spi_dataBuf);
     const bool accumulator_pec_failed = ADBMS_2950_Pec_Failure(acc, &measurements);
     Update_2950_InternalFault(&measurements);
     if (accumulator_pec_failed)
@@ -385,8 +385,8 @@ Error_Handler();
   Wait_TIM2_Milliseconds(3U);
   if (HAL_GetTick() != usb_tick_start) MX_USB_DEVICE_Init();
 #endif
-  MX_SPI1_Init();
-  Run_IsoSPI1_Packboard_Test();
+  MX_SPI2_Init();
+  Run_IsoSPI2_Packboard_Test();
 #endif
 #if CONTACTOR_PULSE_TEST_ENABLED
   /* Start PB7/PB8 (5 s) and PB9 (2 s) HIGH together, once per reset. */
@@ -428,13 +428,13 @@ Error_Handler();
   //MX_SDMMC1_SD_Init();
 
 
-  MX_SPI1_Init();
+  MX_SPI2_Init();
   if (ENABLE_USB_COMMS) MX_USB_DEVICE_Init();
   MX_FDCAN1_Init();
   MX_FATFS_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-  Bms_Mainboard_Setup(&hspi1, &hfdcan1);
+  Bms_Mainboard_Setup(&hspi2, &hfdcan1);
   HAL_TIM_Base_Start_IT(&htim4);
 
   /* USER CODE END 2 */
@@ -615,54 +615,55 @@ static void MX_SDMMC1_SD_Init(void)
 }
 
 /**
-  * @brief SPI1 Initialization Function
+  * @brief SPI2 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_SPI1_Init(void)
+static void MX_SPI2_Init(void)
 {
 
-  /* USER CODE BEGIN SPI1_Init 0 */
+  /* USER CODE BEGIN SPI2_Init 0 */
 
-  /* USER CODE END SPI1_Init 0 */
+  /* USER CODE END SPI2_Init 0 */
 
-  /* USER CODE BEGIN SPI1_Init 1 */
+  /* USER CODE BEGIN SPI2_Init 1 */
 
-  /* USER CODE END SPI1_Init 1 */
-  /* SPI1 parameter configuration*/
-  hspi1.Instance = SPI1;
-  hspi1.Init.Mode = SPI_MODE_MASTER;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
-#if ISOSPI1_PACKBOARD_TEST_ENABLED
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
-#else
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
-#endif
-  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi1.Init.CRCPolynomial = 0x0;
-  hspi1.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
-  hspi1.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
-  hspi1.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
-  hspi1.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
-  hspi1.Init.RxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
-  hspi1.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
-  hspi1.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
-  hspi1.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
-  hspi1.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_DISABLE;
-  hspi1.Init.IOSwap = SPI_IO_SWAP_DISABLE;
-  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  /* USER CODE END SPI2_Init 1 */
+  /* SPI2 parameter configuration*/
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_MASTER;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi2.Init.CRCPolynomial = 0x0;
+  hspi2.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+  hspi2.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
+  hspi2.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
+  hspi2.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+  hspi2.Init.RxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+  hspi2.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
+  hspi2.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+  hspi2.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
+  hspi2.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_DISABLE;
+  hspi2.Init.IOSwap = SPI_IO_SWAP_DISABLE;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN SPI1_Init 2 */
+  /* USER CODE BEGIN SPI2_Init 2 */
+#if ISOSPI1_PACKBOARD_TEST_ENABLED
+  /* HAL_SPI_Init leaves SPI disabled. Use 1 MHz SCK for the bench test. */
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_64;
+  MODIFY_REG(hspi2.Instance->CFG1, SPI_CFG1_MBR, hspi2.Init.BaudRatePrescaler);
+#endif
 
-  /* USER CODE END SPI1_Init 2 */
+  /* USER CODE END SPI2_Init 2 */
 
 }
 
