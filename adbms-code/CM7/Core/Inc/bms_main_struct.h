@@ -59,6 +59,11 @@ typedef struct
 	bool timeout_fault;
 
 	bool comms_6822_state;
+
+	// discharge resistor temperature (PA3); read only, not used for faults/CAN yet
+	float discharge_temp_v;
+	float discharge_temp;
+	bool discharge_temp_valid;
 	uint32_t start_time;
 	
 	enum bms_states internal_state;

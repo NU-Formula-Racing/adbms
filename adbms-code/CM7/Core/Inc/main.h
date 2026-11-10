@@ -83,6 +83,8 @@ void Error_Handler(void);
 #define TSSI_G_GPIO_Port GPIOB
 #define TSSI_R_Pin GPIO_PIN_5
 #define TSSI_R_GPIO_Port GPIOB
+#define RML_GPIO_Pin GPIO_PIN_6
+#define RML_GPIO_GPIO_Port GPIOB
 #define CONTACTOR_N_CTRL_Pin GPIO_PIN_7
 #define CONTACTOR_N_CTRL_GPIO_Port GPIOB
 #define CONTACTOR_P_CTRL_Pin GPIO_PIN_8

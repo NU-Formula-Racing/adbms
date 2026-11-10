@@ -7,6 +7,7 @@
 #include "bms_can.h" 
 #include "bms_soc.h"
 #include "bms_control.h"
+#include "discharge_temp.h"
 #include <stdio.h>
 
 void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan);

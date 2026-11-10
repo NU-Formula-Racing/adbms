@@ -51,6 +51,7 @@
 
 #define ENABLE_PRINTF_DEBUG_COMMS 1		/* Flag to enable Printf debug comms (printed over USB CDC) */
 #define DEBUG_PRINT_PERIOD_MS 500		/* How often the debug data is printed (every loop overflows USB) */
+#define LAMP_CHECK_MS 3000				/* FSAE lamp check: RML + TSSI red + TSSI green on for this long at startup */
 #define ENABLE_USB_COMMS 1				/* Flag to enable USB comms (also needed for flashing over USB DFU) */
 #define ENABLE_SD_LOGGING_BIN 0			/* Flag to enable logging to SD Card as binary files */
 #define ENABLE_SD_LOGGING_CSV 0			/* Flag to enable logging to SD Card as CSV files (ASCII)*/

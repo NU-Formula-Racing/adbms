@@ -2,10 +2,23 @@
 
 mainboard_ mainboard;
 
+// FSAE lamp check: RML + TSSI red + TSSI green on for LAMP_CHECK_MS after startup, then normal operation
+static volatile bool lamp_check_active = false;
+static uint32_t lamp_check_start = 0;
+
 void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 {
+	// lamp check: all indicator lamps on (the TSSI timer callback ends it after LAMP_CHECK_MS)
+	lamp_check_start = HAL_GetTick();
+	lamp_check_active = true;
+	HAL_GPIO_WritePin(GPIOB, TSSI_G_Pin|TSSI_R_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(RML_GPIO_GPIO_Port, RML_GPIO_Pin, GPIO_PIN_SET);
+
 	// initialize handles
 	mainboard.hcan = hcan;
+
+	// discharge resistor temperature ADC (PA3)
+	Discharge_Temp_Init();
 
 	// initialize ad chip;
 	ADBMS_Initialize(&mainboard.adbms_raw, hspi);
@@ -117,6 +130,9 @@ void update_values()
 	//soc
 	Soc_Update(&mainboard);
 
+	// discharge resistor temperature (read only for now)
+	mainboard.discharge_temp_valid = Discharge_Temp_Read(&mainboard.discharge_temp_v, &mainboard.discharge_temp);
+
 	// delay to allow higher duty cycle on cb
 	if (mainboard.internal_state == Charging) HAL_Delay(32);
 }
@@ -174,6 +190,14 @@ void check_faults()
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) //TSSI Callback
 {
+	// lamp check: hold RML + both TSSI lamps on, then hand RML back to the hardware (PB6 low)
+	if (lamp_check_active)
+	{
+		if (HAL_GetTick() - lamp_check_start < LAMP_CHECK_MS) return;
+		lamp_check_active = false;
+		HAL_GPIO_WritePin(RML_GPIO_GPIO_Port, RML_GPIO_Pin, GPIO_PIN_RESET);
+	}
+
 	//Currently not checking which timer caused interrupt, should only be one
 	//TSSI Logic
 	if (!mainboard.imd_status || mainboard.bms_fault)
@@ -207,6 +231,8 @@ void send_data_over_printf()
 	printf("BMS State: %d\n", mainboard.internal_state);
 	printf("Charging State: %d\n", mainboard.charging_state);
 	printf("SOC: %f\n", mainboard.soc);
+	printf("Discharge temp: %f V, %f C%s\n", mainboard.discharge_temp_v, mainboard.discharge_temp,
+	       mainboard.discharge_temp_valid ? "" : " (ADC read failed)");
 	
 	// TODO Add more prints as needed
 }
