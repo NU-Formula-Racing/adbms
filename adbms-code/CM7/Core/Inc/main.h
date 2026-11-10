@@ -67,8 +67,8 @@ void Error_Handler(void);
 #define GPIO_LED_2_GPIO_Port GPIOE
 #define GPIO_LED_1_Pin GPIO_PIN_12
 #define GPIO_LED_1_GPIO_Port GPIOE
-#define Shutdown_Contactors_Pin GPIO_PIN_8
-#define Shutdown_Contactors_GPIO_Port GPIOD
+#define Shutdown_Contactors_Pin GPIO_PIN_0
+#define Shutdown_Contactors_GPIO_Port GPIOC
 #define AD6822_State_Pin GPIO_PIN_10
 #define AD6822_State_GPIO_Port GPIOD
 #define CAN_RX_Pin GPIO_PIN_0

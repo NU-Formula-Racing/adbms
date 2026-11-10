@@ -110,7 +110,7 @@ void update_values()
     }
 
 	// update STM32 Pin values
-    mainboard.shutdown_present = HAL_GPIO_ReadPin(GPIOD, Shutdown_Contactors_Pin); 	   		  // shutdown status
+    mainboard.shutdown_present = HAL_GPIO_ReadPin(Shutdown_Contactors_GPIO_Port, Shutdown_Contactors_Pin); 	   		  // shutdown status
     mainboard.imd_status = mainboard.imd_status && HAL_GPIO_ReadPin(GPIOD, IMD_STATUS_IN_Pin); // IMD_Status (software latched)
     mainboard.comms_6822_state = HAL_GPIO_ReadPin(GPIOD, AD6822_State_Pin);	 //Currently Unused  		   		  // 6822_State
 
