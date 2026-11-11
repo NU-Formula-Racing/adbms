@@ -279,13 +279,80 @@ void ADBMS_Set_ADV(adv_ adv, uint16_t* adv_cmd_buffer){
 
 
 //
+// isoSPI ring (reversible isoSPI)
+//
+#define ADBMS_RING_CHECK_MS 1000U
+#define ADBMS_RING_REV_ATTEMPTS 3U   // reverse-path tries per read when the forward path failed
+
+
+adbms_ring_status_ adbms_ring_status;
+
+static SPI_HandleTypeDef *rev_hspi = NULL;
+static GPIO_TypeDef *rev_cs_port = NULL;
+static uint16_t rev_cs_pin = 0;
+
+void ADBMS_Set_Reverse_Port(SPI_HandleTypeDef *hspi, GPIO_TypeDef *cs_port, uint16_t cs_pin)
+{
+    rev_hspi = hspi;
+    rev_cs_port = cs_port;
+    rev_cs_pin = cs_pin;
+    adbms_ring_status.reverse_enabled = (hspi != NULL);
+}
+
+// true if the reverse port should also be used for a transfer started on fwd_hspi
+static bool use_reverse(SPI_HandleTypeDef *fwd_hspi)
+{
+    return rev_hspi != NULL && rev_hspi != fwd_hspi;
+}
+
+static void cs_write(bool reverse, GPIO_PinState state)
+{
+    if (reverse) HAL_GPIO_WritePin(rev_cs_port, rev_cs_pin, state);
+    else         HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, state);
+}
+
+static void spi_transmit(SPI_HandleTypeDef *hspi, bool reverse, uint8_t *buf, uint16_t len)
+{
+    cs_write(reverse, GPIO_PIN_RESET);
+    if (HAL_SPI_Transmit(hspi, buf, len, SPI_TIME_OUT) != HAL_OK)
+    {
+        // TODO: do something if fails
+    }
+    cs_write(reverse, GPIO_PIN_SET);
+}
+
+// chip index in the daisy chain as seen from the forward end
+static bool is_2950_slot(uint8_t cic)
+{
+    const uint8_t first_2950 = POSITION_2950 * NUM_6830;
+    return NUM_2950 > 0 && cic >= first_2950 && cic < first_2950 + NUM_2950;
+}
+
+static void set_pec_flags(uint32_t fail_mask, pec_return_ *pec_return)
+{
+    bool pec_error_6830 = false;
+    bool pec_error_2950 = false;
+    for (uint8_t cic = 0; cic < NUM_CHIPS; cic++)
+    {
+        if (!(fail_mask & (1UL << cic))) continue;
+        if (is_2950_slot(cic)) pec_error_2950 = true;
+        else                   pec_error_6830 = true;
+    }
+    pec_return->pec_6830 = pec_error_6830;
+    pec_return->pec_2950 = pec_error_2950;
+}
+
+//
 // read write functions
 //
 void ADBMS_WakeUP_ICs()
 {
+    // wake both ends of the ring at once (CS low -> long isoSPI pulse on each 6822 port)
     HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_RESET);
+    if (rev_hspi != NULL) cs_write(true, GPIO_PIN_RESET);
     HAL_Delay(1);
     HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_SET);
+    if (rev_hspi != NULL) cs_write(true, GPIO_PIN_SET);
     HAL_Delay(2);
 }
 
@@ -299,16 +366,14 @@ void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd)
     spi_dataBuf[2] = (uint8_t)(cmd_pec >> 8);
     spi_dataBuf[3] = (uint8_t)(cmd_pec);
 
-    // Blocking Transmit the cmd
-    HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_RESET);
-    if (HAL_SPI_Transmit(hspi, spi_dataBuf, CMD_LEN + PEC_LEN, SPI_TIME_OUT) != HAL_OK)
-    {
-        // TODO: do something if fails
-    }
-    HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_SET);
+    // Blocking Transmit the cmd, from both ends of the ring so every chip gets it even with a break
+    spi_transmit(hspi, false, spi_dataBuf, CMD_LEN + PEC_LEN);
+    if (use_reverse(hspi)) spi_transmit(rev_hspi, true, spi_dataBuf, CMD_LEN + PEC_LEN);
 }
 
-void ADBMS_Write_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf)
+// Fill the cmd + per-chip data + PEC frame. The first data block on the wire ends up in the chip
+// FARTHEST from the sending port: forward that is chip NUM_CHIPS-1, reverse it is chip 0.
+static void build_write_frame(uint16_t tx_cmd, const uint8_t *data, uint8_t *spi_dataBuf, bool reverse)
 {
     spi_dataBuf[0] = (uint8_t)(tx_cmd >> 8);
     spi_dataBuf[1] = (uint8_t)(tx_cmd);
@@ -317,30 +382,39 @@ void ADBMS_Write_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, u
     spi_dataBuf[2] = (uint8_t)(cmd_pec >> 8);
     spi_dataBuf[3] = (uint8_t)(cmd_pec);
 
-    // sends to last chip on the stack first
     for(uint8_t cic = 0; cic < NUM_CHIPS; cic++){
+        const uint8_t chip = reverse ? cic : (uint8_t)(NUM_CHIPS - 1 - cic);
         // Copy over data from data ptr
         for(uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte++){
-            spi_dataBuf[4 + cbyte + (cic*(DATA_LEN + PEC_LEN))] = data[(NUM_CHIPS-1-cic) * DATA_LEN + cbyte];
+            spi_dataBuf[4 + cbyte + (cic*(DATA_LEN + PEC_LEN))] = data[chip * DATA_LEN + cbyte];
         }
 
         // Caclulate PEC10
-        uint16_t data_pec = Pec10_Calc(false, DATA_LEN, (data + (NUM_CHIPS-1-cic) * DATA_LEN));
+        uint16_t data_pec = Pec10_Calc(false, DATA_LEN, (uint8_t *)(data + chip * DATA_LEN));
         spi_dataBuf[4 + DATA_LEN + ((cic)*(DATA_LEN + PEC_LEN))] = (uint8_t)(data_pec >> 8);
         spi_dataBuf[4 + DATA_LEN + 1 + ((cic)*(DATA_LEN + PEC_LEN))] = (uint8_t)(data_pec);
     }
-
-    // Blocking Transmit the cmd and data
-    HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_RESET);
-    if (HAL_SPI_Transmit(hspi, spi_dataBuf, DATABUF_LEN, SPI_TIME_OUT) != HAL_OK)
-    {
-        // TODO: do something if fails
-    }
-    HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_SET);
 }
 
-void ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf, pec_return_* pec_return)
+void ADBMS_Write_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf)
 {
+    // Blocking Transmit the cmd and data, from both ends of the ring
+    build_write_frame(tx_cmd, data, spi_dataBuf, false);
+    spi_transmit(hspi, false, spi_dataBuf, DATABUF_LEN);
+
+    if (use_reverse(hspi))
+    {
+        static uint8_t rev_frame[DATABUF_LEN];
+        build_write_frame(tx_cmd, data, rev_frame, true);
+        spi_transmit(rev_hspi, true, rev_frame, DATABUF_LEN);
+    }
+}
+
+// One read from one end. dataBuf is always filled in FORWARD chip order.
+// Returns a mask of chips (forward index) whose data failed PEC (all chips on an SPI error).
+static uint32_t read_one_path(SPI_HandleTypeDef *hspi, bool reverse, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf)
+{
+    const uint32_t all_chips = (NUM_CHIPS >= 32) ? 0xFFFFFFFFUL : ((1UL << NUM_CHIPS) - 1UL);
     uint8_t spi_tx_dataBuf[DATABUF_LEN] = {0};
     spi_tx_dataBuf[0] = (uint8_t)(tx_cmd >> 8);
     spi_tx_dataBuf[1] = (uint8_t)(tx_cmd);
@@ -350,45 +424,126 @@ void ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf,
     spi_tx_dataBuf[3] = (uint8_t)(cmd_pec);
 
     // Blocking Transmit Receive the cmd and data
-    HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_RESET);
+    cs_write(reverse, GPIO_PIN_RESET);
     const HAL_StatusTypeDef status =
         HAL_SPI_TransmitReceive(hspi, spi_tx_dataBuf, spi_dataBuf, DATABUF_LEN, SPI_TIME_OUT);
-    HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_SET);
+    cs_write(reverse, GPIO_PIN_SET);
     if (status != HAL_OK)
     {
         memset(dataBuf, 0, NUM_CHIPS * DATA_LEN);
-        pec_return->pec_6830 = NUM_6830 > 0;
-        pec_return->pec_2950 = NUM_2950 > 0;
-        return;
+        return all_chips;
     }
 
     // Discard data received during transmit phase
     uint8_t *rx_dataBuf = spi_dataBuf + CMD_LEN + PEC_LEN;
 
-    // Move the incoming data from the spi data buffer to the correspoding data buffer array in memory
-    bool pec_error_6830 = 0;
-    bool pec_error_2950 = 0;
-
+    // The first block on the wire is the chip NEAREST the sending port:
+    // forward that is chip 0, reverse it is chip NUM_CHIPS-1 (the 2950).
+    uint32_t fail_mask = 0;
     for(uint8_t cic = 0; cic < NUM_CHIPS; cic++)
     {
+        const uint8_t chip = reverse ? (uint8_t)(NUM_CHIPS - 1 - cic) : cic;
         for(uint8_t cbyte = 0; cbyte < DATA_LEN; cbyte++)
         {
-            dataBuf[cic * DATA_LEN + cbyte] = rx_dataBuf[cbyte + (DATA_LEN+PEC_LEN)*cic];
+            dataBuf[chip * DATA_LEN + cbyte] = rx_dataBuf[cbyte + (DATA_LEN+PEC_LEN)*cic];
         }
         uint16_t rx_pec = (uint16_t)(((rx_dataBuf[DATA_LEN + (DATA_LEN+PEC_LEN)*cic] & 0x03) << 8) | rx_dataBuf[DATA_LEN + 1 + (DATA_LEN+PEC_LEN)*cic]);
         uint16_t calc_pec = (uint16_t)Pec10_Calc(true, DATA_LEN, (rx_dataBuf + cic * (DATA_LEN + PEC_LEN)));		// Needs the PEC to calculate the PEC, thus have to pass full buffer
-        
-        // 2950 slot(s): after the 6830s when POSITION_2950 = 1, before them when 0
-        const uint8_t first_2950 = POSITION_2950 * NUM_6830;
-        if (NUM_2950 > 0 && cic >= first_2950 && cic < first_2950 + NUM_2950){
-            pec_error_2950 |= (rx_pec != calc_pec);
+        if (rx_pec != calc_pec) fail_mask |= (1UL << chip);
+    }
+    return fail_mask;
+}
+
+void ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf, pec_return_* pec_return)
+{
+    uint32_t fail_mask = read_one_path(hspi, false, tx_cmd, dataBuf, spi_dataBuf);
+    adbms_ring_status.fwd_fail_mask = fail_mask;
+
+    // Chips that failed on the forward path: try them from the other end of the ring
+    if (fail_mask && use_reverse(hspi))
+    {
+        static uint8_t rev_data[NUM_CHIPS * DATA_LEN];
+        static uint8_t rev_spi[DATABUF_LEN];
+        // With the ring broken, chips beyond the first reverse hop sometimes do not answer the first
+        // reverse transaction(s) (all-0xFF reply) and answer a transaction later. Retry the reverse read
+        // a couple of times and take each chip's data from the first reply where its PEC is good.
+        uint32_t rev_fail = fail_mask;
+        uint32_t rescued = 0;
+        for (uint8_t attempt = 0; attempt < ADBMS_RING_REV_ATTEMPTS && (rev_fail & fail_mask); attempt++)
+        {
+            const uint32_t this_fail = read_one_path(rev_hspi, true, tx_cmd, rev_data, rev_spi);
+            const uint32_t newly_ok = (fail_mask & ~rescued) & ~this_fail;
+            for (uint8_t chip = 0; chip < NUM_CHIPS; chip++)
+            {
+                if (newly_ok & (1UL << chip)) memcpy(&dataBuf[chip * DATA_LEN], &rev_data[chip * DATA_LEN], DATA_LEN);
+            }
+            rescued |= newly_ok;
+            rev_fail = fail_mask & ~rescued;
         }
-        else{
-            pec_error_6830 |= (rx_pec != calc_pec);
+        adbms_ring_status.rev_fail_mask = rev_fail;
+        adbms_ring_status.rev_checked = true;
+        adbms_ring_status.rescued_mask = rescued;
+        if (rescued) adbms_ring_status.reverse_rescues++;
+        fail_mask &= rev_fail;
+        if (fail_mask)
+        {
+            adbms_ring_status.unrecovered_reads++;
+            adbms_ring_status.last_unrecovered_cmd = tx_cmd;
+            adbms_ring_status.last_unrecovered_mask = fail_mask;
         }
     }
 
-    pec_return-> pec_6830 = pec_error_6830;
-    pec_return-> pec_2950 = pec_error_2950; 
-    
+    set_pec_flags(fail_mask, pec_return);
+}
+
+void ADBMS_Ring_Check(SPI_HandleTypeDef *hspi)
+{
+    static uint32_t last_check = 0;
+    if (!use_reverse(hspi)) return;
+    if (adbms_ring_status.rev_checked && (HAL_GetTick() - last_check) < ADBMS_RING_CHECK_MS) return;
+    last_check = HAL_GetTick();
+
+    static uint8_t rev_data[NUM_CHIPS * DATA_LEN];
+    static uint8_t rev_spi[DATABUF_LEN];
+    adbms_ring_status.rev_fail_mask = read_one_path(rev_hspi, true, RDCFGA, rev_data, rev_spi);
+    adbms_ring_status.rev_checked = true;
+
+}
+
+
+static void print_chip_list(uint32_t mask)
+{
+    for (uint8_t chip = 0; chip < NUM_CHIPS; chip++)
+    {
+        if (!(mask & (1UL << chip))) continue;
+        if (is_2950_slot(chip)) printf(" 2950");
+        else                    printf(" 6830#%u", (unsigned)(chip - (POSITION_6830 * NUM_2950) + 1));
+    }
+}
+
+void ADBMS_Ring_Print(void)
+{
+    const adbms_ring_status_ *r = &adbms_ring_status;
+    printf("isoSPI ring: forward (J4) ");
+    if (r->fwd_fail_mask) { printf("FAIL:"); print_chip_list(r->fwd_fail_mask); }
+    else printf("OK");
+    printf(" | reverse (J2) ");
+    if (!r->reverse_enabled) printf("not configured");
+    else if (!r->rev_checked) printf("not checked yet");
+    else if (r->rev_fail_mask) { printf("FAIL:"); print_chip_list(r->rev_fail_mask); }
+    else printf("OK");
+    if (r->isolated)
+    {
+        printf(" | BREAK before");
+        print_chip_list(1UL << r->break_before_chip);
+        printf(", isolated with COMM_BK");
+    }
+    if (r->reverse_rescues) printf(" | reverse supplied data %lu times", (unsigned long)r->reverse_rescues);
+    if (r->unrecovered_reads)
+    {
+        printf(" | failed both ends %lu times (last cmd 0x%04X:", (unsigned long)r->unrecovered_reads, (unsigned)r->last_unrecovered_cmd);
+        print_chip_list(r->last_unrecovered_mask);
+        printf(")");
+    }
+    printf("\n");
 }

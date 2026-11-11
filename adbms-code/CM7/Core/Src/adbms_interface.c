@@ -212,3 +212,69 @@ void ADBMS_Owc_Config(adbms_raw_* adbms, Owc_Channel_ channel, Owc_Mode_ mode)
             break;
     }
 }
+
+//
+// isoSPI ring manager (reversible isoSPI + COMM_BK, see ADBMS2950B "Configurable isoSPI Break")
+//
+#define RING_BREAK_CONFIRM_LOOPS 3      // forward tail must fail this many loops in a row before isolating
+#define RING_PROBE_MS            2000U  // while isolated, clear COMM_BK this often to check for a repair
+
+// Set COMM_BK on the chips in chip_mask (forward chip index) and clear it on all others, then write CFGA.
+static void ring_set_comm_bk(adbms_raw_ *adbms_raw, uint32_t chip_mask)
+{
+    for (uint8_t i = 0; i < NUM_6830; i++)
+    {
+        adbms_raw->command_parameters.parameter_6830.cfa6830[i].comm_bk = (chip_mask >> (POSITION_6830 * NUM_2950 + i)) & 1U;
+    }
+#if NUM_2950 > 0
+    adbms_raw->command_parameters.parameter_2950.cfa2950.commbk = (chip_mask >> (POSITION_2950 * NUM_6830)) & 1U;
+#endif
+    ADBMS_Set_Config_A_6830(adbms_raw->command_parameters.parameter_6830.cfa6830, adbms_raw->command_bit.cfg_a, NUM_6830, POSITION_6830);
+    ADBMS_Set_Config_A_2950(&adbms_raw->command_parameters.parameter_2950.cfa2950, adbms_raw->command_bit.cfg_a, NUM_2950, POSITION_2950);
+    ADBMS_WakeUP_ICs();
+    ADBMS_Write_Data(adbms_raw->SPI_data.hspi, WRCFGA, adbms_raw->command_bit.cfg_a, adbms_raw->SPI_data.spi_dataBuf);
+}
+
+void ADBMS_Ring_Manage(adbms_raw_ *adbms_raw)
+{
+    static uint8_t break_loops = 0;
+    static uint32_t isolated_since = 0;
+    const uint32_t all_chips = (NUM_CHIPS >= 32) ? 0xFFFFFFFFUL : ((1UL << NUM_CHIPS) - 1UL);
+
+    // reverse-path health check (rate limited inside)
+    ADBMS_Ring_Check(adbms_raw->SPI_data.hspi);
+    if (!adbms_ring_status.reverse_enabled) return;
+
+    if (adbms_ring_status.isolated)
+    {
+        // probe: clear COMM_BK everywhere; if the break is still there it is re-isolated within a few loops
+        if (HAL_GetTick() - isolated_since >= RING_PROBE_MS)
+        {
+            ring_set_comm_bk(adbms_raw, 0);
+            adbms_ring_status.isolated = false;
+            break_loops = 0;
+        }
+        return;
+    }
+
+    // A break shows up as a contiguous tail of chips failing on the forward path (chip k onwards).
+    const uint32_t fwd = adbms_ring_status.fwd_fail_mask;
+    uint8_t k = 0;
+    while (k < NUM_CHIPS && !(fwd & (1UL << k))) k++;
+    const uint32_t tail = all_chips & ~((1UL << k) - 1UL);
+    if (fwd == 0 || fwd != tail)
+    {
+        break_loops = 0;
+        return;
+    }
+    if (++break_loops < RING_BREAK_CONFIRM_LOOPS) return;
+
+    // Stop chip k-1 (last one reachable forward) and chip k (last one reachable in reverse)
+    // from driving the broken segment.
+    uint32_t mask = 1UL << k;
+    if (k > 0) mask |= 1UL << (k - 1);
+    ring_set_comm_bk(adbms_raw, mask);
+    adbms_ring_status.isolated = true;
+    adbms_ring_status.break_before_chip = k;
+    isolated_since = HAL_GetTick();
+}

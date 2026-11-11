@@ -278,5 +278,36 @@ void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd);
 void ADBMS_Write_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf);
 void ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf, pec_return_* pec_return);
 
+//
+// isoSPI ring (reversible isoSPI, datasheet "Reversible isoSPI"):
+//   forward = the hspi passed to the read/write functions (6822 port 2 / J4 -> 6830s -> 2950 port A)
+//   reverse = the port registered here                    (6822 port 1 / J2 -> 2950 port B -> 6830s)
+// Writes and wake-ups go out both ends. Reads use the forward path; chips that fail PEC there are
+// re-read from the reverse end (where the chip order is flipped) and merged back in forward order.
+//
+typedef struct
+{
+    bool     reverse_enabled;   // a reverse port is registered
+    uint32_t fwd_fail_mask;     // chips (bit = forward chip index) that failed PEC on the last forward read
+    uint32_t rev_fail_mask;     // chips that failed PEC on the last reverse read (fallback or health check)
+    bool     rev_checked;       // the reverse path has been read at least once
+    uint32_t rescued_mask;      // chips whose data came from the reverse path on the last read that needed it
+    uint32_t reverse_rescues;   // number of reads where the reverse path supplied data
+    uint32_t unrecovered_reads; // number of reads where some chip failed PEC from BOTH ends
+    uint16_t last_unrecovered_cmd;
+    uint32_t last_unrecovered_mask;
+    bool     isolated;          // COMM_BK set on the chips either side of a detected break
+    uint8_t  break_before_chip; // forward index of the first chip after the break
+} adbms_ring_status_;
+
+extern adbms_ring_status_ adbms_ring_status;
+
+void ADBMS_Set_Reverse_Port(SPI_HandleTypeDef *hspi, GPIO_TypeDef *cs_port, uint16_t cs_pin);
+// Read a config register from the reverse end only, so a dead redundant path is noticed
+// even while the forward path works. Self rate-limited to once per ADBMS_RING_CHECK_MS.
+void ADBMS_Ring_Check(SPI_HandleTypeDef *hspi);
+// One-line ring status for the debug print.
+void ADBMS_Ring_Print(void);
+
 //old read function
 //bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf);

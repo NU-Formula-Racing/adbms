@@ -64,3 +64,6 @@ void ADBMS_joint_Config(command_parameters_joint_* parameters, config_command_bi
 //OWC Config Function
 void ADBMS_Owc_Config(adbms_raw_* adbms, Owc_Channel_ channel, Owc_Mode_ mode);
 
+// isoSPI ring manager: run once per loop after the reads. Isolates a detected break with COMM_BK
+// (so no chip keeps driving a dead/dangling cable) and periodically clears it to detect a repair.
+void ADBMS_Ring_Manage(adbms_raw_ *adbms_raw);

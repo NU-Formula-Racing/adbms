@@ -130,6 +130,9 @@ void update_values()
 	//soc
 	Soc_Update(&mainboard);
 
+	// isoSPI ring: about once a second confirm the reverse (redundant) path still answers
+	ADBMS_Ring_Manage(&mainboard.adbms_raw);
+
 	// discharge resistor temperature (read only for now)
 	mainboard.discharge_temp_valid = Discharge_Temp_Read(&mainboard.discharge_temp_v, &mainboard.discharge_temp);
 
@@ -220,6 +223,7 @@ void send_data_over_printf()
 	last_print = HAL_GetTick();
 
 	// AD Prints for both chips
+	ADBMS_Ring_Print();
     ADBMS_6830_Print_Vals(&mainboard.adbms_6830);
 	ADBMS_2950_Print_Vals(&mainboard.adbms_2950);
 

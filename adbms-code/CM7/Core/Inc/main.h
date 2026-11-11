@@ -61,6 +61,8 @@ void Error_Handler(void);
 #define SD_CARD_DETECT_GPIO_Port GPIOC
 #define SPI_CSB_Pin GPIO_PIN_12
 #define SPI_CSB_GPIO_Port GPIOB
+#define SPI_CSB1_Pin GPIO_PIN_4
+#define SPI_CSB1_GPIO_Port GPIOA
 #define GPIO_LED_3_Pin GPIO_PIN_10
 #define GPIO_LED_3_GPIO_Port GPIOE
 #define GPIO_LED_2_Pin GPIO_PIN_11
