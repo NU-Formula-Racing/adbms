@@ -45,6 +45,9 @@ void Bms_Initialize_Can(mainboard_ *mainboard);
 
 /* CAN Loops */
 void Can_Loop();
+void Can_Send_Packboard();
+void Can_Send_Status();
+void Can_Send_Cells();
 void owc_can_loop();
 
 void populate_bms_packboard(uint8_t *data);

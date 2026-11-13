@@ -281,7 +281,6 @@ void ADBMS_Set_ADV(adv_ adv, uint16_t* adv_cmd_buffer){
 //
 // isoSPI ring (reversible isoSPI)
 //
-#define ADBMS_RING_CHECK_MS 1000U
 #define ADBMS_RING_REV_ATTEMPTS 3U   // reverse-path tries per read when the forward path failed
 
 
@@ -345,15 +344,23 @@ static void set_pec_flags(uint32_t fail_mask, pec_return_ *pec_return)
 //
 // read write functions
 //
+static void delay_us(uint32_t us);
+
 void ADBMS_WakeUP_ICs()
 {
-    // wake both ends of the ring at once (CS low -> long isoSPI pulse on each 6822 port)
-    HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_RESET);
-    if (rev_hspi != NULL) cs_write(true, GPIO_PIN_RESET);
-    HAL_Delay(1);
-    HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_SET);
-    if (rev_hspi != NULL) cs_write(true, GPIO_PIN_SET);
-    HAL_Delay(2);
+    // Full wake of the whole daisy chain, both ends of the ring at once. An idle device does not relay a
+    // wake pulse, so ONE CS pulse only wakes the NEXT device: send one pulse per device (+1 for the 6822),
+    // with 500 us between pulses so a sleeping core can start (tWAKE <= 500 us). Same as the datasheet's
+    // "repeat(NUMDEV) { CSB low; CSB high; wait(500us); }".
+    for (uint8_t i = 0; i < NUM_CHIPS + 1; i++)
+    {
+        HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_RESET);
+        if (rev_hspi != NULL) cs_write(true, GPIO_PIN_RESET);
+        delay_us(20);
+        HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, GPIO_PIN_SET);
+        if (rev_hspi != NULL) cs_write(true, GPIO_PIN_SET);
+        delay_us(500);
+    }
 }
 
 void ADBMS_Write_CMD(SPI_HandleTypeDef *hspi, uint16_t tx_cmd)
@@ -454,62 +461,197 @@ static uint32_t read_one_path(SPI_HandleTypeDef *hspi, bool reverse, uint16_t tx
     return fail_mask;
 }
 
-void ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf, pec_return_* pec_return)
-{
-    uint32_t fail_mask = read_one_path(hspi, false, tx_cmd, dataBuf, spi_dataBuf);
-    adbms_ring_status.fwd_fail_mask = fail_mask;
+//
+// fast isoSPI wake-up
+//
+#define ADBMS_WAKE_LOW_US   20U   // CS low per pulse: >= tREADY (10 us) of the 6822 / 6830 / 2950
+#define ADBMS_WAKE_GAP_US   50U   // gap before the next pulse / the transaction
 
-    // Chips that failed on the forward path: try them from the other end of the ring
-    if (fail_mask && use_reverse(hspi))
+static bool need_full_wake = true;  // first wake after boot, and after any failed read: use the slow full wake
+
+static void delay_us(uint32_t us)
+{
+    static bool dwt_on = false;
+    if (!dwt_on)
     {
-        static uint8_t rev_data[NUM_CHIPS * DATA_LEN];
-        static uint8_t rev_spi[DATABUF_LEN];
-        // With the ring broken, chips beyond the first reverse hop sometimes do not answer the first
-        // reverse transaction(s) (all-0xFF reply) and answer a transaction later. Retry the reverse read
-        // a couple of times and take each chip's data from the first reply where its PEC is good.
-        uint32_t rev_fail = fail_mask;
-        uint32_t rescued = 0;
-        for (uint8_t attempt = 0; attempt < ADBMS_RING_REV_ATTEMPTS && (rev_fail & fail_mask); attempt++)
+        CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+        DWT->LAR = 0xC5ACCE55U;     // unlock the DWT (Cortex-M7)
+        DWT->CYCCNT = 0U;
+        DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+        dwt_on = true;
+    }
+    const uint32_t start = DWT->CYCCNT;
+    const uint32_t cycles = us * (SystemCoreClock / 1000000U);
+    while ((DWT->CYCCNT - start) < cycles) { }
+}
+
+// One CS pulse wakes one more device down the chain (a device only relays once it is awake).
+static void wake_pulses(bool reverse, uint8_t n)
+{
+    for (uint8_t i = 0; i < n; i++)
+    {
+        cs_write(reverse, GPIO_PIN_RESET);
+        delay_us(ADBMS_WAKE_LOW_US);
+        cs_write(reverse, GPIO_PIN_SET);
+        delay_us(ADBMS_WAKE_GAP_US);
+    }
+}
+
+void ADBMS_Wake_Scope(uint32_t scope)
+{
+    const bool have_rev = (rev_hspi != NULL);
+    // Full wake (500 us per device, for sleeping cores) after a failed read; otherwise the short pulses.
+    if (need_full_wake)
+    {
+        ADBMS_WakeUP_ICs();
+        need_full_wake = false;
+        return;
+    }
+    if (adbms_ring_status.split && have_rev && scope != ADBMS_ALL_CHIPS)
+    {
+        if (scope & ADBMS_6830_CHIPS) wake_pulses(false, NUM_6830 + 1);
+        if (scope & ADBMS_2950_CHIPS) wake_pulses(true, NUM_2950 + 1);
+    }
+    else
+    {
+        wake_pulses(false, NUM_CHIPS + 1);
+        if (have_rev) wake_pulses(true, NUM_CHIPS + 1);
+    }
+}
+
+//
+// split routing
+//
+void ADBMS_Ring_Set_Split(bool split)
+{
+    adbms_ring_status.split = split && rev_hspi != NULL && NUM_6830 > 0 && NUM_2950 > 0;
+    adbms_ring_status.streak_6830 = 0;
+    adbms_ring_status.streak_2950 = 0;
+}
+
+// Forward-path results accumulated between ring-manager passes (ring mode only), for break detection.
+static uint32_t pass_fwd_fail = 0;
+static uint32_t pass_fwd_ok = 0;
+
+void ADBMS_Ring_Pass_Masks(uint32_t *fwd_fail, uint32_t *fwd_ok)
+{
+    *fwd_fail = pass_fwd_fail;
+    *fwd_ok = pass_fwd_ok;
+    pass_fwd_fail = 0;
+    pass_fwd_ok = 0;
+}
+
+static void update_streaks(uint32_t scope, uint32_t fail_mask)
+{
+    if (scope & ADBMS_6830_CHIPS)
+    {
+        if (fail_mask & ADBMS_6830_CHIPS) { if (adbms_ring_status.streak_6830 < 255U) adbms_ring_status.streak_6830++; }
+        else adbms_ring_status.streak_6830 = 0;
+    }
+    if (scope & ADBMS_2950_CHIPS)
+    {
+        if (fail_mask & ADBMS_2950_CHIPS) { if (adbms_ring_status.streak_2950 < 255U) adbms_ring_status.streak_2950++; }
+        else adbms_ring_status.streak_2950 = 0;
+    }
+}
+
+void ADBMS_Read_Data_Scoped(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf, pec_return_* pec_return, uint32_t scope)
+{
+    static uint8_t rev_data[NUM_CHIPS * DATA_LEN];
+    static uint8_t rev_spi[DATABUF_LEN];
+    uint32_t fail_mask;
+
+    if (adbms_ring_status.split && use_reverse(hspi))
+    {
+        // Split: each segment is read from its own end; the other end is cut off by COMM_BK.
+        const uint32_t fwd_part = scope & ADBMS_6830_CHIPS;
+        const uint32_t rev_part = scope & ADBMS_2950_CHIPS;
+        fail_mask = 0;
+        if (fwd_part) fail_mask |= read_one_path(hspi, false, tx_cmd, dataBuf, spi_dataBuf) & fwd_part;
+        if (rev_part)
         {
-            const uint32_t this_fail = read_one_path(rev_hspi, true, tx_cmd, rev_data, rev_spi);
-            const uint32_t newly_ok = (fail_mask & ~rescued) & ~this_fail;
+            fail_mask |= read_one_path(rev_hspi, true, tx_cmd, rev_data, rev_spi) & rev_part;
             for (uint8_t chip = 0; chip < NUM_CHIPS; chip++)
             {
-                if (newly_ok & (1UL << chip)) memcpy(&dataBuf[chip * DATA_LEN], &rev_data[chip * DATA_LEN], DATA_LEN);
+                if (rev_part & (1UL << chip)) memcpy(&dataBuf[chip * DATA_LEN], &rev_data[chip * DATA_LEN], DATA_LEN);
             }
-            rescued |= newly_ok;
-            rev_fail = fail_mask & ~rescued;
         }
-        adbms_ring_status.rev_fail_mask = rev_fail;
-        adbms_ring_status.rev_checked = true;
-        adbms_ring_status.rescued_mask = rescued;
-        if (rescued) adbms_ring_status.reverse_rescues++;
-        fail_mask &= rev_fail;
-        if (fail_mask)
+    }
+    else
+    {
+        // Ring: forward first, chips that fail are re-read from the reverse end.
+        fail_mask = read_one_path(hspi, false, tx_cmd, dataBuf, spi_dataBuf) & scope;
+        adbms_ring_status.fwd_fail_mask = fail_mask;
+        pass_fwd_fail |= fail_mask;
+        pass_fwd_ok |= scope & ~fail_mask;
+
+        if (fail_mask && use_reverse(hspi))
+        {
+            // With the ring broken, chips beyond the first reverse hop sometimes do not answer the first
+            // reverse transaction(s) (all-0xFF reply) and answer a transaction later. Retry the reverse read
+            // a couple of times and take each chip's data from the first reply where its PEC is good.
+            uint32_t rev_fail = fail_mask;
+            uint32_t rescued = 0;
+            for (uint8_t attempt = 0; attempt < ADBMS_RING_REV_ATTEMPTS && rev_fail; attempt++)
+            {
+                const uint32_t this_fail = read_one_path(rev_hspi, true, tx_cmd, rev_data, rev_spi);
+                const uint32_t newly_ok = rev_fail & ~this_fail;
+                for (uint8_t chip = 0; chip < NUM_CHIPS; chip++)
+                {
+                    if (newly_ok & (1UL << chip)) memcpy(&dataBuf[chip * DATA_LEN], &rev_data[chip * DATA_LEN], DATA_LEN);
+                }
+                rescued |= newly_ok;
+                rev_fail = fail_mask & ~rescued;
+            }
+            adbms_ring_status.rev_fail_mask = rev_fail;
+            adbms_ring_status.rev_checked = true;
+            adbms_ring_status.rescued_mask = rescued;
+            if (rescued) adbms_ring_status.reverse_rescues++;
+            fail_mask &= rev_fail;
+        }
+    }
+
+    if (fail_mask)
+    {
+        need_full_wake = true;  // a chip may have dropped to sleep: use the slow full wake next time
+        if (use_reverse(hspi) && !adbms_ring_status.split)
         {
             adbms_ring_status.unrecovered_reads++;
             adbms_ring_status.last_unrecovered_cmd = tx_cmd;
             adbms_ring_status.last_unrecovered_mask = fail_mask;
         }
     }
-
+    update_streaks(scope, fail_mask);
     set_pec_flags(fail_mask, pec_return);
 }
 
-void ADBMS_Ring_Check(SPI_HandleTypeDef *hspi)
+void ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf, pec_return_* pec_return)
 {
-    static uint32_t last_check = 0;
-    if (!use_reverse(hspi)) return;
-    if (adbms_ring_status.rev_checked && (HAL_GetTick() - last_check) < ADBMS_RING_CHECK_MS) return;
-    last_check = HAL_GetTick();
-
-    static uint8_t rev_data[NUM_CHIPS * DATA_LEN];
-    static uint8_t rev_spi[DATABUF_LEN];
-    adbms_ring_status.rev_fail_mask = read_one_path(rev_hspi, true, RDCFGA, rev_data, rev_spi);
-    adbms_ring_status.rev_checked = true;
-
+    ADBMS_Read_Data_Scoped(hspi, tx_cmd, dataBuf, spi_dataBuf, pec_return, ADBMS_ALL_CHIPS);
 }
 
+// Full-ring probe (ring un-split): CFGA from each end, a few tries each (see the retry note above).
+void ADBMS_Ring_Probe(SPI_HandleTypeDef *hspi, uint32_t *fwd_fail, uint32_t *rev_fail)
+{
+    static uint8_t data[NUM_CHIPS * DATA_LEN];
+    static uint8_t spi[DATABUF_LEN];
+    uint32_t f = ADBMS_ALL_CHIPS, r = ADBMS_ALL_CHIPS;
+    for (uint8_t attempt = 0; attempt < ADBMS_RING_REV_ATTEMPTS && f; attempt++)
+        f &= read_one_path(hspi, false, RDCFGA, data, spi);
+    if (use_reverse(hspi))
+    {
+        for (uint8_t attempt = 0; attempt < ADBMS_RING_REV_ATTEMPTS && r; attempt++)
+            r &= read_one_path(rev_hspi, true, RDCFGA, data, spi);
+    }
+    *fwd_fail = f;
+    *rev_fail = r;
+    adbms_ring_status.probed = true;
+    adbms_ring_status.probe_fwd_fail = f;
+    adbms_ring_status.probe_rev_fail = r;
+    adbms_ring_status.fwd_fail_mask = f;
+    adbms_ring_status.rev_fail_mask = r;
+    adbms_ring_status.rev_checked = true;
+}
 
 static void print_chip_list(uint32_t mask)
 {
@@ -524,19 +666,36 @@ static void print_chip_list(uint32_t mask)
 void ADBMS_Ring_Print(void)
 {
     const adbms_ring_status_ *r = &adbms_ring_status;
-    printf("isoSPI ring: forward (J4) ");
-    if (r->fwd_fail_mask) { printf("FAIL:"); print_chip_list(r->fwd_fail_mask); }
-    else printf("OK");
-    printf(" | reverse (J2) ");
-    if (!r->reverse_enabled) printf("not configured");
-    else if (!r->rev_checked) printf("not checked yet");
-    else if (r->rev_fail_mask) { printf("FAIL:"); print_chip_list(r->rev_fail_mask); }
-    else printf("OK");
+    if (r->split)
+    {
+        printf("isoSPI: SPLIT (6830s via J4, 2950 via J2)");
+    }
+    else
+    {
+        printf("isoSPI: RING | forward (J4) ");
+        if (r->fwd_fail_mask) { printf("FAIL:"); print_chip_list(r->fwd_fail_mask); }
+        else printf("OK");
+        printf(" | reverse (J2) ");
+        if (!r->reverse_enabled) printf("not configured");
+        else if (!r->rev_checked) printf("not checked yet");
+        else if (r->rev_fail_mask) { printf("FAIL:"); print_chip_list(r->rev_fail_mask); }
+        else printf("OK");
+    }
+    if (r->probed)
+    {
+        // backup-path health from the last full-ring probe (every chip should be reachable from both ends)
+        if (!r->probe_fwd_fail && !r->probe_rev_fail) printf(" | backup paths OK");
+        else
+        {
+            printf(" | REDUNDANCY LOST:");
+            if (r->probe_fwd_fail) { printf(" J4 can't reach"); print_chip_list(r->probe_fwd_fail); }
+            if (r->probe_rev_fail) { printf(" J2 can't reach"); print_chip_list(r->probe_rev_fail); }
+        }
+    }
     if (r->isolated)
     {
         printf(" | BREAK before");
         print_chip_list(1UL << r->break_before_chip);
-        printf(", isolated with COMM_BK");
     }
     if (r->reverse_rescues) printf(" | reverse supplied data %lu times", (unsigned long)r->reverse_rescues);
     if (r->unrecovered_reads)

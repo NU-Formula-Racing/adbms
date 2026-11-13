@@ -172,64 +172,55 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hcan, uint32_t RxFifo0ITs)
 }
 
 
-void Can_Loop()
+// Packboard data (0x150): sent after every packboard poll (PACK_POLL_MS, 100 Hz)
+void Can_Send_Packboard()
 {
-	// update and send packboard
 	populate_bms_packboard(bms_can.txDataPackboard_);
 	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderPackboard_, bms_can.txDataPackboard_);
+}
 
-	// update and send daughterboard
+// Daughterboard summary (0x151), status (0x152) and, while charging, the charger command
+// (every CAN_STATUS_DIVIDER packboard polls, 50 Hz)
+void Can_Send_Status()
+{
 	populate_bms_daughterboard(bms_can.txDataDaughterboard_);
 	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderDaughterboard_, bms_can.txDataDaughterboard_);
 
-	// update and send status
 	populate_bms_status(bms_can.txDataStatus_);
 	send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderStatus_, bms_can.txDataStatus_);
-
-	// populate and send voltage messages
-	uint8_t num_voltge_msgs_sent = NUM_CAN_VOLTAGE_MSG_SENT_PER_ITTR;
-	if (bms_can.mainboard->internal_state == Fault) num_voltge_msgs_sent = NUM_CAN_VOLTAGE_MSGS;
-	
-	for(int i = 0; i < num_voltge_msgs_sent; i++) 
-	{
-		populate_bms_voltages(bms_can.txDataVoltages_, bms_can.current_voltage_msg);
-		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderVoltages_, bms_can.txDataVoltages_);
-		bms_can.TxHeaderVoltages_.Identifier++;
-		bms_can.current_voltage_msg++;
-
-		if (bms_can.current_voltage_msg >= NUM_CAN_VOLTAGE_MSGS)
-		{
-			bms_can.TxHeaderVoltages_.Identifier = VOLTAGES_ID;
-			bms_can.current_voltage_msg = 0;
-		}
-	}
-
-
-	// populate and send temperature messages
-	uint8_t num_temp_msgs_sent = NUM_CAN_TEMP_MSG_SENT_PER_ITTR;
-	if (bms_can.mainboard->internal_state == Fault) {
-		num_temp_msgs_sent = NUM_CAN_TEMP_MSGS;
-		HAL_Delay(2);	// delay to allow CAN buffer to empty
-	}
-	
-	for(int i = 0; i < num_temp_msgs_sent; i++) {
-		populate_bms_temparatures(bms_can.txDataTemperatures_, bms_can.current_temp_msg);
-		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderTemperatures_, bms_can.txDataTemperatures_);
-		bms_can.TxHeaderTemperatures_.Identifier++;
-		bms_can.current_temp_msg++;
-
-		if (bms_can.current_temp_msg >= NUM_CAN_TEMP_MSGS)
-		{
-			bms_can.TxHeaderTemperatures_.Identifier = TEMPS_ID;
-			bms_can.current_temp_msg = 0;
-		}
-	}
 
 	if (bms_can.mainboard->internal_state == Charging)
 	{
 		populateCharger_Msg(bms_can.txDataCharger_);
 		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderCharger_, bms_can.txDataCharger_);
 	}
+}
+
+// All cell voltage and temperature frames: sent after every cell poll (10 Hz), so each frame
+// carries fresh data exactly once. Worst case per pass is ~11 frames, well inside the 32-deep TX FIFO.
+void Can_Send_Cells()
+{
+	for (int i = 0; i < NUM_CAN_VOLTAGE_MSGS; i++)
+	{
+		bms_can.TxHeaderVoltages_.Identifier = VOLTAGES_ID + i;
+		populate_bms_voltages(bms_can.txDataVoltages_, i);
+		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderVoltages_, bms_can.txDataVoltages_);
+	}
+
+	for (int i = 0; i < NUM_CAN_TEMP_MSGS; i++)
+	{
+		bms_can.TxHeaderTemperatures_.Identifier = TEMPS_ID + i;
+		populate_bms_temparatures(bms_can.txDataTemperatures_, i);
+		send_can_messages(bms_can.mainboard->hcan, &bms_can.TxHeaderTemperatures_, bms_can.txDataTemperatures_);
+	}
+}
+
+// Everything at once (kept for compatibility; the main loop uses the three functions above)
+void Can_Loop()
+{
+	Can_Send_Packboard();
+	Can_Send_Status();
+	Can_Send_Cells();
 }
 
 void owc_can_loop()

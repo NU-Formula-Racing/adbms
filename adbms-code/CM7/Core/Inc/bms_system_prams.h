@@ -36,9 +36,9 @@
 
 // FTTI values
 #define FTTI_VOLTAGE_TH_1 0.05
-#define FTTI_VOLTAGE_TH_1_COUNTS 50
+#define FTTI_VOLTAGE_TH_1_COUNTS 10		/* cell polls (10 Hz): > 10 -> ~1.1 s (was 50 at 50 Hz, ~1 s) */
 #define FTTI_VOLTAGE_TH_2 0.1
-#define FTTI_VOLTAGE_TH_2_COUNTS 5
+#define FTTI_VOLTAGE_TH_2_COUNTS 1		/* cell polls (10 Hz): > 1 -> ~200 ms (was 5 at 50 Hz, ~120 ms) */
 
 
 #define PEC_FAILURE_THRESHOLD 10		/* Number of consecutive PEC failures that can happen before a pec fault occurs*/
@@ -52,16 +52,17 @@
 #define ENABLE_PRINTF_DEBUG_COMMS 1		/* Flag to enable Printf debug comms (printed over USB CDC) */
 #define DEBUG_PRINT_PERIOD_MS 500		/* How often the debug data is printed (every loop overflows USB) */
 #define LAMP_CHECK_MS 3000				/* FSAE lamp check: RML + TSSI red + TSSI green on for this long at startup */
+#define PACK_POLL_MS 10					/* main loop period = packboard (2950) poll period: 100 Hz */
+#define CELL_POLL_DIVIDER 10			/* cell voltages + temps (6830) every N passes: 100 ms, 10 Hz */
+#define CAN_STATUS_DIVIDER 2			/* 0x151 / 0x152 / charger frames every N passes: 20 ms, 50 Hz */
 #define ENABLE_USB_COMMS 1				/* Flag to enable USB comms (also needed for flashing over USB DFU) */
 #define ENABLE_SD_LOGGING_BIN 0			/* Flag to enable logging to SD Card as binary files */
 #define ENABLE_SD_LOGGING_CSV 0			/* Flag to enable logging to SD Card as CSV files (ASCII)*/
 
 #define NUM_CAN_VOLTAGES_PER_MSG 4	 	// will break if this is changed. Based on how DBC is set up
 #define NUM_CAN_VOLTAGE_MSGS  (1 + ((NUM_VOLTAGES - 1) / NUM_CAN_VOLTAGES_PER_MSG))
-#define NUM_CAN_VOLTAGE_MSG_SENT_PER_ITTR 6
 #define NUM_CAN_TEMPS_PER_MSG 8    // will break if this is changed. Based on how DBC is set up
 #define NUM_CAN_TEMP_MSGS (1 + ((NUM_TEMPS - 1) / NUM_CAN_TEMPS_PER_MSG))
-#define NUM_CAN_TEMP_MSG_SENT_PER_ITTR 1
 #define NUM_CAN_OWC_MSGS (1 + ((NUM_VOLTAGES - 1) / 64))
 
 #define NUM_TIMERS 2    // will break if this is changed. This will be replaced by RTOS

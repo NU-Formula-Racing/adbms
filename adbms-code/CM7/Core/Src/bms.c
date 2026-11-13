@@ -17,6 +17,11 @@ void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 	// initialize handles
 	mainboard.hcan = hcan;
 
+	// cycle counter for loop timing stats (also used by the isoSPI fast wake)
+	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+	DWT->LAR = 0xC5ACCE55U;
+	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+
 	// discharge resistor temperature ADC (PA3)
 	Discharge_Temp_Init();
 
@@ -30,7 +35,7 @@ void Bms_Mainboard_Setup(SPI_HandleTypeDef *hspi, FDCAN_HandleTypeDef *hcan)
 	Soc_Initialize(&mainboard);
 
 	// initialize the timers: adbms_mainboard_loop, drive_can, data_can
-	timer_ t_adbms = Create_Timer(19, bms_mainboard_loop); // bc of timer group delay is +1ms of the duration
+	timer_ t_adbms = Create_Timer(PACK_POLL_MS - 1, bms_mainboard_loop); // fires after > PACK_POLL_MS-1 ms -> every PACK_POLL_MS
 	timer_ t_adbms_owc_check = Create_Timer(30000, adbms_owc_loop);
 	timer_ timers[NUM_TIMERS] = {t_adbms, t_adbms_owc_check};
 	mainboard.tg = Create_Timer_Group(timers);
@@ -49,17 +54,39 @@ void Tick_Mainboard_Timers()
 	Tick_Timer_Group(mainboard.tg);
 }
 
-// ADBMS loop that gets ticked
+// ADBMS loop that gets ticked every PACK_POLL_MS (10 ms):
+//   packboard (2950) every pass -> 100 Hz, cell voltages + temps (6830) every CELL_POLL_DIVIDER passes -> 10 Hz
+// measured poll rates for the debug print
+static uint32_t stat_pack_polls = 0, stat_cell_polls = 0, stat_max_pass_cycles = 0;
+
 void bms_mainboard_loop()
 {
-	update_values();
+	static uint8_t pass = 0;
+	const bool cell_pass = (pass % CELL_POLL_DIVIDER) == 0;
+	const uint32_t pass_start = DWT->CYCCNT;
+
+	update_pack_values();
+	if (cell_pass) update_cell_values();
+	update_pin_values();
+
+	// isoSPI ring: split / ring mode, backup-path probe, break isolation
+	ADBMS_Ring_Manage(&mainboard.adbms_raw);
+
 	check_faults();
 	Control_Loop(&mainboard);
-	Can_Loop();
-	
-	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf(); 
 
-	if(mainboard.internal_state == Fault) HAL_Delay(10);	// delay loop to send values slower in fault
+	Can_Send_Packboard();
+	if ((pass % CAN_STATUS_DIVIDER) == 0) Can_Send_Status();
+	if (cell_pass) Can_Send_Cells();
+
+	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf();
+
+	pass = (uint8_t)((pass + 1U) % CELL_POLL_DIVIDER);
+
+	stat_pack_polls++;
+	if (cell_pass) stat_cell_polls++;
+	const uint32_t pass_cycles = DWT->CYCCNT - pass_start;
+	if (pass_cycles > stat_max_pass_cycles) stat_max_pass_cycles = pass_cycles;
 }
 
 // Seprate loop that gets ticked to run OWC
@@ -76,12 +103,25 @@ void adbms_owc_loop()
 }
 
 
-void update_values()
+// Packboard (2950): accumulated current + voltage (new result every 8 ms, ACCI = 001), SOC
+void update_pack_values()
 {
-	//First Read both Voltages and Temps raw values in lower level interface
-	ADBMS_WakeUP_ICs();
-	
-	// turn cb off if charging to read true voltage
+	ADBMS_Wake_Scope(ADBMS_2950_CHIPS);
+
+	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_2950_filtered, Accumulate_Read_2950, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
+    ADBMS_2950_Calculate_Values(&mainboard.adbms_raw.read_raw_2950_filtered, &mainboard.adbms_2950, mainboard.adbms_raw.command_parameters.parameter_2950.cfa2950.acci);
+	Update_2950_InternalFault(&mainboard.adbms_2950);
+
+	//soc
+	Soc_Update(&mainboard);
+}
+
+// Daughterboards (6830s): cell voltages and thermistors, 6830 faults, discharge resistor temperature
+void update_cell_values()
+{
+	ADBMS_Wake_Scope(ADBMS_6830_CHIPS);
+
+	// turn cb off if charging to read true voltage (balancing now stays on between the 10 Hz reads)
 	if (mainboard.internal_state == Charging) 
 	{
 		cell_Balance_Off(&mainboard.adbms_raw);
@@ -89,7 +129,6 @@ void update_values()
     	HAL_Delay(1); // ADCs are updated at their conversion rate of 1ms
 	}
 
-	
 	//read voltages
 	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_c, C_Channel_Filtered_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
 	//Parse 6830 voltage
@@ -98,7 +137,6 @@ void update_values()
 	// turn cb back on if charging
 	if (mainboard.internal_state == Charging) cell_Balance_On(&mainboard.adbms_raw,&mainboard.adbms_6830);
 
-
 	//read temp
 	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_aux, AUX_Read, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
 	//RESTART ADAX
@@ -106,15 +144,8 @@ void update_values()
 	//parse 6830 temp
 	ADBMS_6830_Parse_Temperature(&mainboard.adbms_raw.read_raw_aux, &mainboard.adbms_6830.temperature);
 
-	// read filtered voltages
-	ADBMS_Read_Voltages(&mainboard.adbms_raw.read_raw_2950_filtered, Accumulate_Read_2950, mainboard.adbms_raw.SPI_data.hspi, mainboard.adbms_raw.SPI_data.spi_dataBuf);
-    // parse 2950 data
-    ADBMS_2950_Calculate_Values(&mainboard.adbms_raw.read_raw_2950_filtered, &mainboard.adbms_2950, mainboard.adbms_raw.command_parameters.parameter_2950.cfa2950.acci);
-
     //Update Faults
     Update_6830_InternalFault(&mainboard.adbms_6830);
-	Update_2950_InternalFault(&mainboard.adbms_2950);
-
 
 	// restart adcs if needed
     if (mainboard.adbms_6830.voltage.adc_off)
@@ -122,22 +153,16 @@ void update_values()
 		ADBMS_Initialize(&mainboard.adbms_raw, mainboard.adbms_raw.SPI_data.hspi);
     }
 
-	// update STM32 Pin values
+	// discharge resistor temperature (read only for now)
+	mainboard.discharge_temp_valid = Discharge_Temp_Read(&mainboard.discharge_temp_v, &mainboard.discharge_temp);
+}
+
+// STM32 inputs, every pass
+void update_pin_values()
+{
     mainboard.shutdown_present = HAL_GPIO_ReadPin(Shutdown_Contactors_GPIO_Port, Shutdown_Contactors_Pin); 	   		  // shutdown status
     mainboard.imd_status = mainboard.imd_status && HAL_GPIO_ReadPin(GPIOD, IMD_STATUS_IN_Pin); // IMD_Status (software latched)
     mainboard.comms_6822_state = HAL_GPIO_ReadPin(GPIOD, AD6822_State_Pin);	 //Currently Unused  		   		  // 6822_State
-
-	//soc
-	Soc_Update(&mainboard);
-
-	// isoSPI ring: about once a second confirm the reverse (redundant) path still answers
-	ADBMS_Ring_Manage(&mainboard.adbms_raw);
-
-	// discharge resistor temperature (read only for now)
-	mainboard.discharge_temp_valid = Discharge_Temp_Read(&mainboard.discharge_temp_v, &mainboard.discharge_temp);
-
-	// delay to allow higher duty cycle on cb
-	if (mainboard.internal_state == Charging) HAL_Delay(32);
 }
 
 void check_faults()
@@ -224,6 +249,22 @@ void send_data_over_printf()
 
 	// AD Prints for both chips
 	ADBMS_Ring_Print();
+	{
+		// measured over the last print window (DEBUG_PRINT_PERIOD_MS)
+		static uint32_t last_ms = 0;
+		const uint32_t now = HAL_GetTick();
+		const float window_s = (now - last_ms) / 1000.0f;
+		if (last_ms != 0 && window_s > 0.0f)
+		{
+			printf("Poll rates: packboard %.1f Hz, cells+temps %.1f Hz | longest pass %lu us\n",
+			       stat_pack_polls / window_s, stat_cell_polls / window_s,
+			       (unsigned long)(stat_max_pass_cycles / (SystemCoreClock / 1000000U)));
+		}
+		last_ms = now;
+		stat_pack_polls = 0;
+		stat_cell_polls = 0;
+		stat_max_pass_cycles = 0;
+	}
     ADBMS_6830_Print_Vals(&mainboard.adbms_6830);
 	ADBMS_2950_Print_Vals(&mainboard.adbms_2950);
 

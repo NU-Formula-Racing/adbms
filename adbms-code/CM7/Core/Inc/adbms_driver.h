@@ -298,16 +298,41 @@ typedef struct
     uint32_t last_unrecovered_mask;
     bool     isolated;          // COMM_BK set on the chips either side of a detected break
     uint8_t  break_before_chip; // forward index of the first chip after the break
+
+    // split mode: ring cut with COMM_BK between the 6830s and the 2950 so each segment is
+    // polled from its own end (6830s forward / J4, 2950 reverse / J2)
+    bool     split;
+    uint8_t  streak_6830;       // consecutive scoped 6830 reads with a PEC failure
+    uint8_t  streak_2950;       // consecutive scoped 2950 reads with a PEC failure
+    bool     probed;            // a full-ring redundancy probe has run
+    uint32_t probe_fwd_fail;    // last probe: chips not reachable from J4 with the ring un-split
+    uint32_t probe_rev_fail;    // last probe: chips not reachable from J2 with the ring un-split
 } adbms_ring_status_;
+
+// Chip groups (bit = forward chip index) for scoped reads
+#define ADBMS_ALL_CHIPS   (((NUM_CHIPS) >= 32) ? 0xFFFFFFFFUL : ((1UL << (NUM_CHIPS)) - 1UL))
+#define ADBMS_2950_CHIPS  ((((1UL << (NUM_2950)) - 1UL)) << (POSITION_2950 * NUM_6830))
+#define ADBMS_6830_CHIPS  (ADBMS_ALL_CHIPS & ~ADBMS_2950_CHIPS)
 
 extern adbms_ring_status_ adbms_ring_status;
 
 void ADBMS_Set_Reverse_Port(SPI_HandleTypeDef *hspi, GPIO_TypeDef *cs_port, uint16_t cs_pin);
-// Read a config register from the reverse end only, so a dead redundant path is noticed
-// even while the forward path works. Self rate-limited to once per ADBMS_RING_CHECK_MS.
-void ADBMS_Ring_Check(SPI_HandleTypeDef *hspi);
+// Forward-path fail/ok chip masks accumulated since the last call (ring mode), then cleared.
+void ADBMS_Ring_Pass_Masks(uint32_t *fwd_fail, uint32_t *fwd_ok);
 // One-line ring status for the debug print.
 void ADBMS_Ring_Print(void);
+
+// Read only the chips in scope (ADBMS_6830_CHIPS / ADBMS_2950_CHIPS / ADBMS_ALL_CHIPS); PEC flags
+// only reflect chips in scope. In split mode each chip is read from its own end; otherwise forward
+// first with reverse fallback. ADBMS_Read_Data() is this with ADBMS_ALL_CHIPS.
+void ADBMS_Read_Data_Scoped(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *dataBuf, uint8_t *spi_dataBuf, pec_return_* pec_return, uint32_t scope);
+// Fast isoSPI wake-up (a short CS pulse per device, microseconds instead of ADBMS_WakeUP_ICs' 3 ms)
+// of the port(s) that serve the chips in scope. Falls back to the full wake after a failed read.
+void ADBMS_Wake_Scope(uint32_t scope);
+// Split routing on/off (the ring manager sets COMM_BK to match).
+void ADBMS_Ring_Set_Split(bool split);
+// Full-ring probe: read CFGA from both ends (ring must be un-split). Returns per-end fail masks.
+void ADBMS_Ring_Probe(SPI_HandleTypeDef *hspi, uint32_t *fwd_fail, uint32_t *rev_fail);
 
 //old read function
 //bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf);

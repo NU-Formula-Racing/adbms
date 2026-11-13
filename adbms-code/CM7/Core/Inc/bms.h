@@ -17,7 +17,9 @@ void Tick_Mainboard_Timers();
 void bms_mainboard_loop();
 void adbms_owc_loop();
 
-void update_values();
+void update_pack_values();
+void update_cell_values();
+void update_pin_values();
 void check_faults();
 
 void send_data_over_printf();
