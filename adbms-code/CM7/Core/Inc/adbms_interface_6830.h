@@ -23,6 +23,7 @@ typedef struct
     int pec_counts;
 
     bool adc_off;
+    bool voltage_diff_fault;
 
 }adbms_6830_voltage_parsed_;
 
@@ -60,6 +61,7 @@ typedef struct
     bool overtemperature_fault;
     bool undertemperature_fault;
 
+    bool voltage_diff_fault;
 
 }adbms_6830_faults_;
 

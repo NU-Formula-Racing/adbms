@@ -27,6 +27,7 @@
 
 #define PEC_FAILURE_THRESHOLD 10		/* Number of consecutive PEC failures that can happen before a pec fault occurs*/
 #define OWC_VOLTAGE_THRESHOLD 0.5
+#define VOLTAGE_DIFF_THRESHOLD 0.05		/* thresh of delta between readings to throw volt. fault  */
 
 #define MAX_CHARGER_VOLTAGE 480
 #define MAX_CHARGER_CURRENT 3

@@ -41,7 +41,13 @@ void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_pa
                         return;
                     }
                     
-                    voltage_parsed->voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2] = curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
+                    uint8_t v_idx = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
+                    float prev_voltage = voltage_parsed->voltages[v_idx];
+                    if (prev_voltage != 0.0f && fabsf(curr_voltage - prev_voltage) > VOLTAGE_DIFF_THRESHOLD)
+                    {
+                        voltage_parsed->voltage_diff_fault = true;
+                    }
+                    voltage_parsed->voltages[v_idx] = curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
 
                     even_total += curr_voltage;
                     if (curr_voltage > voltage_parsed->max_v){
@@ -74,7 +80,13 @@ void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_pa
                         return;
                     }
 
-                    voltage_parsed->voltages[(cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2] = curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
+                    uint8_t v_idx = (cic * NUM_VOLTAGES_ODD_CHIP + (cic + 1)/2) + creg_grp*DATA_LEN/2 + cbyte/2;
+                    float prev_voltage = voltage_parsed->voltages[v_idx];
+                    if (prev_voltage != 0.0f && fabsf(curr_voltage - prev_voltage) > VOLTAGE_DIFF_THRESHOLD)
+                    {
+                        voltage_parsed->voltage_diff_fault = true;
+                    }
+                    voltage_parsed->voltages[v_idx] = curr_voltage; //index section of current chip + index section of register group (group of 3 voltages) + index section the register (contains single voltage)
 
                     odd_total += curr_voltage;
                     if (curr_voltage > voltage_parsed->max_v){
@@ -193,6 +205,9 @@ void Update_6830_InternalFault(adbms_6830_* adbms_6830)
     {
         adbms_6830->faults.pec_fault = true;
     }
+
+    // check consecutive voltages for delta of 50mv 
+    adbms_6830->faults.voltage_diff_fault = adbms_6830->faults.voltage_diff_fault || (adbms_6830->voltage.voltage_diff_fault);
     
     // Keep running tally of total pec failures for data collection
     if (adbms_6830->voltage.pec_counts) adbms_6830->faults.total_pec_failures++;
@@ -432,5 +447,6 @@ void ADBMS_6830_Print_Vals(adbms_6830_* adbms_6830)
     printf("pec: %d\t", adbms_6830->faults.pec_fault);
     printf("overtemperature: %d\t", adbms_6830->faults.overtemperature_fault);
     printf("openwire: %d\t", adbms_6830->faults.openwire_voltage_fault);
-    printf("openwire_temp: %d\n", adbms_6830->faults.openwire_temp_fault);
+    printf("openwire_temp: %d\t", adbms_6830->faults.openwire_temp_fault);
+    printf("voltage_diff: %d\n", adbms_6830->faults.voltage_diff_fault);
 }

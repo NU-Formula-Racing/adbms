@@ -132,7 +132,8 @@ void check_faults()
 							|| mainboard.adbms_6830.faults.undertemperature_fault
 							|| mainboard.adbms_6830.faults.openwire_voltage_fault
 							|| mainboard.adbms_6830.faults.openwire_temp_fault
-							|| mainboard.adbms_6830.faults.pec_fault;
+							|| mainboard.adbms_6830.faults.pec_fault
+							|| mainboard.adbms_6830.faults.voltage_diff_fault;
 
 	// write BMS_Status - healthy is high
 	HAL_GPIO_WritePin(BMS_STATUS_OUT_GPIO_Port, BMS_STATUS_OUT_Pin, !mainboard.bms_fault);
