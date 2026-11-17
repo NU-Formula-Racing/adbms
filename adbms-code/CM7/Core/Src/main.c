@@ -247,6 +247,9 @@ Error_Handler();
   /* USER CODE BEGIN 2 */
   /* isoSPI ring: SPI2 -> 6822 port 2 (J4) is the forward end, SPI1 -> 6822 port 1 (J2) the reverse end */
   ADBMS_Set_Reverse_Port(&hspi1, SPI_CSB1_GPIO_Port, SPI_CSB1_Pin);
+#if ADBMS_SPI_USE_DMA
+  ADBMS_SPI_DMA_Init(&hspi2, &hspi1);   /* DMA for both isoSPI ports (set up in adbms_driver.c) */
+#endif
   Bms_Mainboard_Setup(&hspi2, &hfdcan1);
   HAL_TIM_Base_Start_IT(&htim4);
 

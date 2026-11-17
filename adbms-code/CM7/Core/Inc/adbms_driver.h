@@ -11,6 +11,7 @@
 
 
 #define SPI_TIME_OUT HAL_MAX_DELAY
+#define ADBMS_SPI_DMA_TIMEOUT_MS 5U   /* a 28-byte frame takes ~0.12 ms at 2 MHz */
 
 //
 //all command bits
@@ -336,3 +337,12 @@ void ADBMS_Ring_Probe(SPI_HandleTypeDef *hspi, uint32_t *fwd_fail, uint32_t *rev
 
 //old read function
 //bool ADBMS_Read_Data(SPI_HandleTypeDef *hspi, uint16_t tx_cmd, uint8_t *data, uint8_t *spi_dataBuf);
+
+// isoSPI SPI transfers over DMA (ADBMS_SPI_USE_DMA in bms_system_prams.h)
+typedef struct {
+    uint32_t transfers;   // completed DMA transfers
+    uint32_t errors;      // SPI / DMA errors reported by HAL
+    uint32_t timeouts;    // transfers that did not finish within ADBMS_SPI_DMA_TIMEOUT_MS (aborted)
+} adbms_spi_dma_stats_;
+void ADBMS_SPI_DMA_Init(SPI_HandleTypeDef *hspi_spi2, SPI_HandleTypeDef *hspi_spi1);
+void ADBMS_SPI_DMA_Get_Stats(adbms_spi_dma_stats_ *stats);

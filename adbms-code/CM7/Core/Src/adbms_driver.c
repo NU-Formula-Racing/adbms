@@ -310,10 +310,137 @@ static void cs_write(bool reverse, GPIO_PinState state)
     else         HAL_GPIO_WritePin(SPI_CSB_GPIO_Port, SPI_CSB_Pin, state);
 }
 
+//
+// SPI transfers: DMA (ADBMS_SPI_USE_DMA) or blocking HAL
+//
+// DMA set-up lives here instead of the CubeMX-generated files, so regenerating code from the .ioc
+// cannot remove it. Do NOT also enable DMA for SPI1/SPI2 in CubeMX (the IRQ handlers would clash).
+// Buffers are in AXI SRAM (RAM_D1, reachable by DMA1; DTCM is not) and the D-cache is off, so no
+// cache maintenance is needed. If the D-cache is ever enabled, these buffers must move to a
+// non-cacheable MPU region.
+#if ADBMS_SPI_USE_DMA
+static DMA_HandleTypeDef hdma_spi2_rx, hdma_spi2_tx, hdma_spi1_rx, hdma_spi1_tx;
+static SPI_HandleTypeDef *dma_spi1 = NULL, *dma_spi2 = NULL;
+static adbms_spi_dma_stats_ dma_stats;
+
+static void dma_stream_init(DMA_HandleTypeDef *hdma, DMA_Stream_TypeDef *stream, uint32_t request, uint32_t direction)
+{
+    hdma->Instance = stream;
+    hdma->Init.Request = request;
+    hdma->Init.Direction = direction;
+    hdma->Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma->Init.MemInc = DMA_MINC_ENABLE;
+    hdma->Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma->Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma->Init.Mode = DMA_NORMAL;
+    hdma->Init.Priority = DMA_PRIORITY_HIGH;
+    hdma->Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(hdma) != HAL_OK) Error_Handler();
+}
+
+static void spi_dma_attach(SPI_HandleTypeDef *hspi, DMA_HandleTypeDef *rx, DMA_HandleTypeDef *tx)
+{
+    if (hspi->Instance == SPI1)
+    {
+        dma_stream_init(rx, DMA1_Stream2, DMA_REQUEST_SPI1_RX, DMA_PERIPH_TO_MEMORY);
+        dma_stream_init(tx, DMA1_Stream3, DMA_REQUEST_SPI1_TX, DMA_MEMORY_TO_PERIPH);
+        HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 1, 0); HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
+        HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 1, 0); HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
+        HAL_NVIC_SetPriority(SPI1_IRQn, 1, 0);         HAL_NVIC_EnableIRQ(SPI1_IRQn);
+        dma_spi1 = hspi;
+    }
+    else
+    {
+        dma_stream_init(rx, DMA1_Stream0, DMA_REQUEST_SPI2_RX, DMA_PERIPH_TO_MEMORY);
+        dma_stream_init(tx, DMA1_Stream1, DMA_REQUEST_SPI2_TX, DMA_MEMORY_TO_PERIPH);
+        HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 1, 0); HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+        HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 1, 0); HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
+        HAL_NVIC_SetPriority(SPI2_IRQn, 1, 0);         HAL_NVIC_EnableIRQ(SPI2_IRQn);
+        dma_spi2 = hspi;
+    }
+    __HAL_LINKDMA(hspi, hdmarx, *rx);
+    __HAL_LINKDMA(hspi, hdmatx, *tx);
+}
+
+void ADBMS_SPI_DMA_Init(SPI_HandleTypeDef *hspi_spi2, SPI_HandleTypeDef *hspi_spi1)
+{
+    __HAL_RCC_DMA1_CLK_ENABLE();
+    if (hspi_spi2 != NULL) spi_dma_attach(hspi_spi2, &hdma_spi2_rx, &hdma_spi2_tx);
+    if (hspi_spi1 != NULL) spi_dma_attach(hspi_spi1, &hdma_spi1_rx, &hdma_spi1_tx);
+}
+
+void DMA1_Stream0_IRQHandler(void) { HAL_DMA_IRQHandler(&hdma_spi2_rx); }
+void DMA1_Stream1_IRQHandler(void) { HAL_DMA_IRQHandler(&hdma_spi2_tx); }
+void DMA1_Stream2_IRQHandler(void) { HAL_DMA_IRQHandler(&hdma_spi1_rx); }
+void DMA1_Stream3_IRQHandler(void) { HAL_DMA_IRQHandler(&hdma_spi1_tx); }
+void SPI1_IRQHandler(void) { if (dma_spi1 != NULL) HAL_SPI_IRQHandler(dma_spi1); }
+void SPI2_IRQHandler(void) { if (dma_spi2 != NULL) HAL_SPI_IRQHandler(dma_spi2); }
+
+// Wait for a started DMA transfer (completion = DMA done -> SPI EOT interrupt -> State READY)
+static HAL_StatusTypeDef dma_wait(SPI_HandleTypeDef *hspi)
+{
+    const uint32_t start = HAL_GetTick();
+    while (hspi->State != HAL_SPI_STATE_READY)
+    {
+        if ((HAL_GetTick() - start) > ADBMS_SPI_DMA_TIMEOUT_MS)
+        {
+            HAL_SPI_Abort(hspi);
+            dma_stats.timeouts++;
+            return HAL_TIMEOUT;
+        }
+    }
+    if (hspi->ErrorCode != HAL_SPI_ERROR_NONE)
+    {
+        dma_stats.errors++;
+        return HAL_ERROR;
+    }
+    dma_stats.transfers++;
+    return HAL_OK;
+}
+
+static bool dma_ready(SPI_HandleTypeDef *hspi)
+{
+    return hspi->hdmarx != NULL && hspi->hdmatx != NULL;
+}
+#endif
+
+void ADBMS_SPI_DMA_Get_Stats(adbms_spi_dma_stats_ *stats)
+{
+#if ADBMS_SPI_USE_DMA
+    *stats = dma_stats;
+#else
+    memset(stats, 0, sizeof(*stats));
+#endif
+}
+
+static HAL_StatusTypeDef spi_tx(SPI_HandleTypeDef *hspi, uint8_t *buf, uint16_t len)
+{
+#if ADBMS_SPI_USE_DMA
+    if (dma_ready(hspi))
+    {
+        if (HAL_SPI_Transmit_DMA(hspi, buf, len) != HAL_OK) { dma_stats.errors++; return HAL_ERROR; }
+        return dma_wait(hspi);
+    }
+#endif
+    return HAL_SPI_Transmit(hspi, buf, len, SPI_TIME_OUT);
+}
+
+static HAL_StatusTypeDef spi_txrx(SPI_HandleTypeDef *hspi, uint8_t *tx, uint8_t *rx, uint16_t len)
+{
+#if ADBMS_SPI_USE_DMA
+    if (dma_ready(hspi))
+    {
+        if (HAL_SPI_TransmitReceive_DMA(hspi, tx, rx, len) != HAL_OK) { dma_stats.errors++; return HAL_ERROR; }
+        return dma_wait(hspi);
+    }
+#endif
+    return HAL_SPI_TransmitReceive(hspi, tx, rx, len, SPI_TIME_OUT);
+}
+
 static void spi_transmit(SPI_HandleTypeDef *hspi, bool reverse, uint8_t *buf, uint16_t len)
 {
     cs_write(reverse, GPIO_PIN_RESET);
-    if (HAL_SPI_Transmit(hspi, buf, len, SPI_TIME_OUT) != HAL_OK)
+    if (spi_tx(hspi, buf, len) != HAL_OK)
     {
         // TODO: do something if fails
     }
@@ -430,10 +557,9 @@ static uint32_t read_one_path(SPI_HandleTypeDef *hspi, bool reverse, uint16_t tx
     spi_tx_dataBuf[2] = (uint8_t)(cmd_pec >> 8);
     spi_tx_dataBuf[3] = (uint8_t)(cmd_pec);
 
-    // Blocking Transmit Receive the cmd and data
+    // Transmit the cmd and receive the data (DMA or blocking)
     cs_write(reverse, GPIO_PIN_RESET);
-    const HAL_StatusTypeDef status =
-        HAL_SPI_TransmitReceive(hspi, spi_tx_dataBuf, spi_dataBuf, DATABUF_LEN, SPI_TIME_OUT);
+    const HAL_StatusTypeDef status = spi_txrx(hspi, spi_tx_dataBuf, spi_dataBuf, DATABUF_LEN);
     cs_write(reverse, GPIO_PIN_SET);
     if (status != HAL_OK)
     {

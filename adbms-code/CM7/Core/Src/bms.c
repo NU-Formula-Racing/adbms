@@ -256,9 +256,13 @@ void send_data_over_printf()
 		const float window_s = (now - last_ms) / 1000.0f;
 		if (last_ms != 0 && window_s > 0.0f)
 		{
-			printf("Poll rates: packboard %.1f Hz, cells+temps %.1f Hz | longest pass %lu us\n",
+			adbms_spi_dma_stats_ dma;
+			ADBMS_SPI_DMA_Get_Stats(&dma);
+			printf("Poll rates: packboard %.1f Hz, cells+temps %.1f Hz | longest pass %lu us | SPI DMA %s: %lu xfers, %lu errors, %lu timeouts\n",
 			       stat_pack_polls / window_s, stat_cell_polls / window_s,
-			       (unsigned long)(stat_max_pass_cycles / (SystemCoreClock / 1000000U)));
+			       (unsigned long)(stat_max_pass_cycles / (SystemCoreClock / 1000000U)),
+			       ADBMS_SPI_USE_DMA ? "on" : "off",
+			       (unsigned long)dma.transfers, (unsigned long)dma.errors, (unsigned long)dma.timeouts);
 		}
 		last_ms = now;
 		stat_pack_polls = 0;

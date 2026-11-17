@@ -55,6 +55,7 @@
 #define PACK_POLL_MS 10					/* main loop period = packboard (2950) poll period: 100 Hz */
 #define CELL_POLL_DIVIDER 10			/* cell voltages + temps (6830) every N passes: 100 ms, 10 Hz */
 #define CAN_STATUS_DIVIDER 2			/* 0x151 / 0x152 / charger frames every N passes: 20 ms, 50 Hz */
+#define ADBMS_SPI_USE_DMA 1				/* 1 = isoSPI SPI1/SPI2 transfers use DMA, 0 = blocking HAL SPI */
 #define ENABLE_USB_COMMS 1				/* Flag to enable USB comms (also needed for flashing over USB DFU) */
 #define ENABLE_SD_LOGGING_BIN 0			/* Flag to enable logging to SD Card as binary files */
 #define ENABLE_SD_LOGGING_CSV 0			/* Flag to enable logging to SD Card as CSV files (ASCII)*/
