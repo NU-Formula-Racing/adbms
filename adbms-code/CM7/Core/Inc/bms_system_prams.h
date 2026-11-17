@@ -34,11 +34,17 @@
 #define OVERTEMP 60						/* Over Temp Threshold 		*/
 #define UNDERTEMP -20					/* Under Temp Threshold 	*/
 
-// FTTI values
-#define FTTI_VOLTAGE_TH_1 0.05
-#define FTTI_VOLTAGE_TH_1_COUNTS 10		/* cell polls (10 Hz): > 10 -> ~1.1 s (was 50 at 50 Hz, ~1 s) */
-#define FTTI_VOLTAGE_TH_2 0.1
-#define FTTI_VOLTAGE_TH_2_COUNTS 1		/* cell polls (10 Hz): > 1 -> ~200 ms (was 5 at 50 Hz, ~120 ms) */
+// Cell voltage fault qualification (FTTI), for both OVERVOLTAGE and UNDERVOLTAGE.
+// FSAE (EV.8.3/EV.8.4) gives no BMS response time, so a single sample must not latch a fault (a glitch or an
+// IR-drop transient), but a real excursion must trip quickly. Asymmetric up/down counters, updated once per
+// FRESH cell sample (10 Hz; a failed read does not count): +FTTI_COUNT_UP per bad sample, -FTTI_COUNT_DOWN per
+// good one, floor 0. A level trips at TRIP_SAMPLES * FTTI_COUNT_UP, i.e. after TRIP_SAMPLES bad samples in a row
+// (intermittent faults still trip, just later).
+#define FTTI_COUNT_UP 2
+#define FTTI_COUNT_DOWN 1
+#define FTTI_LEVEL1_TRIP_SAMPLES 10		/* level 1: past the threshold -> ~1.0 s at 10 Hz */
+#define FTTI_LEVEL2_MARGIN_V 0.05		/* level 2: more than this past the threshold ... */
+#define FTTI_LEVEL2_TRIP_SAMPLES 2		/* ... -> ~0.2 s at 10 Hz */
 
 
 #define PEC_FAILURE_THRESHOLD 10		/* Number of consecutive PEC failures that can happen before a pec fault occurs*/

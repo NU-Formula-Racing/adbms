@@ -2,6 +2,7 @@
 #include <math.h>
 
 
+
 void ADBMS_6830_Parse_Voltage(adbms_read_raw_* raw_return, adbms_6830_voltage_parsed_* voltage_parsed)
 {
     //if there is a pec, process and don't update values
@@ -154,21 +155,22 @@ void ADBMS_6830_Parse_Temperature(adbms_read_raw_* raw_return, adbms_6830_temper
 
 void Update_6830_InternalFault(adbms_6830_* adbms_6830)
 {
-    // update ftti counts
-    Update_6830_FTTI(adbms_6830);
+    // update ftti counts, only on a fresh sample: after a failed read (PEC / ADC off) the voltages are the
+    // previous sample, which must not be counted again (a missing measurement is the PEC fault's job)
+    if (adbms_6830->voltage.pec_counts == 0) Update_6830_FTTI(adbms_6830);
 
     //all faults are latching
+    const uint16_t level1_trip = FTTI_LEVEL1_TRIP_SAMPLES * FTTI_COUNT_UP;
+    const uint16_t level2_trip = FTTI_LEVEL2_TRIP_SAMPLES * FTTI_COUNT_UP;
     // check overvoltage fault
     adbms_6830->faults.overvoltage_fault = adbms_6830->faults.overvoltage_fault 
-                                            || (adbms_6830->faults.overvoltage_th_1_counts > FTTI_VOLTAGE_TH_1_COUNTS)
-                                            || (adbms_6830->faults.overvoltage_th_2_counts > FTTI_VOLTAGE_TH_2_COUNTS)
-                                            || (adbms_6830->voltage.max_v > OVERVOLTAGE + FTTI_VOLTAGE_TH_2);
+                                            || (adbms_6830->faults.overvoltage_th_1_counts >= level1_trip)
+                                            || (adbms_6830->faults.overvoltage_th_2_counts >= level2_trip);
 
     // check undervoltage fault
     adbms_6830->faults.undervoltage_fault = adbms_6830->faults.undervoltage_fault 
-                                            || (adbms_6830->faults.undervoltage_th_1_counts > FTTI_VOLTAGE_TH_1_COUNTS)
-                                            || (adbms_6830->faults.undervoltage_th_2_counts > FTTI_VOLTAGE_TH_2_COUNTS)
-                                            || (adbms_6830->voltage.min_v < UNDERVOLTAGE - FTTI_VOLTAGE_TH_2 && adbms_6830->voltage.min_v > 0);
+                                            || (adbms_6830->faults.undervoltage_th_1_counts >= level1_trip)
+                                            || (adbms_6830->faults.undervoltage_th_2_counts >= level2_trip);
 
     // check overtemperature fault
     adbms_6830->faults.overtemperature_fault = adbms_6830->faults.overtemperature_fault || (adbms_6830->temperature.max_temp > OVERTEMP);
@@ -317,34 +319,31 @@ void Owc_s_channel_update(adbms_raw_* adbms_raw, adbms_6830_* adbms_6830)
 }
 
 
+// asymmetric up/down fault counter: +FTTI_COUNT_UP when bad, -FTTI_COUNT_DOWN when good, floor 0
+static void ftti_count(uint16_t *count, bool bad)
+{
+    if (bad)
+    {
+        if (*count <= (uint16_t)(UINT16_MAX - FTTI_COUNT_UP)) *count += FTTI_COUNT_UP;
+    }
+    else
+    {
+        *count = (*count > FTTI_COUNT_DOWN) ? (uint16_t)(*count - FTTI_COUNT_DOWN) : 0;
+    }
+}
+
 void Update_6830_FTTI(adbms_6830_* adbms_6830)
 {
+    const float max_v = adbms_6830->voltage.max_v;
+    const float min_v = adbms_6830->voltage.min_v;
+
     // overvoltage
-    if (adbms_6830->voltage.max_v > OVERVOLTAGE) {
-        adbms_6830->faults.overvoltage_th_1_counts++;
-    } else {
-        adbms_6830->faults.overvoltage_th_1_counts = 0;
-    }
+    ftti_count(&adbms_6830->faults.overvoltage_th_1_counts, max_v > OVERVOLTAGE);
+    ftti_count(&adbms_6830->faults.overvoltage_th_2_counts, max_v > OVERVOLTAGE + FTTI_LEVEL2_MARGIN_V);
 
-    if (adbms_6830->voltage.max_v > OVERVOLTAGE + FTTI_VOLTAGE_TH_1) {
-            adbms_6830->faults.overvoltage_th_2_counts++;
-    } else {
-        adbms_6830->faults.overvoltage_th_2_counts = 0;
-    }
-
-
-    // undervoltage
-    if (adbms_6830->voltage.min_v < UNDERVOLTAGE && adbms_6830->voltage.min_v > 0) {
-        adbms_6830->faults.undervoltage_th_1_counts++;
-    } else {
-        adbms_6830->faults.undervoltage_th_1_counts = 0;
-    }
-    
-    if (adbms_6830->voltage.min_v < UNDERVOLTAGE - FTTI_VOLTAGE_TH_1 && adbms_6830->voltage.min_v > 0) {
-            adbms_6830->faults.undervoltage_th_2_counts++;
-    } else {
-        adbms_6830->faults.undervoltage_th_2_counts = 0;
-    }
+    // undervoltage (min_v > 0: no valid reading yet)
+    ftti_count(&adbms_6830->faults.undervoltage_th_1_counts, min_v > 0 && min_v < UNDERVOLTAGE);
+    ftti_count(&adbms_6830->faults.undervoltage_th_2_counts, min_v > 0 && min_v < UNDERVOLTAGE - FTTI_LEVEL2_MARGIN_V);
 }
 
 
