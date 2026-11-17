@@ -59,27 +59,81 @@ void Tick_Mainboard_Timers()
 // measured poll rates for the debug print
 static uint32_t stat_pack_polls = 0, stat_cell_polls = 0, stat_max_pass_cycles = 0;
 
+// Per-stage loop timing (ENABLE_TIMING_STATS), max / avg over each debug print window
+enum { T_PACK, T_CELLS, T_PINS, T_RING, T_CTRL, T_CAN, T_PRINT, T_NUM };
+static const char *const timing_names[T_NUM] = { "pack", "cells", "pins", "ring", "faults+ctrl", "CAN", "print" };
+typedef struct { uint32_t max, sum, n; } stage_time_;
+static stage_time_ timing[T_NUM];
+static stage_time_ timing_pack_spi, timing_pack_wait, timing_cell_spi, timing_cell_wait, timing_ring_spi;
+
+static void stage_add(stage_time_ *st, uint32_t v)
+{
+	if (v > st->max) st->max = v;
+	st->sum += v;
+	st->n++;
+}
+
+// close the stage that started at *t (cycles), start the next one
+static void stage_end(int stage, uint32_t *t)
+{
+#if ENABLE_TIMING_STATS
+	const uint32_t now = DWT->CYCCNT;
+	stage_add(&timing[stage], now - *t);
+	*t = now;
+#else
+	(void)stage; (void)t;
+#endif
+}
+
+// SPI cycles / busy-wait us since the last call, added to the given sub-stage stats
+static void stage_io(stage_time_ *spi, stage_time_ *wait)
+{
+#if ENABLE_TIMING_STATS
+	uint32_t spi_cycles, wait_us;
+	ADBMS_Timing_Take(&spi_cycles, &wait_us);
+	if (spi) stage_add(spi, spi_cycles);
+	if (wait) stage_add(wait, wait_us * (SystemCoreClock / 1000000U));
+#else
+	(void)spi; (void)wait;
+#endif
+}
+
 void bms_mainboard_loop()
 {
 	static uint8_t pass = 0;
 	const bool cell_pass = (pass % CELL_POLL_DIVIDER) == 0;
 	const uint32_t pass_start = DWT->CYCCNT;
+	uint32_t t = pass_start;
+	stage_io(NULL, NULL);   // drop anything outside the pass (e.g. the OWC loop)
 
 	update_pack_values();
-	if (cell_pass) update_cell_values();
+	stage_end(T_PACK, &t);
+	stage_io(&timing_pack_spi, &timing_pack_wait);
+	if (cell_pass)
+	{
+		update_cell_values();
+		stage_end(T_CELLS, &t);
+		stage_io(&timing_cell_spi, &timing_cell_wait);
+	}
 	update_pin_values();
+	stage_end(T_PINS, &t);
 
 	// isoSPI ring: split / ring mode, backup-path probe, break isolation
 	ADBMS_Ring_Manage(&mainboard.adbms_raw);
+	stage_end(T_RING, &t);
+	stage_io(&timing_ring_spi, NULL);
 
 	check_faults();
 	Control_Loop(&mainboard);
+	stage_end(T_CTRL, &t);
 
 	Can_Send_Packboard();
 	if ((pass % CAN_STATUS_DIVIDER) == 0) Can_Send_Status();
 	if (cell_pass) Can_Send_Cells();
+	stage_end(T_CAN, &t);
 
 	if(ENABLE_PRINTF_DEBUG_COMMS) send_data_over_printf();
+	stage_end(T_PRINT, &t);
 
 	pass = (uint8_t)((pass + 1U) % CELL_POLL_DIVIDER);
 
@@ -264,6 +318,31 @@ void send_data_over_printf()
 			       ADBMS_SPI_USE_DMA ? "on" : "off",
 			       (unsigned long)dma.transfers, (unsigned long)dma.errors, (unsigned long)dma.timeouts);
 		}
+#if ENABLE_TIMING_STATS
+		if (last_ms != 0)
+		{
+			const uint32_t cpu = SystemCoreClock / 1000000U;
+			#define T_MAX(st) ((unsigned long)((st).max / cpu))
+			#define T_AVG(st) ((unsigned long)((st).n ? (st).sum / (st).n / cpu : 0))
+			printf("Timing max/avg us:");
+			for (int i = 0; i < T_NUM; i++)
+			{
+				printf(" %s %lu/%lu", timing_names[i], T_MAX(timing[i]), T_AVG(timing[i]));
+				if (i == T_PACK)  printf(" (spi %lu/%lu wait %lu/%lu)", T_MAX(timing_pack_spi), T_AVG(timing_pack_spi), T_MAX(timing_pack_wait), T_AVG(timing_pack_wait));
+				if (i == T_CELLS) printf(" (spi %lu/%lu wait %lu/%lu)", T_MAX(timing_cell_spi), T_AVG(timing_cell_spi), T_MAX(timing_cell_wait), T_AVG(timing_cell_wait));
+				if (i == T_RING)  printf(" (spi %lu/%lu)", T_MAX(timing_ring_spi), T_AVG(timing_ring_spi));
+				printf(i + 1 < T_NUM ? " |" : "\n");
+			}
+			#undef T_MAX
+			#undef T_AVG
+		}
+		memset(timing, 0, sizeof(timing));
+		memset(&timing_pack_spi, 0, sizeof(timing_pack_spi));
+		memset(&timing_pack_wait, 0, sizeof(timing_pack_wait));
+		memset(&timing_cell_spi, 0, sizeof(timing_cell_spi));
+		memset(&timing_cell_wait, 0, sizeof(timing_cell_wait));
+		memset(&timing_ring_spi, 0, sizeof(timing_ring_spi));
+#endif
 		last_ms = now;
 		stat_pack_polls = 0;
 		stat_cell_polls = 0;

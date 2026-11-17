@@ -413,7 +413,38 @@ void ADBMS_SPI_DMA_Get_Stats(adbms_spi_dma_stats_ *stats)
 #endif
 }
 
+// Timing diagnostics: CPU cycles spent in SPI transfers and in delay_us busy-waits (wakes)
+static uint32_t timing_spi_cycles = 0;
+static uint32_t timing_wait_us = 0;
+
+void ADBMS_Timing_Take(uint32_t *spi_cycles, uint32_t *wait_us)
+{
+    if (spi_cycles) *spi_cycles = timing_spi_cycles;
+    if (wait_us) *wait_us = timing_wait_us;
+    timing_spi_cycles = 0;
+    timing_wait_us = 0;
+}
+
+static HAL_StatusTypeDef spi_tx_raw(SPI_HandleTypeDef *hspi, uint8_t *buf, uint16_t len);
+static HAL_StatusTypeDef spi_txrx_raw(SPI_HandleTypeDef *hspi, uint8_t *tx, uint8_t *rx, uint16_t len);
+
 static HAL_StatusTypeDef spi_tx(SPI_HandleTypeDef *hspi, uint8_t *buf, uint16_t len)
+{
+    const uint32_t t0 = DWT->CYCCNT;
+    const HAL_StatusTypeDef st = spi_tx_raw(hspi, buf, len);
+    timing_spi_cycles += DWT->CYCCNT - t0;
+    return st;
+}
+
+static HAL_StatusTypeDef spi_txrx(SPI_HandleTypeDef *hspi, uint8_t *tx, uint8_t *rx, uint16_t len)
+{
+    const uint32_t t0 = DWT->CYCCNT;
+    const HAL_StatusTypeDef st = spi_txrx_raw(hspi, tx, rx, len);
+    timing_spi_cycles += DWT->CYCCNT - t0;
+    return st;
+}
+
+static HAL_StatusTypeDef spi_tx_raw(SPI_HandleTypeDef *hspi, uint8_t *buf, uint16_t len)
 {
 #if ADBMS_SPI_USE_DMA
     if (dma_ready(hspi))
@@ -425,7 +456,7 @@ static HAL_StatusTypeDef spi_tx(SPI_HandleTypeDef *hspi, uint8_t *buf, uint16_t 
     return HAL_SPI_Transmit(hspi, buf, len, SPI_TIME_OUT);
 }
 
-static HAL_StatusTypeDef spi_txrx(SPI_HandleTypeDef *hspi, uint8_t *tx, uint8_t *rx, uint16_t len)
+static HAL_StatusTypeDef spi_txrx_raw(SPI_HandleTypeDef *hspi, uint8_t *tx, uint8_t *rx, uint16_t len)
 {
 #if ADBMS_SPI_USE_DMA
     if (dma_ready(hspi))
@@ -609,6 +640,7 @@ static void delay_us(uint32_t us)
     const uint32_t start = DWT->CYCCNT;
     const uint32_t cycles = us * (SystemCoreClock / 1000000U);
     while ((DWT->CYCCNT - start) < cycles) { }
+    timing_wait_us += us;
 }
 
 // One CS pulse wakes one more device down the chain (a device only relays once it is awake).

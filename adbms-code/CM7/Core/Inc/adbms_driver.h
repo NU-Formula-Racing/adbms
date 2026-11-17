@@ -346,3 +346,7 @@ typedef struct {
 } adbms_spi_dma_stats_;
 void ADBMS_SPI_DMA_Init(SPI_HandleTypeDef *hspi_spi2, SPI_HandleTypeDef *hspi_spi1);
 void ADBMS_SPI_DMA_Get_Stats(adbms_spi_dma_stats_ *stats);
+
+// Timing diagnostics: returns, then zeroes, the CPU cycles spent in SPI transfers and the microseconds
+// spent in delay_us busy-waits (wake pulses) since the last call.
+void ADBMS_Timing_Take(uint32_t *spi_cycles, uint32_t *wait_us);
